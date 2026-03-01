@@ -1,0 +1,430 @@
+.guest-checkin-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  font-family: 'Poppins', 'Inter', sans-serif;
+}
+
+.guest-checkin-card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: max-width 0.3s ease;
+}
+
+.guest-checkin-card-expanded {
+  max-width: 800px;
+}
+
+.guest-checkin-header {
+  background: linear-gradient(135deg, #0046a5 0%, #00a0e3 100%);
+  padding: 2rem 2.2rem;
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guest-checkin-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.guest-checkin-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.guest-checkin-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.guest-event-info {
+  padding: 1.8rem 2.1rem 1.4rem;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.guest-event-info h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guest-event-datetime {
+  margin: 0 0 0.8rem;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.guest-event-datetime span {
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.guest-event-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #b91c1c;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+
+.guest-form {
+  padding: 1.8rem 2.1rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.guest-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.guest-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.guest-form-group label {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.guest-form-group label span {
+  color: #ef4444;
+}
+
+.guest-form-group input,
+.guest-form-group select,
+.guest-form-group textarea {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #ffffff;
+}
+
+.guest-form-group textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.guest-form-group input:focus,
+.guest-form-group select:focus,
+.guest-form-group textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+  outline: none;
+}
+
+.guest-form-group input:disabled,
+.guest-form-group select:disabled,
+.guest-form-group textarea:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.guest-field-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+}
+
+.guest-duplicate-warning {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-size: 0.9rem;
+}
+
+.guest-error-banner {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 12px;
+  padding: 0.95rem 1.1rem;
+  font-weight: 500;
+}
+
+.guest-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.95rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 28px rgba(102, 126, 234, 0.35);
+}
+
+.guest-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(102, 126, 234, 0.45);
+}
+
+.guest-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.guest-btn-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  animation: guestSpin 0.9s linear infinite;
+}
+
+.guest-checkin-footer {
+  padding: 1.4rem 1rem;
+  text-align: center;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.83rem;
+  color: #94a3b8;
+}
+
+.guest-checkin-loading,
+.guest-checkin-error,
+.guest-success-panel {
+  padding: 2.6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+  color: #1e293b;
+}
+
+.guest-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid #dbeafe;
+  border-top-color: #2563eb;
+  animation: guestSpin 0.8s linear infinite;
+}
+
+.guest-success-panel svg {
+  color: #16a34a;
+}
+
+.guest-success-summary {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  background: #f1f5f9;
+  padding: 0.95rem 1.15rem;
+  border-radius: 14px;
+  justify-content: space-between;
+}
+
+.guest-success-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.guest-summary-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.guest-summary-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guest-success-hint {
+  margin: 0;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.guest-success-actions {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 1.1rem;
+}
+
+.guest-success-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.guest-success-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+}
+
+.guest-success-secondary {
+  background: transparent;
+  border: 1px solid #cbd5f5;
+  color: #1e293b;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.guest-success-secondary:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.guest-checkin-error svg {
+  color: #dc2626;
+}
+
+.guest-checkin-home-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes guestSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Member Form Styles */
+.guest-member-form-panel {
+  padding: 1.8rem 2.1rem 2.2rem;
+}
+
+.guest-member-form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.guest-member-form-header svg {
+  color: #16a34a;
+  margin-bottom: 1rem;
+}
+
+.guest-member-form-header h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guest-member-form-header p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.guest-member-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.guest-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.guest-form-section h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .guest-checkin-container {
+    padding: 1rem;
+  }
+
+  .guest-checkin-header {
+    padding: 1.8rem 1.6rem;
+  }
+
+  .guest-event-info {
+    padding: 1.6rem 1.5rem 1.25rem;
+  }
+
+  .guest-form {
+    padding: 1.6rem 1.5rem 2rem;
+  }
+
+  .guest-member-form-panel {
+    padding: 1.6rem 1.5rem 2rem;
+  }
+
+  .guest-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-success-summary {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .guest-success-actions {
+    flex-direction: column;
+  }
+}

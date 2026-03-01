@@ -1,0 +1,15 @@
+.notifications-dropdown {
+  position: absolute;
+  top: 50px;
+  right: -10px;
+  width: 320px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.15);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: #0f172a;
+  z-index: 1001;
+}

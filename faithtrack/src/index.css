@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+@font-face {
+  font-family: 'Urbanist';
+  src: url('/src/assets/Urbanist/fonts/Urbanist-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Urbanist';
+  src: url('/src/assets/Urbanist/fonts/Urbanist-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/src/assets/Poppins/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+
+/* Global fix to remove any black bars */
+html, body {
+  height: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  place-items: unset !important;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+#root, #app {
+  height: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  place-items: unset !important;
+  background: #ffffff;
+  overflow-x: hidden;
+}
+
+body::after,
+#root::after,
+footer,
+.footer,
+.black-bar,
+[class*="footer"] {
+  display: none !important;
+}
+
+/* Remove aggressive reset for .members-tabs and .members-tabs .tab */
+body, #root, .App, .main-content, .dashboard-content, .top-controls, .search-bar, .members-list-container, .table-container, .members-table, .content-wrapper, .container, .page-content, .page-wrapper, .admin-container, .app-container, .main-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+/* Remove .members-tabs and .members-tabs .tab from this reset */
+
+/* Remove any centering from body */
+body {
+  display: block !important;
+  place-items: unset !important;
+}
+
+/* Remove any max-width or margin auto from all divs */
+/* div {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+} */
+
+.dashboard-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-top: 0 !important;
+}
