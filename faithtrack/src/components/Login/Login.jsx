@@ -15,7 +15,7 @@ const Login = () => {
   const [isExiting, setIsExiting] = useState(false);
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const navigate = useNavigate();
-  const apiBaseUrl = window.location.origin;
+  const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
 
   useEffect(() => {
     // Load church settings
