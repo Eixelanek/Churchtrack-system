@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/poppins": "^5.2.5",
     "bootstrap": "^5.3.3",
+    "html5-qrcode": "^2.3.8",
     "jsqr": "^1.4.0",
     "qrcode.react": "^4.1.0",
     "react": "^19.0.0",
