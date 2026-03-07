@@ -16,6 +16,10 @@ const Login = () => {
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const navigate = useNavigate();
   const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+  
+  // Debug: log the API URL
+  console.log('API Base URL:', apiBaseUrl);
+  console.log('Environment variable:', import.meta.env.VITE_API_URL);
 
   useEffect(() => {
     // Load church settings
