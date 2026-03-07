@@ -1,7 +1,4 @@
 {
-  "buildCommand": "cd faithtrack && npm install && npm run build",
-  "outputDirectory": "faithtrack/dist",
-  "framework": "vite",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
