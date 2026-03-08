@@ -1,0 +1,12 @@
+# Netlify build config for ChurchTrack frontend
+# Frontend is in faithtrack/ subfolder
+
+[build]
+  base = "faithtrack"
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

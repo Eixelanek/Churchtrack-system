@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import './GuestCheckIn.css';
 import logoImage from '../../assets/logo2.png';
+import { API_BASE_URL } from '../../config/api';
 
 const suffixOptions = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV'];
 
@@ -17,7 +18,6 @@ const GuestCheckIn = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionToken = searchParams.get('session') || '';
-  const apiBaseUrl = window.location.origin;
 
   const [loading, setLoading] = useState(true);
   const [sessionData, setSessionData] = useState(null);
@@ -98,7 +98,7 @@ const GuestCheckIn = () => {
           throw new Error('Missing guest session token.');
         }
 
-        const response = await fetch(`${apiBaseUrl}/api/qr_sessions/get_guest_session.php?token=${encodeURIComponent(sessionToken)}`);
+        const response = await fetch(`${API_BASE_URL}/api/qr_sessions/get_guest_session.php?token=${encodeURIComponent(sessionToken)}`);
         const result = await response.json();
 
         if (!response.ok || !result.success) {
@@ -115,7 +115,7 @@ const GuestCheckIn = () => {
     };
 
     fetchSession();
-  }, [apiBaseUrl, sessionToken]);
+  }, [sessionToken]);
 
   const validateForm = () => {
     const errors = {};
@@ -189,7 +189,7 @@ const GuestCheckIn = () => {
         status: 'present'
       };
 
-      const response = await fetch(`${apiBaseUrl}/api/guest/checkin.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/guest/checkin.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -351,7 +351,7 @@ const GuestCheckIn = () => {
         relationshipToGuardian: memberFormData.relationshipToGuardian.trim()
       };
       
-      const response = await fetch(`${apiBaseUrl}/api/guest/convert_to_member.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/guest/convert_to_member.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
