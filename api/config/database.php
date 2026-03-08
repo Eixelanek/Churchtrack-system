@@ -4,7 +4,7 @@ class Database {
     private $port = "17629";
     private $db_name = "defaultdb";
     private $username = "avnadmin";
-    private $password = "AIVEN_PASSWORD_HERE";  // Will be set via environment variable
+    private $password = "AVNS_YXyhc87L5iDG6SRQ4cg";  // Aiven password
     public $conn;
 
     public function getConnection() {
