@@ -20,7 +20,7 @@ try {
                                manually_ended = 0,
                                updated_at = NOW()
                            WHERE status != 'completed' 
-                           AND CONCAT(date, ' ', start_time) <= DATE_SUB(NOW(), INTERVAL -2 HOUR)";
+                           AND TIMESTAMPADD(HOUR, 2, CONCAT(date, ' ', start_time)) <= NOW()";
     $db->exec($auto_complete_query);
 
     // Get all events with attendance data

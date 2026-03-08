@@ -17,7 +17,7 @@ try {
     $query = "SELECT id, title, date, start_time 
               FROM events 
               WHERE status != 'completed' 
-              AND CONCAT(date, ' ', start_time) <= DATE_SUB(NOW(), INTERVAL -2 HOUR)";
+              AND TIMESTAMPADD(HOUR, 2, CONCAT(date, ' ', start_time)) <= NOW()";
     
     $stmt = $db->prepare($query);
     $stmt->execute();
