@@ -1,27 +1,27 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-// This is a simplified example of a protected route
-// In a real app, you would check for an auth token or session
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, allowedUserType }) => {
   const location = useLocation();
   const token = localStorage.getItem('token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userType = localStorage.getItem('userType');
   
-  if (!token) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/" state={{ from: location }} replace />;
+  // Redirect to login if not authenticated
+  if (!token || !userType) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if admin access is required
-  if (requireAdmin && user.role !== 'admin') {
-    // Redirect to home if admin access is required but user is not an admin
-    return <Navigate to="/home" replace />;
-  }
-
-  // If admin access is not required and user is an admin, redirect to admin dashboard
-  if (!requireAdmin && user.role === 'admin') {
-    return <Navigate to="/admin/dashboard" replace />;
+  // Check if user has the required user type
+  if (allowedUserType && userType !== allowedUserType) {
+    // Redirect to appropriate dashboard based on user type
+    if (userType === 'admin') {
+      return <Navigate to="/admin" replace />;
+    } else if (userType === 'manager') {
+      return <Navigate to="/manager" replace />;
+    } else if (userType === 'member') {
+      return <Navigate to="/member" replace />;
+    }
+    return <Navigate to="/login" replace />;
   }
   
   return children;

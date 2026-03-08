@@ -1,27 +1,21 @@
 <?php
 class Database {
-    private $host = "churchtrack-db-churchtrack.a.aivencloud.com";
-    private $port = "17629";
-    private $db_name = "defaultdb";
-    private $username = "avnadmin";
-    private $password = "AVNS_YXyhc87L5iDG6SRQ4cg";  // Aiven password
+    // InfinityFree MySQL Configuration
+    private $host = "sql110.infinityfree.com";
+    private $port = "3306";
+    private $db_name = "if0_41276444_ChurchTrack";
+    private $username = "if0_41276444";
+    private $password = "FQdKr0jjkK";
     public $conn;
 
     public function getConnection() {
         $this->conn = null;
 
-        // Use environment variable if available (for Render deployment)
-        $host = getenv('DB_HOST') ?: $this->host;
-        $port = getenv('DB_PORT') ?: $this->port;
-        $db_name = getenv('DB_NAME') ?: $this->db_name;
-        $username = getenv('DB_USER') ?: $this->username;
-        $password = getenv('DB_PASSWORD') ?: $this->password;
-
         try {
             $this->conn = new PDO(
-                "mysql:host=$host;port=$port;dbname=$db_name",
-                $username,
-                $password
+                "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}",
+                $this->username,
+                $this->password
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8mb4");

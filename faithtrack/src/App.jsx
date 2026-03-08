@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import Home from './components/Home/Home';
@@ -12,72 +12,8 @@ import Member from './components/Members/Member';
 import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
 import CheckIn from './components/CheckIn/CheckIn';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import logoImage from './assets/logo.png';
-import { API_BASE_URL } from './config/api';
-
-// Protected Route component with session validation
-const ProtectedRoute = ({ children, allowedUserType }) => {
-  const [isValidating, setIsValidating] = React.useState(true);
-  const [isValid, setIsValid] = React.useState(false);
-  const [shouldRedirect, setShouldRedirect] = React.useState(false);
-
-  React.useEffect(() => {
-    const validateSession = async () => {
-      const token = localStorage.getItem('token');
-      const userType = localStorage.getItem('userType');
-      const sessionId = localStorage.getItem('sessionId');
-      const adminId = localStorage.getItem('userId');
-
-      if (!token || (allowedUserType && userType !== allowedUserType)) {
-        setIsValid(false);
-        if (!token) {
-          setShouldRedirect(true);
-        }
-        setIsValidating(false);
-        return;
-      }
-
-      if (sessionId && adminId && userType === 'admin') {
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/admin/validate_session.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId, adminId })
-          });
-          const result = await response.json();
-          if (!result.success || !result.active) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userType');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('username');
-            localStorage.removeItem('sessionId');
-            setIsValid(false);
-            setIsValidating(false);
-            setShouldRedirect(true);
-            return;
-          }
-        } catch (error) {
-          console.error('Session validation failed:', error);
-        }
-      }
-
-      setIsValid(true);
-      setIsValidating(false);
-    };
-
-    validateSession();
-  }, [allowedUserType]);
-
-  if (isValidating) {
-    return null;
-  }
-
-  if (!isValid || shouldRedirect) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
-};
 
 const App = () => {
   React.useEffect(() => {
