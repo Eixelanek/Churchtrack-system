@@ -1,4 +1,9 @@
 {
+  "name": "churchtrack-system",
+  "private": true,
+  "scripts": {
+    "build": "cd faithtrack && npm run build"
+  },
   "dependencies": {
     "html5-qrcode": "^2.3.8",
     "qrcode.react": "^4.1.0",
