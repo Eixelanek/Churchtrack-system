@@ -20,6 +20,7 @@ const AttendanceHistory = () => {
   const [familyMembers, setFamilyMembers] = useState([]);
   const [isLoadingFamily, setIsLoadingFamily] = useState(true);
   const [familyError, setFamilyError] = useState(null);
+  const [familyAttendance, setFamilyAttendance] = useState([]); // Track family member attendance
 
   const getInitials = useCallback((fullName) => {
     if (!fullName || typeof fullName !== 'string') {
@@ -238,6 +239,34 @@ const AttendanceHistory = () => {
 
         setFamilyMembers(membersList);
         setFamilyError(null);
+        
+        // Fetch attendance for family members
+        const familyIds = membersList
+          .filter(m => !m.isYou && m.key.includes('-'))
+          .map(m => m.key.split('-')[0])
+          .filter(id => !isNaN(id));
+        
+        if (familyIds.length > 0) {
+          try {
+            const familyAttendancePromises = familyIds.map(async (id) => {
+              try {
+                const data = await fetchMemberAttendanceSummary(id);
+                return (data.attendance_records || []).map(record => ({
+                  memberId: id,
+                  eventDate: record.checkin_datetime ? new Date(record.checkin_datetime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null,
+                  serviceName: record.service_name || 'QR Attendance'
+                }));
+              } catch {
+                return [];
+              }
+            });
+            
+            const allFamilyAttendance = await Promise.all(familyAttendancePromises);
+            setFamilyAttendance(allFamilyAttendance.flat());
+          } catch (err) {
+            console.error('Failed to load family attendance:', err);
+          }
+        }
       } catch (loadError) {
         console.error('Family circle load failed:', loadError);
         setFamilyMembers([]);
@@ -257,13 +286,32 @@ const AttendanceHistory = () => {
   const filteredRecords = useMemo(() => {
     let list = records;
 
+    // Filter by month
     if (selectedMonth !== 'All') {
       list = list.filter((record) => record.monthLabel === selectedMonth);
     }
 
-    // Filters (Only Me / With Family) can be extended in the future.
+    // Filter by attendance type
+    if (selectedFilter === 'me') {
+      // Only Me - show only records where no family members attended the same event
+      list = list.filter((record) => {
+        const hasFamilyAtEvent = familyAttendance.some(
+          (fa) => fa.eventDate === record.date && fa.serviceName === record.service
+        );
+        return !hasFamilyAtEvent;
+      });
+    } else if (selectedFilter === 'family') {
+      // With Family - show only records where at least one family member also attended
+      list = list.filter((record) => {
+        const hasFamilyAtEvent = familyAttendance.some(
+          (fa) => fa.eventDate === record.date && fa.serviceName === record.service
+        );
+        return hasFamilyAtEvent;
+      });
+    }
+
     return list;
-  }, [records, selectedMonth]);
+  }, [records, selectedMonth, selectedFilter, familyAttendance]);
 
   const totalRecords = filteredRecords.length;
   const displayMonth = selectedMonth === 'All' ? 'All Months' : selectedMonth;
