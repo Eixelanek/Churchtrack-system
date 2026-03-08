@@ -74,6 +74,8 @@ const Login = () => {
 
       if (adminResponse.ok) {
         const adminData = await adminResponse.json();
+        // Only treat as successful admin login if we have an ID
+        // If "User not found", continue to try other login types
         if (adminData.id) {
           localStorage.setItem('token', adminData.token || '');
           localStorage.setItem('userType', 'admin');
@@ -85,10 +87,15 @@ const Login = () => {
             localStorage.removeItem('sessionId');
           }
           navigate('/admin', { replace: true });
-        } else {
-          setError('Invalid login response. Please check your credentials and try again.');
+          return;
         }
-        return;
+        // If no ID but response is OK, check if it's "User not found" - if so, continue to member login
+        // Otherwise it's a malformed response
+        if (!adminData.message || !adminData.message.includes('not found')) {
+          setError('Invalid login response. Please check your credentials and try again.');
+          return;
+        }
+        // User not found in admin, continue to try manager and member
       }
 
       const managerResponse = await fetch(`${apiBaseUrl}/api/manager/login.php`, {
@@ -104,12 +111,16 @@ const Login = () => {
 
       if (managerResponse.ok) {
         const managerData = await managerResponse.json();
-        localStorage.setItem('token', 'manager-token');
-        localStorage.setItem('userType', 'manager');
-        localStorage.setItem('userId', managerData.id);
-        localStorage.setItem('username', managerData.username);
-        navigate('/manager', { replace: true });
-        return;
+        // Only treat as successful manager login if we have an ID
+        if (managerData.id) {
+          localStorage.setItem('token', 'manager-token');
+          localStorage.setItem('userType', 'manager');
+          localStorage.setItem('userId', managerData.id);
+          localStorage.setItem('username', managerData.username);
+          navigate('/manager', { replace: true });
+          return;
+        }
+        // If no ID, continue to member login (user not found as manager)
       }
 
       const memberResponse = await fetch(`${apiBaseUrl}/api/members/login.php`, {
