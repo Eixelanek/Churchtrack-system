@@ -518,30 +518,49 @@ const Admin = () => {
   }, [activeTab, showProfileView, showSessionsModal]);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const sessionId = localStorage.getItem('sessionId');
-      if (!sessionId) return;
+    // Wait 30 seconds before starting session validation to allow login to complete
+    const initialDelay = setTimeout(() => {
+      const interval = setInterval(async () => {
+        const sessionId = localStorage.getItem('sessionId');
+        const userId = localStorage.getItem('userId');
+        if (!sessionId || !userId) return;
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=1`);
-        const result = await response.json();
-        if (result.success) {
-          const currentSession = result.data.find(session => session.sessionId === sessionId);
-          if (!currentSession || !currentSession.isActive) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userType');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('username');
-            localStorage.removeItem('sessionId');
-            navigate('/login', { replace: true });
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=${userId}`);
+          
+          // Only process if response is ok
+          if (!response.ok) {
+            console.error('Session check failed with status:', response.status);
+            return;
           }
+          
+          const result = await response.json();
+          if (result.success && result.data) {
+            const currentSession = result.data.find(session => session.sessionId === sessionId);
+            
+            // Only logout if we're sure the session is invalid
+            if (currentSession && !currentSession.isActive) {
+              console.log('Session is inactive, logging out');
+              localStorage.removeItem('token');
+              localStorage.removeItem('userType');
+              localStorage.removeItem('userId');
+              localStorage.removeItem('username');
+              localStorage.removeItem('sessionId');
+              navigate('/login', { replace: true });
+            }
+            // If session not found but we have other active sessions, keep logged in
+            // This prevents logout during session creation
+          }
+        } catch (error) {
+          console.error('Error polling session status:', error);
+          // Don't logout on network errors
         }
-      } catch (error) {
-        console.error('Error polling session status:', error);
-      }
-    }, 15000);
+      }, 30000); // Check every 30 seconds instead of 15
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
+    }, 30000); // Wait 30 seconds before first check
+
+    return () => clearTimeout(initialDelay);
   }, [navigate]);
 
   // Function to add birthday notifications
