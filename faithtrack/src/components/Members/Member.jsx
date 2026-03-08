@@ -1399,7 +1399,8 @@ const Member = () => {
             });
             formattedTime = dateObj.toLocaleTimeString('en-US', {
               hour: 'numeric',
-              minute: '2-digit'
+              minute: '2-digit',
+              hour12: true
             });
           }
         }

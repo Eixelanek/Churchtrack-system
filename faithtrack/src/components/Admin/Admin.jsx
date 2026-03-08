@@ -712,7 +712,8 @@ const Admin = () => {
       year: 'numeric'
     })} ${date.toLocaleTimeString(undefined, {
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     })}`;
   };
 
@@ -1017,7 +1018,8 @@ const Admin = () => {
     date.setHours(Number(hours), Number(minutes) || 0, 0, 0);
     return date.toLocaleTimeString(undefined, {
       hour: 'numeric',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
   };
 

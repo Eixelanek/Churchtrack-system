@@ -97,7 +97,8 @@ const formatEventDateTime = (dateTimeString) => {
 
   const timePart = date.toLocaleTimeString([], {
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: true
   });
 
   return `${datePart} • ${timePart}`;
@@ -574,7 +575,7 @@ const Manager = () => {
       return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     }
     if (diffSeconds < 172800) {
-      return `Yesterday, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+      return `Yesterday, ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}`;
     }
     if (diffSeconds < 604800) {
       const days = Math.floor(diffSeconds / 86400);
@@ -879,7 +880,7 @@ const Manager = () => {
         ? eventDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
         : undefined;
       const timeLabel = eventDate
-        ? eventDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+        ? eventDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
         : undefined;
 
       return {
@@ -1682,7 +1683,7 @@ const Manager = () => {
       });
 
       const timeLabel = date.toLocaleTimeString(undefined, {
-        hour: 'numeric', minute: '2-digit'
+        hour: 'numeric', minute: '2-digit', hour12: true
       });
 
       return { dateLabel, timeLabel };
@@ -1787,7 +1788,7 @@ const Manager = () => {
       if (!sessionsLastUpdated) return '—';
       const date = new Date(sessionsLastUpdated);
       if (Number.isNaN(date.getTime())) return '—';
-      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
     }, [sessionsLastUpdated]);
 
     useEffect(() => {
@@ -2887,7 +2888,7 @@ const Manager = () => {
                     year: 'numeric' 
                   });
                   const timeStr = eventDate.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
+                    hour: 'numeric', 
                     minute: '2-digit',
                     hour12: true 
                   });

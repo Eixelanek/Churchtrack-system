@@ -89,6 +89,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       return time.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
+        hour12: true
       });
     };
 
@@ -2921,7 +2922,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
                               {secondary && <span className="full-list-secondary">{secondary}</span>}
                             </div>
                             {selectedEventDetails.activeTab === 'attendees' && person.checkInTime && (
-                              <div className="full-list-subtext">Checked in at {new Date(person.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</div>
+                              <div className="full-list-subtext">Checked in at {new Date(person.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
                             )}
                           </div>
                           <span className={`full-list-status ${selectedEventDetails.activeTab === 'attendees' ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>

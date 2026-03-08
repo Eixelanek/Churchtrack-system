@@ -93,7 +93,7 @@ const AttendanceHistory = () => {
                 ? validDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : 'Unknown Date',
               time: validDate
-                ? validDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                ? validDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
                 : '',
               status: record.status || 'Present',
               monthLabel,
