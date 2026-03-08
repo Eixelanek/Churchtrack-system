@@ -230,8 +230,18 @@ try {
         exit();
     }
     
-    // Add updated_at timestamp
+    // Add updated_at timestamp and regenerate full_name
     $updateFields[] = "updated_at = NOW()";
+    
+    // Regenerate full_name if name fields were updated
+    if (isset($data->first_name) || isset($data->middle_name) || isset($data->last_name) || isset($data->suffix)) {
+        $updateFields[] = "full_name = CONCAT(
+            COALESCE(first_name, ''), ' ',
+            COALESCE(CONCAT(middle_name, ' '), ''),
+            COALESCE(surname, ''),
+            CASE WHEN suffix != 'None' AND suffix IS NOT NULL THEN CONCAT(' ', suffix) ELSE '' END
+        )";
+    }
     
     // Build and execute update query
     $query = "UPDATE members SET " . implode(", ", $updateFields) . " WHERE id = :member_id";
@@ -242,8 +252,29 @@ try {
     }
     
     if ($stmt->execute()) {
-        // Fetch updated member data
-        $fetchQuery = "SELECT id, first_name, middle_name, surname, email, profile_picture FROM members WHERE id = :member_id";
+        // Fetch updated member data with all relevant fields
+        $fetchQuery = "SELECT 
+                        id, 
+                        first_name, 
+                        middle_name, 
+                        surname, 
+                        suffix,
+                        email, 
+                        contact_number,
+                        gender,
+                        birthday,
+                        street,
+                        barangay,
+                        city,
+                        province,
+                        zip_code,
+                        profile_picture,
+                        CONCAT(first_name, ' ', 
+                               COALESCE(CONCAT(middle_name, ' '), ''), 
+                               surname,
+                               CASE WHEN suffix != 'None' THEN CONCAT(' ', suffix) ELSE '' END) as full_name
+                       FROM members 
+                       WHERE id = :member_id";
         $fetchStmt = $db->prepare($fetchQuery);
         $fetchStmt->bindParam(':member_id', $memberId);
         $fetchStmt->execute();
