@@ -39,7 +39,6 @@ function Upload-FtpDirectory {
             Write-Host "✗ Failed: $relativePath - $($_.Exception.Message)" -ForegroundColor Red
         }
     }
-    }
 }
 
 # Upload api folder

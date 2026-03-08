@@ -1011,52 +1011,59 @@ const Admin = () => {
 
   const generateReport = async () => {
     try {
+      // Direct API call to Render backend
+      const formData = new FormData();
+      formData.append('format', 'json');
+      formData.append('startDate', reportStartDate);
+      formData.append('endDate', reportEndDate);
+
       const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          format: 'json',
-          startDate: reportStartDate,
-          endDate: reportEndDate
-        })
+        body: formData
       });
+      
       const data = await response.json();
       if (data.success) {
         setReportData(data.data);
+      } else {
+        console.error('Report generation failed:', data.message);
+        alert('Failed to generate report: ' + (data.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error generating report:', error);
+      alert('Error generating report. Please try again.');
     }
   };
 
   const exportReportXlsx = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          format: 'xlsx',
-          startDate: reportStartDate,
-          endDate: reportEndDate
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Export failed with status ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      const safeStart = reportStartDate || 'start';
-      const safeEnd = reportEndDate || 'end';
-      link.download = `attendance_report_${safeStart}_${safeEnd}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      // Use form POST to bypass InfinityFree anti-bot protection
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `${API_BASE_URL}/api/reports/export_attendance.php`;
+      form.target = '_blank';
+      
+      const formatInput = document.createElement('input');
+      formatInput.type = 'hidden';
+      formatInput.name = 'format';
+      formatInput.value = 'xlsx';
+      form.appendChild(formatInput);
+      
+      const startInput = document.createElement('input');
+      startInput.type = 'hidden';
+      startInput.name = 'startDate';
+      startInput.value = reportStartDate;
+      form.appendChild(startInput);
+      
+      const endInput = document.createElement('input');
+      endInput.type = 'hidden';
+      endInput.name = 'endDate';
+      endInput.value = reportEndDate;
+      form.appendChild(endInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     } catch (error) {
       console.error('Error exporting report:', error);
     }
@@ -1064,32 +1071,33 @@ const Admin = () => {
 
   const exportReportPdf = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          format: 'pdf',
-          startDate: reportStartDate,
-          endDate: reportEndDate
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Export failed with status ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      const safeStart = reportStartDate || 'start';
-      const safeEnd = reportEndDate || 'end';
-      link.download = `attendance_report_${safeStart}_${safeEnd}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      // Use form POST to bypass InfinityFree anti-bot protection
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `${API_BASE_URL}/api/reports/export_attendance.php`;
+      form.target = '_blank';
+      
+      const formatInput = document.createElement('input');
+      formatInput.type = 'hidden';
+      formatInput.name = 'format';
+      formatInput.value = 'pdf';
+      form.appendChild(formatInput);
+      
+      const startInput = document.createElement('input');
+      startInput.type = 'hidden';
+      startInput.name = 'startDate';
+      startInput.value = reportStartDate;
+      form.appendChild(startInput);
+      
+      const endInput = document.createElement('input');
+      endInput.type = 'hidden';
+      endInput.name = 'endDate';
+      endInput.value = reportEndDate;
+      form.appendChild(endInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     } catch (error) {
       console.error('Error exporting PDF report:', error);
     }

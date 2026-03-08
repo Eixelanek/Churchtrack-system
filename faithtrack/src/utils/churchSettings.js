@@ -15,17 +15,63 @@ export const getChurchSettings = () => {
 
 export const loadChurchSettingsFromAPI = async () => {
   try {
+    // Direct API call to Render backend
     const response = await fetch(`${API_BASE_URL}/api/admin/get_church_settings.php`);
     const result = await response.json();
-    if (result.success) {
-      // Save to localStorage for future use
+    
+    if (result && result.success) {
       localStorage.setItem('churchSettings', JSON.stringify(result.data));
       return result.data;
     }
+    
+    // Fallback to defaults
+    console.warn('Using default church settings');
+    const defaultSettings = {
+      churchName: 'Christ-Like Christian Church',
+      churchAddress: null,
+      churchPhone: null,
+      churchEmail: null,
+      churchLogo: null,
+      headerLogo: null,
+      helpCenterEmail: null,
+      helpCenterPhone: null,
+      helpCenterUrl: null,
+      dateFormat: 'mm/dd/yyyy',
+      homepage_image_1: null,
+      homepage_image_2: null,
+      homepage_image_3: null,
+      homepage_image_4: null,
+      homepage_image_5: null,
+      homepage_image_6: null,
+      homepage_hero_title: "SHAPING FUTURES\nWITH FAITH",
+      homepage_hero_subtitle: "Join us for an uplifting experience"
+    };
+    localStorage.setItem('churchSettings', JSON.stringify(defaultSettings));
+    return defaultSettings;
   } catch (error) {
     console.error('Error loading church settings from API:', error);
+    const defaultSettings = {
+      churchName: 'Christ-Like Christian Church',
+      churchAddress: null,
+      churchPhone: null,
+      churchEmail: null,
+      churchLogo: null,
+      headerLogo: null,
+      helpCenterEmail: null,
+      helpCenterPhone: null,
+      helpCenterUrl: null,
+      dateFormat: 'mm/dd/yyyy',
+      homepage_image_1: null,
+      homepage_image_2: null,
+      homepage_image_3: null,
+      homepage_image_4: null,
+      homepage_image_5: null,
+      homepage_image_6: null,
+      homepage_hero_title: "SHAPING FUTURES\nWITH FAITH",
+      homepage_hero_subtitle: "Join us for an uplifting experience"
+    };
+    return defaultSettings;
   }
-  return null;
 };
 
 export const getChurchLogo = () => {

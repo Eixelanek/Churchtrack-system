@@ -1,9 +1,25 @@
 <?php
-// CORS handled by Apache (apache-cors.conf)
+// Add CORS headers for cross-origin requests
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Credentials: true');
+
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't display errors directly
+ini_set('log_errors', 1);
+
+// Set error handler to catch all errors
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+});
 
 require_once '../config/database.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -13,7 +29,6 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use TCPDF;
 
 function outputAttendanceXlsx(array $reportData, ?array $churchSettings = null): void
 {
@@ -101,13 +116,13 @@ function outputAttendanceXlsx(array $reportData, ?array $churchSettings = null):
         // Add church contact information (address, phone, email) - center aligned
         $contactInfo = [];
         if (!empty($churchSettings['church_address'])) {
-            $contactInfo[] = '📍 ' . $churchSettings['church_address'];
+            $contactInfo[] = $churchSettings['church_address'];
         }
         if (!empty($churchSettings['church_phone'])) {
-            $contactInfo[] = '📞 ' . $churchSettings['church_phone'];
+            $contactInfo[] = 'Tel: ' . $churchSettings['church_phone'];
         }
         if (!empty($churchSettings['church_email'])) {
-            $contactInfo[] = '✉️ ' . $churchSettings['church_email'];
+            $contactInfo[] = 'Email: ' . $churchSettings['church_email'];
         }
         
         if (!empty($contactInfo)) {
@@ -423,11 +438,25 @@ try {
         error_log('Failed to fetch church settings: ' . $e->getMessage());
     }
     
-    // Get parameters
-    $data = json_decode(file_get_contents("php://input"));
-    $format = isset($data->format) ? strtolower($data->format) : 'json';
-    $startDate = isset($data->startDate) ? $data->startDate : date('Y-m-01');
-    $endDate = isset($data->endDate) ? $data->endDate : date('Y-m-t');
+    // Get parameters from either JSON or form POST
+    $format = 'json';
+    $startDate = date('Y-m-01');
+    $endDate = date('Y-m-t');
+    
+    $contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
+    
+    if ($contentType === 'application/json' || strpos($contentType, 'application/json') !== false) {
+        // JSON request
+        $data = json_decode(file_get_contents("php://input"));
+        $format = isset($data->format) ? strtolower($data->format) : 'json';
+        $startDate = isset($data->startDate) ? $data->startDate : $startDate;
+        $endDate = isset($data->endDate) ? $data->endDate : $endDate;
+    } else {
+        // Form POST request (default for InfinityFree compatibility)
+        $format = isset($_POST['format']) ? strtolower($_POST['format']) : 'json';
+        $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : $startDate;
+        $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : $endDate;
+    }
     
     // Get attendance data from QR sessions within date range
     $query = "SELECT 
@@ -577,8 +606,19 @@ try {
         'data' => $reportData
     ]);
     
+} catch (Exception $e) {
+    // Catch all exceptions including PDOException
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error: ' . $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
 } catch (PDOException $e) {
     http_response_code(500);
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => false,
         'message' => 'Database error: ' . $e->getMessage()
