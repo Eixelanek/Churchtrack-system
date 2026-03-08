@@ -1,32 +1,26 @@
 <?php
-// Test database connection
-$host = "sql113.infinityfree.com";
-$db_name = "if0_41276444_ChurchTrack";
-$username = "if0_41276444";
-$password = "FQdKr0jjkK";
+// Test database connection using the Database class
+require_once 'config/database.php';
 
-echo "Testing connection...<br>";
-echo "Host: $host<br>";
-echo "Database: $db_name<br>";
-echo "Username: $username<br>";
-echo "Password: " . str_repeat("*", strlen($password)) . "<br><br>";
+echo "Testing connection using Database class...<br><br>";
 
 try {
-    $conn = new PDO(
-        "mysql:host=$host;dbname=$db_name",
-        $username,
-        $password
-    );
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "<strong style='color:green;'>✓ Connection successful!</strong><br>";
+    $database = new Database();
+    $conn = $database->getConnection();
     
-    // Test query
-    $stmt = $conn->query("SHOW TABLES");
-    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    echo "<br>Tables found: " . count($tables) . "<br>";
-    echo "<pre>";
-    print_r($tables);
-    echo "</pre>";
+    if ($conn) {
+        echo "<strong style='color:green;'>✓ Connection successful!</strong><br>";
+        
+        // Test query
+        $stmt = $conn->query("SHOW TABLES");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        echo "<br>Tables found: " . count($tables) . "<br>";
+        echo "<pre>";
+        print_r($tables);
+        echo "</pre>";
+    } else {
+        echo "<strong style='color:red;'>✗ Connection failed!</strong><br>";
+    }
     
 } catch(PDOException $e) {
     echo "<strong style='color:red;'>✗ Connection failed!</strong><br>";
