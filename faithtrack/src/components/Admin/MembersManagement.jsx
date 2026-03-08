@@ -1393,7 +1393,7 @@ ChurchTrack System`;
                   <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                     {member.profile_picture ? (
                       <img 
-                        src={`${window.location.origin}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                        src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
                         alt={member.name} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}
@@ -1838,7 +1838,7 @@ ChurchTrack System`;
                       <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                         {member.profile_picture ? (
                           <img 
-                            src={`${window.location.origin}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                            src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
                             alt={member.name} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                             onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}
