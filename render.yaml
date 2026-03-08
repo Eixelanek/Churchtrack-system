@@ -4,5 +4,29 @@ services:
     name: churchtrack-api
     env: docker
     dockerfilePath: ./Dockerfile
-    # Using external Aiven database - environment variables set in Render dashboard
-    # envVars are configured manually in Render dashboard, not from render.yaml
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: churchtrack-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: churchtrack-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: churchtrack-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: churchtrack-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: churchtrack-db
+          property: password
+
+databases:
+  - name: churchtrack-db
+    databaseName: churchtrack
+    user: churchtrack
