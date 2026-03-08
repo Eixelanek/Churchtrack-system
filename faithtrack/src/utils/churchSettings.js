@@ -13,7 +13,8 @@ export const getChurchSettings = () => {
 
 export const loadChurchSettingsFromAPI = async () => {
   try {
-    const response = await fetch('http://localhost/api/admin/get_church_settings.php');
+    const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const response = await fetch(`${apiBaseUrl}/api/admin/get_church_settings.php`);
     const result = await response.json();
     if (result.success) {
       // Save to localStorage for future use
