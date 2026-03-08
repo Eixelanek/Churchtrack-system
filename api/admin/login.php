@@ -1,14 +1,13 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+// CORS headers are now handled by Apache config (apache-cors.conf)
+// Removed duplicate headers to prevent "multiple values" error
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Max-Age: 3600");
 
 include_once '../config/database.php';
 
