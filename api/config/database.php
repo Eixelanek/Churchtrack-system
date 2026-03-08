@@ -18,6 +18,14 @@ class Database {
             $this->db_name = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'churchtrack';
             $this->username = getenv('DB_USER') ?: getenv('MYSQLUSER');
             $this->password = getenv('DB_PASSWORD') ?: getenv('MYSQLPASSWORD');
+            
+            // Fallback: If hostname is Aiven and can't resolve, use IP
+            if (strpos($this->host, 'aivencloud.com') !== false) {
+                // Try to resolve hostname, if fails use IP
+                if (!gethostbyname($this->host)) {
+                    $this->host = '139.59.39.227'; // Aiven IP address
+                }
+            }
         } else {
             // Aiven MySQL Configuration (fallback)
             $this->host = "churchtrack-db-churchtrack.a.aivencloud.com";
@@ -32,16 +40,17 @@ class Database {
         $this->conn = null;
 
         try {
-            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}";
+            // For Aiven, we need to use sslmode in the DSN
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name};charset=utf8mb4";
             
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-                PDO::MYSQL_ATTR_SSL_CA => false
+                PDO::ATTR_TIMEOUT => 10,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
             ];
             
             $this->conn = new PDO($dsn, $this->username, $this->password, $options);
-            $this->conn->exec("set names utf8mb4");
         } catch(PDOException $e) {
             error_log("Connection error: " . $e->getMessage());
             error_log("DSN: mysql:host={$this->host};port={$this->port};dbname={$this->db_name}");
