@@ -22,7 +22,9 @@ try {
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
         
         // Use profile picture if exists, otherwise use initials
-        $avatar = $admin['profile_picture'] ? $admin['profile_picture'] : strtoupper(substr($admin['first_name'], 0, 1) . substr($admin['last_name'], 0, 1));
+        $firstName = $admin['first_name'] ?: '';
+        $lastName = $admin['last_name'] ?: '';
+        $avatar = $admin['profile_picture'] ? $admin['profile_picture'] : strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
         
         echo json_encode([
             "success" => true,
