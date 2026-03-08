@@ -1,7 +1,7 @@
 /* Enhanced Login Page Styles */
 @font-face {
     font-family: 'Urbanist';
-    src: url('/src/assets/fonts/Urbanist-Regular.ttf') format('truetype');
+    src: url('/src/assets/Urbanist/fonts/Urbanist-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -9,7 +9,7 @@
 
   @font-face {
     font-family: 'Urbanist';
-    src: url('/src/assets/fonts/Urbanist-Medium.ttf') format('truetype');
+    src: url('/src/assets/Urbanist/fonts/Urbanist-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -17,7 +17,7 @@
   
   @font-face {
     font-family: 'Poppins';
-    src: url('/src/assets/fonts/Poppins-Regular.ttf') format('truetype');
+    src: url('/src/assets/Poppins/fonts/Poppins-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -25,7 +25,7 @@
   
   @font-face {
     font-family: 'Poppins';
-    src: url('/src/assets/fonts/Poppins-Medium.ttf') format('truetype');
+    src: url('/src/assets/Poppins/fonts/Poppins-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -33,7 +33,7 @@
   
   @font-face {
     font-family: 'Poppins';
-    src: url('/src/assets/fonts/Poppins-SemiBold.ttf') format('truetype');
+    src: url('/src/assets/Poppins/fonts/Poppins-SemiBold.ttf') format('truetype');
     font-weight: 600;
     font-style: normal;
     font-display: swap;
@@ -41,7 +41,7 @@
   
   @font-face {
     font-family: 'Poppins';
-    src: url('/src/assets/fonts/Poppins-Light.ttf') format('truetype');
+    src: url('/src/assets/Poppins/fonts/Poppins-Light.ttf') format('truetype');
     font-weight: 300;
     font-style: normal;
     font-display: swap;
