@@ -110,8 +110,15 @@ try {
     $whereParts = [];
     
     if ($status !== '') {
-        $whereParts[] = "qs.status = :status";
-        $params[':status'] = $status;
+        // When filtering by status, check both session status AND event status
+        if ($status === 'completed') {
+            $whereParts[] = "(qs.status = 'completed' OR e.status = 'completed')";
+        } else if ($status === 'active') {
+            $whereParts[] = "(qs.status = 'active' AND (e.status IS NULL OR e.status != 'completed'))";
+        } else {
+            $whereParts[] = "qs.status = :status";
+            $params[':status'] = $status;
+        }
     }
     
     if ($search !== '') {
