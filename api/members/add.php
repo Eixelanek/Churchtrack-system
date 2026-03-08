@@ -85,11 +85,11 @@ if (!empty($data->surname) && !empty($data->firstName) && !empty($data->username
     $query = "INSERT INTO members 
               (surname, first_name, middle_name, suffix, gender, birthday, email, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
-               street, barangay, city, province, zip_code, username, password, status) 
+               street, barangay, city, province, zip_code, username, password, status, must_change_password) 
               VALUES 
               (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
-               :street, :barangay, :city, :province, :zip_code, :username, :password, 'active')";
+               :street, :barangay, :city, :province, :zip_code, :username, :password, 'active', 1)";
                
     $stmt = $db->prepare($query);
     $stmt->bindParam(":surname", $surname);
