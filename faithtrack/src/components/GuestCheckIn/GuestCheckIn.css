@@ -395,36 +395,162 @@
 
 @media (max-width: 640px) {
   .guest-checkin-container {
-    padding: 1rem;
+    padding: 0;
+  }
+
+  .guest-checkin-card {
+    border-radius: 0;
+    min-height: 100vh;
+    max-width: 100%;
+  }
+
+  .guest-checkin-card-expanded {
+    max-width: 100%;
   }
 
   .guest-checkin-header {
-    padding: 1.8rem 1.6rem;
+    padding: 1.5rem 1.25rem;
+  }
+
+  .guest-checkin-logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .guest-checkin-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .guest-checkin-header p {
+    font-size: 0.9rem;
   }
 
   .guest-event-info {
-    padding: 1.6rem 1.5rem 1.25rem;
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  .guest-event-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .guest-event-datetime {
+    font-size: 0.875rem;
+  }
+
+  .guest-event-note {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.875rem;
   }
 
   .guest-form {
-    padding: 1.6rem 1.5rem 2rem;
+    padding: 1.5rem 1.25rem 1.75rem;
+    gap: 1.25rem;
   }
 
   .guest-member-form-panel {
-    padding: 1.6rem 1.5rem 2rem;
+    padding: 1.5rem 1.25rem 1.75rem;
   }
 
   .guest-form-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .guest-form-group label {
+    font-size: 0.9rem;
+  }
+
+  .guest-form-group input,
+  .guest-form-group select,
+  .guest-form-group textarea {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .guest-form-group textarea {
+    min-height: 90px;
+  }
+
+  .guest-submit-btn {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .guest-checkin-footer {
+    padding: 1.25rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .guest-checkin-loading,
+  .guest-checkin-error,
+  .guest-success-panel {
+    padding: 2rem 1.5rem;
   }
 
   .guest-success-summary {
     flex-direction: column;
     align-items: stretch;
     text-align: left;
+    padding: 0.875rem 1rem;
+  }
+
+  .guest-summary-value {
+    font-size: 1.15rem;
   }
 
   .guest-success-actions {
     flex-direction: column;
+    width: 100%;
+  }
+
+  .guest-success-btn,
+  .guest-success-secondary {
+    width: 100%;
+  }
+
+  .guest-member-form-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .guest-form-section h3 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .guest-checkin-header {
+    padding: 1.25rem 1rem;
+  }
+
+  .guest-checkin-logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .guest-checkin-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .guest-event-info {
+    padding: 1.25rem 1rem;
+  }
+
+  .guest-event-info h2 {
+    font-size: 1.1rem;
+  }
+
+  .guest-form {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .guest-member-form-panel {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .guest-form-group input,
+  .guest-form-group select,
+  .guest-form-group textarea {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.875rem;
   }
 }
