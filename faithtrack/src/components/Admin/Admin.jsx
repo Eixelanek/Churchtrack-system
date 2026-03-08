@@ -5,6 +5,7 @@ import logoImage from '../../assets/logo2.png';
 import AttendanceManagement from './AttendanceManagement';
 import MembersManagement from './MembersManagement';
 import { updateFavicon } from '../../utils/churchSettings';
+import { API_BASE_URL } from '../../config/api';
 
 const LOGIN_HISTORY_PAGE_SIZE = 5;
 const SESSION_PAGE_SIZE = 5;
@@ -99,7 +100,7 @@ const Admin = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const response = await fetch('http://localhost/api/admin/get_profile.php?admin_id=1');
+        const response = await fetch(`${API_BASE_URL}/api/admin/get_profile.php?admin_id=1`);
         const result = await response.json();
         if (result.success) {
           setProfileData(prev => ({
@@ -156,7 +157,7 @@ const Admin = () => {
       
       // Then fetch from backend to ensure we have the latest
       try {
-        const response = await fetch('http://localhost/api/admin/get_church_settings.php');
+        const response = await fetch(`${API_BASE_URL}/api/admin/get_church_settings.php`);
         const result = await response.json();
         console.log('Church settings from API:', result);
         if (result.success) {
@@ -223,7 +224,7 @@ const Admin = () => {
     const loadLoginHistory = async () => {
       if (activeTab === 'security' && showProfileView) {
         try {
-          const response = await fetch('http://localhost/api/admin/get_login_history.php?admin_id=1');
+          const response = await fetch(`${API_BASE_URL}/api/admin/get_login_history.php?admin_id=1`);
           const result = await response.json();
           if (result.success) {
             setLoginHistory(result.data);
@@ -245,7 +246,7 @@ const Admin = () => {
     setPasswordResetLoading(true);
     setPasswordResetError('');
     try {
-      const response = await fetch('http://localhost/api/admin/get_password_reset_requests.php?status=all');
+      const response = await fetch(`${API_BASE_URL}/api/admin/get_password_reset_requests.php?status=all`);
       const result = await response.json();
       if (response.ok && result.success) {
         setPasswordResetRequests(result.data || []);
@@ -298,7 +299,7 @@ const Admin = () => {
     setPasswordResetModalError('');
 
     try {
-      const response = await fetch('http://localhost/api/admin/reset_member_password.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/reset_member_password.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -502,7 +503,7 @@ const Admin = () => {
     const loadSessions = async () => {
       if (activeTab === 'security' && showProfileView) {
         try {
-          const response = await fetch('http://localhost/api/admin/get_sessions.php?admin_id=1');
+          const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=1`);
           const result = await response.json();
           if (result.success) {
             setSessions(result.data);
@@ -522,7 +523,7 @@ const Admin = () => {
       if (!sessionId) return;
 
       try {
-        const response = await fetch('http://localhost/api/admin/get_sessions.php?admin_id=1');
+        const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=1`);
         const result = await response.json();
         if (result.success) {
           const currentSession = result.data.find(session => session.sessionId === sessionId);
@@ -548,7 +549,7 @@ const Admin = () => {
     const fetchNotifications = async () => {
       try {
         const adminId = localStorage.getItem('adminId') || profileData.id;
-        const res = await fetch(`http://localhost/api/admin/notifications.php?user_id=${adminId}&user_type=admin`);
+        const res = await fetch(`${API_BASE_URL}/api/admin/notifications.php?user_id=${adminId}&user_type=admin`);
         const data = await res.json();
         // Map backend notifications to frontend format
         setNotifications(data.map((n) => ({
@@ -727,7 +728,7 @@ const Admin = () => {
   const handleEndSession = async (sessionId) => {
     setEndingSessionId(sessionId);
     try {
-      const response = await fetch('http://localhost/api/admin/end_session.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/end_session.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -762,7 +763,7 @@ const Admin = () => {
     try {
       const adminId = localStorage.getItem('adminId') || profileData.id;
       // Call backend API to mark notification as read
-      await fetch('http://localhost/api/admin/mark_notification_read.php', {
+      await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -790,7 +791,7 @@ const Admin = () => {
       
       const adminId = localStorage.getItem('adminId') || profileData.id;
       for (const id of unreadIds) {
-        await fetch('http://localhost/api/admin/mark_notification_read.php', {
+        await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -811,7 +812,7 @@ const Admin = () => {
   const deleteNotification = async (id) => {
     try {
       // Delete from backend
-      await fetch('http://localhost/api/admin/delete_notification.php', {
+      await fetch(`${API_BASE_URL}/api/admin/delete_notification.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notification_id: id })
@@ -976,7 +977,7 @@ const Admin = () => {
 
   const loadCalendarEvents = async () => {
     try {
-      const response = await fetch(`http://localhost/api/schedule/get_calendar_events.php?month=${currentMonth}&year=${currentYear}`);
+      const response = await fetch(`${API_BASE_URL}/api/schedule/get_calendar_events.php?month=${currentMonth}&year=${currentYear}`);
       const data = await response.json();
       if (data.success) {
         setCalendarEvents(data.events);
@@ -988,7 +989,7 @@ const Admin = () => {
 
   const generateReport = async () => {
     try {
-      const response = await fetch('http://localhost/api/reports/export_attendance.php', {
+      const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1008,7 +1009,7 @@ const Admin = () => {
 
   const exportReportXlsx = async () => {
     try {
-      const response = await fetch('http://localhost/api/reports/export_attendance.php', {
+      const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1041,7 +1042,7 @@ const Admin = () => {
 
   const exportReportPdf = async () => {
     try {
-      const response = await fetch('http://localhost/api/reports/export_attendance.php', {
+      const response = await fetch(`${API_BASE_URL}/api/reports/export_attendance.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1075,7 +1076,7 @@ const Admin = () => {
   useEffect(() => {
     const loadDashboardStats = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_stats.php');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_stats.php`);
         console.log('Stats response status:', response.status);
 
         const data = await response.json();
@@ -1101,7 +1102,7 @@ const Admin = () => {
 
     const loadUpcomingBirthdays = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_upcoming_birthdays.php?limit=3');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_upcoming_birthdays.php?limit=3`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -1115,7 +1116,7 @@ const Admin = () => {
 
     const loadWeeklyAttendance = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_weekly_attendance.php');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_weekly_attendance.php`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -1129,7 +1130,7 @@ const Admin = () => {
 
     const loadMemberGrowth = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_member_growth.php');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_member_growth.php`);
         if (response.ok) {
           const data = await response.json();
           console.log('Member growth data:', data);
@@ -1148,7 +1149,7 @@ const Admin = () => {
 
     const loadServiceAttendance = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_service_attendance.php');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_service_attendance.php`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -1162,7 +1163,7 @@ const Admin = () => {
 
     const loadRecentRecords = async () => {
       try {
-        const response = await fetch('http://localhost/api/dashboard/get_recent_records.php?limit=5');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard/get_recent_records.php?limit=5`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -1293,7 +1294,7 @@ const Admin = () => {
       console.log('Profile picture length:', profilePic ? profilePic.length : 0);
       
       // Save to backend
-      const response = await fetch('http://localhost/api/admin/update_profile.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/update_profile.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1452,7 +1453,7 @@ const Admin = () => {
 
   const handleConfirmPasswordUpdate = async () => {
     try {
-      const response = await fetch('http://localhost/api/admin/change_password.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/change_password.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1641,7 +1642,7 @@ const Admin = () => {
     setIsMaintenanceRunning(true);
 
     try {
-      const response = await fetch('http://localhost/api/admin/run_system_maintenance.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/run_system_maintenance.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -1748,7 +1749,7 @@ const Admin = () => {
         homepage_hero_subtitle: homepageHeroSubtitle
       };
       
-      const response = await fetch('http://localhost/api/admin/update_church_settings.php', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/update_church_settings.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1923,7 +1924,7 @@ const Admin = () => {
 
   const handleCleanupCodes = () => {
     if (window.confirm('Clean up old verification codes? This will delete expired and used codes.')) {
-      fetch('http://localhost/api/verification/cleanup_codes.php')
+      fetch(`${API_BASE_URL}/api/verification/cleanup_codes.php`)
         .then(res => res.json())
         .then(data => {
           alert(`Cleanup completed!\nExpired codes cleaned: ${data.expired_codes_cleaned}\nUsed codes cleaned: ${data.used_codes_cleaned}`);
@@ -1951,7 +1952,7 @@ const Admin = () => {
     setShowSignOutModal(false);
     const sessionId = localStorage.getItem('sessionId');
     try {
-      await fetch('http://localhost/api/admin/logout.php', {
+      await fetch(`${API_BASE_URL}/api/admin/logout.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

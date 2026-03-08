@@ -6,6 +6,7 @@ import MembersManagement from '../Admin/MembersManagement';
 import './Manager.css';
 import logoImage from '../../assets/logo2.png';
 import { loadChurchSettingsFromAPI } from '../../utils/churchSettings';
+import { API_BASE_URL } from '../../config/api';
 
 const PRESET_SERVICE_CONFIG = {
   'sunday-service': { name: 'Sunday Service', displayTime: '8:00 AM', defaultTime: '08:00', expirationHours: 4 },
@@ -76,15 +77,13 @@ const LOGIN_HISTORY_PAGE_SIZE = 5;
 
 const computeBackendBaseUrl = () => {
   if (typeof window === 'undefined' || !window.location) {
-    return '';
+    return API_BASE_URL;
   }
-
-  const { origin, hostname } = window.location;
-  if (hostname === 'localhost' || origin.includes('localhost')) {
+  const { hostname } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost';
   }
-
-  return origin.replace(/\/$/, '');
+  return API_BASE_URL;
 };
 
 const formatEventDateTime = (dateTimeString) => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './ForgotPassword.css';
+import { API_BASE_URL } from '../../config/api';
 
 const ForgotPassword = () => {
   const [username, setUsername] = useState('');
@@ -26,7 +27,7 @@ const ForgotPassword = () => {
     setStatusMessage('');
 
     try {
-      const response = await fetch('http://localhost/api/members/request_password_reset.php', {
+      const response = await fetch(`${API_BASE_URL}/api/members/request_password_reset.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

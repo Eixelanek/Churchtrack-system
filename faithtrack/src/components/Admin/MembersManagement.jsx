@@ -1,24 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './MembersManagement.css';
 import { fetchFamilyTree } from '../../api/familyTree';
+import { API_BASE_URL } from '../../config/api';
 
 const MANAGER_REVIEW_STORAGE_KEY = 'managerMemberReview';
 
 const computeBackendBaseUrl = () => {
   if (typeof window === 'undefined' || !window.location) {
-    return '';
+    return API_BASE_URL;
   }
-
   const { hostname } = window.location;
-  
-  // For localhost, use http://localhost
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost';
   }
-  
-  // For network IP addresses, use http://hostname (no port, no https)
-  // Backend API is on port 80 (default HTTP) or configured port
-  return `http://${hostname}`;
+  return API_BASE_URL;
 };
 
 const loadManagerReviewMap = () => {
@@ -169,7 +164,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const markTabNotificationsAsRead = async (tab) => {
     try {
       // Fetch all notifications
-      const res = await fetch('http://localhost/api/admin/notifications.php');
+      const res = await fetch(`${API_BASE_URL}/api/admin/notifications.php`);
       const notifications = await res.json();
       
       // Determine which notification types to mark based on tab
@@ -190,7 +185,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       
       // Mark each as read
       for (const notification of unreadNotifications) {
-        await fetch('http://localhost/api/admin/mark_notification_read.php', {
+        await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ notification_id: notification.id })

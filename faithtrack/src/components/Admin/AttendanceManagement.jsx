@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './AttendanceManagement.css';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { API_BASE_URL } from '../../config/api';
 
 const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null, isManager = false, onManualCheckInClick = null }) => {
   const [activeTab, setActiveTab] = useState('today_events');
@@ -150,7 +151,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   // Load attendance events
   const loadAttendanceEvents = async () => {
     try {
-      const response = await fetch('http://localhost/api/attendance/get_all_events.php?status=all');
+      const response = await fetch(`${API_BASE_URL}/api/attendance/get_all_events.php?status=all`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -233,7 +234,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   // Load event details with attendees
   const loadEventDetails = async (eventId) => {
     try {
-      const response = await fetch(`http://localhost/api/attendance/get_event_details.php?event_id=${eventId}`);
+      const response = await fetch(`${API_BASE_URL}/api/attendance/get_event_details.php?event_id=${eventId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -262,7 +263,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
 
   const loadEvents = async () => {
     try {
-      const response = await fetch('http://localhost/api/events/get_all.php');
+      const response = await fetch(`${API_BASE_URL}/api/events/get_all.php`);
       if (response.ok) {
         const data = await response.json();
         setEvents(data || []); // Default to empty array if no data
@@ -280,7 +281,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
 
   const loadMembers = async () => {
     try {
-      const response = await fetch('http://localhost/api/members/get_active.php');
+      const response = await fetch(`${API_BASE_URL}/api/members/get_active.php`);
       if (response.ok) {
         const data = await response.json();
         setMembers(data || []); // Default to empty array if no data
@@ -403,7 +404,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     
     try {
       // Get merged attendance data for linked events
-      const response = await fetch(`http://localhost/api/events/get_merged_attendance.php?event_id=${event.id}`);
+      const response = await fetch(`${API_BASE_URL}/api/events/get_merged_attendance.php?event_id=${event.id}`);
       if (response.ok) {
         const mergedAttendance = await response.json();
         
@@ -658,7 +659,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     setTimeError(''); // Clear any previous error
     
     try {
-      const response = await fetch('http://localhost/api/events/update.php', {
+      const response = await fetch(`${API_BASE_URL}/api/events/update.php`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -727,7 +728,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     setTimeError(''); // Clear any previous error
     
     try {
-      const response = await fetch('http://localhost/api/events/create.php', {
+      const response = await fetch(`${API_BASE_URL}/api/events/create.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -780,7 +781,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     });
     
     try {
-      const response = await fetch('http://localhost/api/attendance/record.php', {
+      const response = await fetch(`${API_BASE_URL}/api/attendance/record.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -828,7 +829,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   const handleConfirmAction = async () => {
     if (confirmAction === 'delete' && eventToAction) {
       try {
-        const response = await fetch('http://localhost/api/events/delete.php', {
+        const response = await fetch(`${API_BASE_URL}/api/events/delete.php`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -847,7 +848,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       }
     } else if (confirmAction === 'end' && eventToAction) {
       try {
-        const response = await fetch('http://localhost/api/events/end_event.php', {
+        const response = await fetch(`${API_BASE_URL}/api/events/end_event.php`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -867,7 +868,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       }
     } else if (confirmAction === 'unlink' && eventToAction) {
       try {
-        const response = await fetch('http://localhost/api/events/unlink.php', {
+        const response = await fetch(`${API_BASE_URL}/api/events/unlink.php`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -1198,7 +1199,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     setAutoEndingEvents(prev => new Set(prev).add(eventId));
 
     try {
-      const response = await fetch('http://localhost/api/events/end_event.php', {
+      const response = await fetch(`${API_BASE_URL}/api/events/end_event.php`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1239,7 +1240,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   // Load linked events for a specific event
   const loadLinkedEventsForEvent = async (eventId) => {
     try {
-      const response = await fetch(`http://localhost/api/events/get_linked.php?event_id=${eventId}`);
+      const response = await fetch(`${API_BASE_URL}/api/events/get_linked.php?event_id=${eventId}`);
       if (response.ok) {
         const linkedEvents = await response.json();
         // Store linked events data for use in the modal
@@ -1261,7 +1262,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     
     if (linkTo && selectedEventForLinking) {
       try {
-        const response = await fetch('http://localhost/api/events/link.php', {
+        const response = await fetch(`${API_BASE_URL}/api/events/link.php`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1315,7 +1316,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       if (linkedEvents[event.id] && linkedEvents[event.id].length > 0) {
         // For linked events, fetch from API
         try {
-          const response = await fetch(`http://localhost/api/events/get_merged_attendance.php?event_id=${event.id}`);
+          const response = await fetch(`${API_BASE_URL}/api/events/get_merged_attendance.php?event_id=${event.id}`);
           if (response.ok) {
             const mergedAttendance = await response.json();
             counts[event.id] = mergedAttendance.length;
@@ -1384,7 +1385,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   // Function to unlink a single event
   const handleUnlinkSingleEvent = async (eventId, linkedEventId) => {
     try {
-      const response = await fetch('http://localhost/api/events/unlink.php', {
+      const response = await fetch(`${API_BASE_URL}/api/events/unlink.php`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
