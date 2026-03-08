@@ -13,6 +13,16 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
+    // Auto-complete events that have passed 2 hours from start time
+    $auto_complete_query = "UPDATE events 
+                           SET status = 'completed', 
+                               auto_ended = 1, 
+                               manually_ended = 0,
+                               updated_at = NOW()
+                           WHERE status != 'completed' 
+                           AND CONCAT(date, ' ', start_time) <= DATE_SUB(NOW(), INTERVAL -2 HOUR)";
+    $db->exec($auto_complete_query);
+
     // Get all events with attendance data
     $query = "SELECT 
                 e.id,
