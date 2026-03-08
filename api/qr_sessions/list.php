@@ -104,8 +104,10 @@ try {
 
     // Build query - use simpler approach that's more compatible
     $queryLimit = min($limit * 3, 300); // Get more to account for duplicates, but cap at 300
-    $query = "SELECT id, session_token, service_name, event_datetime, event_type, session_type, status, scan_count, event_id, created_at
-              FROM qr_sessions";
+    $query = "SELECT qs.id, qs.session_token, qs.service_name, qs.event_datetime, qs.event_type, qs.session_type, qs.status, qs.scan_count, qs.event_id, qs.created_at,
+              e.status as event_status
+              FROM qr_sessions qs
+              LEFT JOIN events e ON qs.event_id = e.id";
     
     $params = [];
     $whereParts = [];

@@ -1616,20 +1616,33 @@ const Manager = () => {
     }, [qrFormType, selectedService]);
 
     const filteredSessions = useMemo(() => {
+      let filtered = qrSessions;
+      
+      // Filter by status
+      if (sessionStatusFilter) {
+        filtered = filtered.filter((session) => {
+          const eventStatus = session.event_status?.toLowerCase() || '';
+          return eventStatus === sessionStatusFilter;
+        });
+      }
+      
+      // Filter by search query
       const query = searchQuery.trim().toLowerCase();
-      if (!query) return qrSessions;
-
-      return qrSessions.filter((session) => {
-        const serviceName = session.service_name?.toLowerCase() || '';
-        const eventType = session.event_type?.toLowerCase() || '';
-        const eventDateTime = session.event_datetime?.toLowerCase() || '';
-        return (
-          serviceName.includes(query) ||
-          eventType.includes(query) ||
-          eventDateTime.includes(query)
-        );
-      });
-    }, [qrSessions, searchQuery]);
+      if (query) {
+        filtered = filtered.filter((session) => {
+          const serviceName = session.service_name?.toLowerCase() || '';
+          const eventType = session.event_type?.toLowerCase() || '';
+          const eventDateTime = session.event_datetime?.toLowerCase() || '';
+          return (
+            serviceName.includes(query) ||
+            eventType.includes(query) ||
+            eventDateTime.includes(query)
+          );
+        });
+      }
+      
+      return filtered;
+    }, [qrSessions, searchQuery, sessionStatusFilter]);
 
     const formatSessionDateTime = useCallback((dateTimeString) => {
       if (!dateTimeString) {
