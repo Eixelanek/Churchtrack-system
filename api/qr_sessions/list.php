@@ -81,20 +81,16 @@ try {
         // If schema adjustment fails, continue so the actual error can bubble up below
     }
 
-    // Auto-complete sessions that are past event time + 2 hours and mark linked events completed
-    $completeQuery = "UPDATE qr_sessions qs
-                      LEFT JOIN events e ON qs.event_id = e.id
-                      SET qs.status = 'completed',
-                          qs.updated_at = NOW(),
-                          e.status = CASE WHEN e.id IS NULL THEN e.status ELSE 'completed' END,
-                          e.updated_at = CASE WHEN e.id IS NULL THEN e.updated_at ELSE NOW() END,
-                          e.auto_ended = CASE WHEN e.id IS NULL THEN e.auto_ended ELSE 1 END
-                      WHERE qs.status = 'active'
-                        AND qs.event_datetime <= DATE_SUB(NOW(), INTERVAL CASE
-                            WHEN LOWER(TRIM(qs.service_name)) = 'sunday service' THEN 4
-                            ELSE 2
-                          END HOUR)";
-    $db->exec($completeQuery);
+    // Auto-complete QR sessions that are past event time + 2 hours
+    $completeSessionsQuery = "UPDATE qr_sessions
+                              SET status = 'completed',
+                                  updated_at = NOW()
+                              WHERE status = 'active'
+                                AND event_datetime <= DATE_SUB(NOW(), INTERVAL CASE
+                                    WHEN LOWER(TRIM(service_name)) = 'sunday service' THEN 4
+                                    ELSE 2
+                                  END HOUR)";
+    $db->exec($completeSessionsQuery);
 
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     $status = isset($_GET['status']) ? trim($_GET['status']) : '';
