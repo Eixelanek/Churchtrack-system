@@ -33,12 +33,19 @@ class Database {
 
         try {
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name}";
-            $this->conn = new PDO($dsn, $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                PDO::MYSQL_ATTR_SSL_CA => false
+            ];
+            
+            $this->conn = new PDO($dsn, $this->username, $this->password, $options);
             $this->conn->exec("set names utf8mb4");
         } catch(PDOException $e) {
             error_log("Connection error: " . $e->getMessage());
             error_log("DSN: mysql:host={$this->host};port={$this->port};dbname={$this->db_name}");
+            error_log("Host: {$this->host}, Port: {$this->port}, DB: {$this->db_name}, User: {$this->username}");
             die(json_encode([
                 'success' => false, 
                 'message' => 'Database connection failed. Please check configuration.',
