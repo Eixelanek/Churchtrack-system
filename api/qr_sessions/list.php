@@ -105,7 +105,7 @@ try {
     // Build query - use simpler approach that's more compatible
     $queryLimit = min($limit * 3, 300); // Get more to account for duplicates, but cap at 300
     $query = "SELECT qs.id, qs.session_token, qs.service_name, qs.event_datetime, qs.event_type, qs.session_type, qs.status, qs.scan_count, qs.event_id, qs.created_at,
-              e.status as event_status
+              COALESCE(e.status, 'active') as event_status
               FROM qr_sessions qs
               LEFT JOIN events e ON qs.event_id = e.id";
     
@@ -113,12 +113,12 @@ try {
     $whereParts = [];
     
     if ($status !== '') {
-        $whereParts[] = "status = :status";
+        $whereParts[] = "qs.status = :status";
         $params[':status'] = $status;
     }
     
     if ($search !== '') {
-        $whereParts[] = "service_name LIKE :search";
+        $whereParts[] = "qs.service_name LIKE :search";
         $params[':search'] = "%$search%";
     }
     
@@ -126,7 +126,7 @@ try {
         $query .= " WHERE " . implode(" AND ", $whereParts);
     }
     
-    $query .= " ORDER BY event_datetime DESC, id ASC LIMIT " . intval($queryLimit);
+    $query .= " ORDER BY qs.event_datetime DESC, qs.id ASC LIMIT " . intval($queryLimit);
 
     try {
         $stmt = $db->prepare($query);
