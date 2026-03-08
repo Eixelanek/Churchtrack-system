@@ -81,14 +81,15 @@ try {
         // If schema adjustment fails, continue so the actual error can bubble up below
     }
 
-    // Auto-complete QR sessions that are past event time + 2 hours
+    // Auto-complete QR sessions based on event type
+    // Prayer Meeting: 2 hours, Sunday Service & Custom: 4 hours
     $completeSessionsQuery = "UPDATE qr_sessions
                               SET status = 'completed',
                                   updated_at = NOW()
                               WHERE status = 'active'
                                 AND event_datetime <= DATE_SUB(NOW(), INTERVAL CASE
-                                    WHEN LOWER(TRIM(service_name)) = 'sunday service' THEN 4
-                                    ELSE 2
+                                    WHEN LOWER(TRIM(service_name)) LIKE '%prayer meeting%' THEN 2
+                                    ELSE 4
                                   END HOUR)";
     $db->exec($completeSessionsQuery);
 

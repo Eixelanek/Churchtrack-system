@@ -13,14 +13,20 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Auto-complete events that have passed 2 hours from start time
+    // Auto-complete events based on their duration
+    // Prayer Meeting: 2 hours, Sunday Service & Custom: 4 hours
     $auto_complete_query = "UPDATE events 
                            SET status = 'completed', 
                                auto_ended = 1, 
                                manually_ended = 0,
                                updated_at = NOW()
                            WHERE status != 'completed' 
-                           AND TIMESTAMPADD(HOUR, 2, CONCAT(date, ' ', start_time)) <= NOW()";
+                           AND TIMESTAMPADD(HOUR, 
+                               CASE 
+                                   WHEN LOWER(TRIM(title)) LIKE '%prayer meeting%' THEN 2
+                                   ELSE 4
+                               END, 
+                               CONCAT(date, ' ', start_time)) <= NOW()";
     $db->exec($auto_complete_query);
 
     // Get all events with attendance data

@@ -13,11 +13,16 @@ try {
     $db = $database->getConnection();
 
     // Find events that should be auto-completed
-    // Event is auto-completed if: current time >= event start time + 2 hours
+    // Prayer Meeting: 2 hours, Sunday Service & Custom: 4 hours
     $query = "SELECT id, title, date, start_time 
               FROM events 
               WHERE status != 'completed' 
-              AND TIMESTAMPADD(HOUR, 2, CONCAT(date, ' ', start_time)) <= NOW()";
+              AND TIMESTAMPADD(HOUR, 
+                  CASE 
+                      WHEN LOWER(TRIM(title)) LIKE '%prayer meeting%' THEN 2
+                      ELSE 4
+                  END, 
+                  CONCAT(date, ' ', start_time)) <= NOW()";
     
     $stmt = $db->prepare($query);
     $stmt->execute();
