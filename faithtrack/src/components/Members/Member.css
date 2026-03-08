@@ -47,12 +47,13 @@
   flex-direction: column;
   gap: 0.4rem;
   font-size: 0.95rem;
-  color: #475569;
+  color: #475569 !important;
   line-height: 1.6;
 }
 
 .forced-password-description p {
   margin: 0;
+  color: #475569 !important;
 }
 
 .forced-password-requirements {
@@ -81,7 +82,7 @@
 .forced-password-form label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #1f2937 !important;
 }
 
 .forced-password-form input {
@@ -90,8 +91,13 @@
   border-radius: 12px;
   border: 1px solid #cbd5f5;
   background: #f8fafc;
+  color: #1f2937;
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.forced-password-form input::placeholder {
+  color: #94a3b8;
 }
 
 .forced-password-form input:focus {
