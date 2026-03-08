@@ -1621,7 +1621,21 @@ const Manager = () => {
       // Filter by status
       if (sessionStatusFilter) {
         filtered = filtered.filter((session) => {
+          // Check both event_status and session status
           const eventStatus = session.event_status?.toLowerCase() || '';
+          const sessionStatus = session.status?.toLowerCase() || '';
+          
+          // If filtering for 'completed', show if either event or session is completed
+          if (sessionStatusFilter === 'completed') {
+            return eventStatus === 'completed' || sessionStatus === 'completed';
+          }
+          
+          // If filtering for 'active', show if event is active/upcoming or session is active
+          if (sessionStatusFilter === 'active') {
+            return (eventStatus === 'active' || eventStatus === 'upcoming' || sessionStatus === 'active') 
+                   && eventStatus !== 'completed' && sessionStatus !== 'completed';
+          }
+          
           return eventStatus === sessionStatusFilter;
         });
       }
