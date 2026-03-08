@@ -570,7 +570,13 @@ const Admin = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const adminId = localStorage.getItem('adminId') || profileData.id;
+        const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
+        
+        if (!adminId) {
+          console.warn('No admin ID available for fetching notifications');
+          return;
+        }
+        
         const res = await fetch(`${API_BASE_URL}/api/admin/notifications.php?user_id=${adminId}&user_type=admin`);
         const data = await res.json();
         // Map backend notifications to frontend format
@@ -783,7 +789,13 @@ const Admin = () => {
 
   const markAsRead = async (id) => {
     try {
-      const adminId = localStorage.getItem('adminId') || profileData.id;
+      const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
+      
+      if (!adminId) {
+        console.warn('No admin ID available for marking notification as read');
+        return;
+      }
+      
       // Call backend API to mark notification as read
       const response = await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
         method: 'POST',
@@ -804,6 +816,8 @@ const Admin = () => {
             notification.id === id ? {...notification, read: true} : notification
           )
         );
+      } else {
+        console.error('Failed to mark notification as read:', await response.text());
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -817,7 +831,12 @@ const Admin = () => {
       
       if (unreadIds.length === 0) return;
       
-      const adminId = localStorage.getItem('adminId') || profileData.id;
+      const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
+      
+      if (!adminId) {
+        console.warn('No admin ID available for marking notifications as read');
+        return;
+      }
       
       // Mark all in parallel
       await Promise.all(
