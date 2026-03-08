@@ -4,8 +4,11 @@ FROM php:8.1-apache
 # Install MySQL extension
 RUN docker-php-ext-install pdo pdo_mysql mysqli
 
-# Enable Apache mod_rewrite
+# Enable Apache modules
 RUN a2enmod rewrite headers
+
+# Copy Apache CORS configuration
+COPY apache-cors.conf /etc/apache2/sites-available/000-default.conf
 
 # Copy application files
 COPY api/ /var/www/html/api/
