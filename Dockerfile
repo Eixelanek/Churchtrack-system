@@ -1,13 +1,10 @@
 # Use PHP with Apache
 FROM php:8.1-apache
 
-# Install system dependencies and Composer
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
     libzip-dev \
-    && docker-php-ext-install zip \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    && docker-php-ext-install zip
 
 # Install MySQL extension
 RUN docker-php-ext-install pdo pdo_mysql mysqli
@@ -18,16 +15,10 @@ RUN a2enmod rewrite headers
 # Copy Apache CORS configuration
 COPY apache-cors.conf /etc/apache2/sites-available/000-default.conf
 
-# Copy composer files first
-COPY composer.json composer.lock /var/www/html/
-
-# Install PHP dependencies
-WORKDIR /var/www/html
-RUN composer install --no-dev --optimize-autoloader
-
 # Copy application files
 COPY api/ /var/www/html/api/
 COPY uploads/ /var/www/html/uploads/
+COPY vendor/ /var/www/html/vendor/
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
