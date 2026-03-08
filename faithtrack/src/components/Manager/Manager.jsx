@@ -75,16 +75,7 @@ const DEFAULT_DASHBOARD_STATS = {
 
 const LOGIN_HISTORY_PAGE_SIZE = 5;
 
-const computeBackendBaseUrl = () => {
-  if (typeof window === 'undefined' || !window.location) {
-    return API_BASE_URL;
-  }
-  const { hostname } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost';
-  }
-  return API_BASE_URL;
-};
+const computeBackendBaseUrl = () => API_BASE_URL;
 
 const formatEventDateTime = (dateTimeString) => {
   if (!dateTimeString) return '';

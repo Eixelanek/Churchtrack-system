@@ -5,16 +5,7 @@ import { API_BASE_URL } from '../../config/api';
 
 const MANAGER_REVIEW_STORAGE_KEY = 'managerMemberReview';
 
-const computeBackendBaseUrl = () => {
-  if (typeof window === 'undefined' || !window.location) {
-    return API_BASE_URL;
-  }
-  const { hostname } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost';
-  }
-  return API_BASE_URL;
-};
+const computeBackendBaseUrl = () => API_BASE_URL;
 
 const loadManagerReviewMap = () => {
   if (typeof window === 'undefined') return {};
