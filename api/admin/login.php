@@ -127,6 +127,7 @@ try {
 
         http_response_code(401);
         echo json_encode(["message" => "User not found."]);
+        exit();
     } else {
         http_response_code(400);
         echo json_encode(["message" => "Unable to login. Data is incomplete."]);
