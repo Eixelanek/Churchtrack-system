@@ -4,6 +4,7 @@ import './Login.css';
 import '../transitions.css';
 import logoImage from '../../assets/logo.png';
 import { loadChurchSettingsFromAPI, updateFavicon } from '../../utils/churchSettings';
+import { API_BASE_URL } from '../../config/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -15,35 +16,14 @@ const Login = () => {
   const [isExiting, setIsExiting] = useState(false);
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const navigate = useNavigate();
-  const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+  const apiBaseUrl = API_BASE_URL;
   
   // Debug: log the API URL
   console.log('API Base URL:', apiBaseUrl);
-  console.log('Environment variable:', import.meta.env.VITE_API_URL);
 
   useEffect(() => {
-    // Load church settings
-    const loadChurchSettings = async () => {
-      const stored = localStorage.getItem('churchSettings');
-      if (stored) {
-        try {
-          const settings = JSON.parse(stored);
-          if (settings.churchLogo) {
-            setChurchLogo(settings.churchLogo);
-            updateFavicon(settings.churchLogo);
-          }
-        } catch (error) {
-          console.error('Error parsing church settings:', error);
-        }
-      } else {
-        const settings = await loadChurchSettingsFromAPI();
-        if (settings && settings.churchLogo) {
-          setChurchLogo(settings.churchLogo);
-          updateFavicon(settings.churchLogo);
-        }
-      }
-    };
-    loadChurchSettings();
+    // Simple logo setup - no API calls
+    setChurchLogo(logoImage);
   }, []);
   
   useEffect(() => {
@@ -178,7 +158,11 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(`Network error: ${err.message}. Please check if the server is running.`);
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        setError('Server is starting up (this takes 30 seconds on first use). Please wait a moment and try again.');
+      } else {
+        setError(`Network error: ${err.message}. Please check if the server is running.`);
+      }
     } finally {
       setIsLoading(false);
     }

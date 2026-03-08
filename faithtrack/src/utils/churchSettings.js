@@ -1,4 +1,6 @@
 // Church Settings Utility
+import { API_BASE_URL } from '../config/api';
+
 export const getChurchSettings = () => {
   try {
     const stored = localStorage.getItem('churchSettings');
@@ -13,8 +15,7 @@ export const getChurchSettings = () => {
 
 export const loadChurchSettingsFromAPI = async () => {
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_URL || window.location.origin;
-    const response = await fetch(`${apiBaseUrl}/api/admin/get_church_settings.php`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/get_church_settings.php`);
     const result = await response.json();
     if (result.success) {
       // Save to localStorage for future use

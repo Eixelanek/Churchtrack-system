@@ -39,12 +39,10 @@ interface SearchResult {
   relationship_status?: string | null;
 }
 
+import { API_BASE_URL } from '../config/api';
+
 const getApiBaseUrl = (): string => {
-  // For localhost development, use the PHP API port
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost';
-  }
-  return window.location.origin;
+  return API_BASE_URL;
 };
 
 export const fetchFamilyTree = async (memberId: number): Promise<FamilyTreeData> => {

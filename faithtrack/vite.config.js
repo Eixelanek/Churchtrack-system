@@ -20,6 +20,9 @@ const httpsConfig = fs.existsSync(keyPath) && fs.existsSync(certPath)
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify('https://churchtrack-api.onrender.com')
+  },
   server: {
     host: '0.0.0.0', // Allow access from network
     port: 3000,

@@ -13,6 +13,7 @@ import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
 import CheckIn from './components/CheckIn/CheckIn';
 import logoImage from './assets/logo.png';
+import { API_BASE_URL } from './config/api';
 
 // Protected Route component with session validation
 const ProtectedRoute = ({ children, allowedUserType }) => {
@@ -37,9 +38,8 @@ const ProtectedRoute = ({ children, allowedUserType }) => {
       }
 
       if (sessionId && adminId && userType === 'admin') {
-        const baseUrl = window.location.origin;
         try {
-          const response = await fetch(`${baseUrl}/api/admin/validate_session.php`, {
+          const response = await fetch(`${API_BASE_URL}/api/admin/validate_session.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId, adminId })

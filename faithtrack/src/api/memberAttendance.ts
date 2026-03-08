@@ -27,17 +27,10 @@ export interface MemberAttendanceSummary {
   [key: string]: unknown;
 }
 
+import { API_BASE_URL } from '../config/api';
+
 const computeApiBaseUrl = (): string => {
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  const origin = window.location.origin;
-  if (origin.includes('localhost')) {
-    return 'http://localhost';
-  }
-
-  return origin.replace(/\/$/, '');
+  return API_BASE_URL;
 };
 
 export async function fetchMemberAttendanceSummary(memberId: string | number): Promise<MemberAttendanceSummary> {

@@ -4,6 +4,7 @@ import './Register.css';
 import logoImage from '../../assets/logo.png';
 import Notification from '../Notification/Notification';
 import '../transitions.css';
+import { API_BASE_URL } from '../../config/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -105,8 +106,7 @@ const Register = () => {
 
     setSearchingReferrers(true);
     try {
-      const apiBaseUrl = window.location.origin;
-      const response = await fetch(`${apiBaseUrl}/api/members/get_active.php`);
+      const response = await fetch(`${API_BASE_URL}/api/members/get_active.php`);
       const members = await response.json();
       
       const filtered = members.filter(member => 
@@ -276,8 +276,7 @@ const Register = () => {
     }
     setCheckingUsername(true);
     try {
-      const apiBaseUrl = window.location.origin;
-      const res = await fetch(`${apiBaseUrl}/api/members/check_username.php?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`${API_BASE_URL}/api/members/check_username.php?username=${encodeURIComponent(username)}`);
       const data = await res.json();
       setUsernameAvailable(data.available);
       setUsernameCheckMessage(data.message);
@@ -296,8 +295,7 @@ const Register = () => {
     }
     setCheckingEmail(true);
     try {
-      const apiBaseUrl = window.location.origin;
-      const res = await fetch(`${apiBaseUrl}/api/members/check_email.php?email=${encodeURIComponent(email)}`);
+      const res = await fetch(`${API_BASE_URL}/api/members/check_email.php?email=${encodeURIComponent(email)}`);
       const data = await res.json();
       setEmailAvailable(data.available);
       setEmailCheckMessage(data.message);
@@ -444,8 +442,7 @@ const Register = () => {
         payload.relationshipToReferrer = formData.relationshipToReferrer || null;
       }
 
-      const apiBaseUrl = window.location.origin;
-      const response = await fetch(`${apiBaseUrl}/api/members/register.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/members/register.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
