@@ -785,7 +785,7 @@ const Admin = () => {
     try {
       const adminId = localStorage.getItem('adminId') || profileData.id;
       // Call backend API to mark notification as read
-      await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -797,10 +797,14 @@ const Admin = () => {
         })
       });
       
-      // Update local state
-      setNotifications(notifications.map(notification => 
-        notification.id === id ? {...notification, read: true} : notification
-      ));
+      if (response.ok) {
+        // Update local state immediately
+        setNotifications(prevNotifications => 
+          prevNotifications.map(notification => 
+            notification.id === id ? {...notification, read: true} : notification
+          )
+        );
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -811,21 +815,29 @@ const Admin = () => {
       // Mark all unread notifications as read in the backend
       const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
       
+      if (unreadIds.length === 0) return;
+      
       const adminId = localStorage.getItem('adminId') || profileData.id;
-      for (const id of unreadIds) {
-        await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            notification_id: id,
-            user_id: adminId,
-            user_type: 'admin'
+      
+      // Mark all in parallel
+      await Promise.all(
+        unreadIds.map(id =>
+          fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              notification_id: id,
+              user_id: adminId,
+              user_type: 'admin'
+            })
           })
-        });
-      }
+        )
+      );
       
       // Update local state
-      setNotifications(notifications.map(notification => ({...notification, read: true})));
+      setNotifications(prevNotifications => 
+        prevNotifications.map(notification => ({...notification, read: true}))
+      );
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
