@@ -801,8 +801,25 @@ const Member = () => {
             
             // Set preview image if profile picture exists
             if (member.profile_picture) {
-              const imagePath = member.profile_picture.replace('/uploads/profile_pictures/', '');
-              const imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
+              // Handle both full paths and relative paths
+              let imageUrl;
+              if (member.profile_picture.startsWith('http')) {
+                // Already a full URL
+                imageUrl = member.profile_picture;
+              } else if (member.profile_picture.startsWith('/uploads/')) {
+                // Relative path starting with /uploads/
+                const imagePath = member.profile_picture.replace('/uploads/profile_pictures/', '');
+                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
+              } else if (member.profile_picture.includes('profile_pictures/')) {
+                // Path contains profile_pictures/
+                const imagePath = member.profile_picture.split('profile_pictures/')[1];
+                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
+              } else {
+                // Just the filename
+                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture}`;
+              }
+              
+              console.log('Loading profile picture:', imageUrl);
               setPreviewImage(imageUrl);
             }
           }
@@ -2117,7 +2134,16 @@ const Member = () => {
                         <div className="avatar-section">
                           <div className="profile-avatar large">
                             {previewImage ? (
-                              <img src={previewImage} alt="Profile" className="avatar-image" />
+                              <img 
+                                src={previewImage} 
+                                alt="Profile" 
+                                className="avatar-image"
+                                onError={(e) => {
+                                  console.error('Failed to load profile image:', previewImage);
+                                  e.target.style.display = 'none';
+                                  e.target.parentElement.textContent = profileData.avatar;
+                                }}
+                              />
                             ) : profileData.avatar}
                           </div>
                           <button 
@@ -2657,7 +2683,16 @@ const Member = () => {
               <div className="topbar-profile" ref={profileRef}>
                 <div className="profile-avatar" onClick={() => setShowProfileMenu(v => !v)} style={{cursor: 'pointer'}}>
                   {previewImage ? (
-                    <img src={previewImage} alt="Profile" className="avatar-image" />
+                    <img 
+                      src={previewImage} 
+                      alt="Profile" 
+                      className="avatar-image"
+                      onError={(e) => {
+                        console.error('Failed to load header profile image:', previewImage);
+                        e.target.style.display = 'none';
+                        e.target.parentElement.textContent = avatar;
+                      }}
+                    />
                   ) : avatar}
                 </div>
                 <div className="profile-info-texts" onClick={() => setShowProfileMenu(v => !v)} style={{cursor: 'pointer'}}>
@@ -2668,7 +2703,16 @@ const Member = () => {
                     <div className="profile-dropdown-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', paddingBottom: 0, borderBottom: '1px solid #e5e7eb', marginBottom: '0.25rem' }}>
                       <div className="profile-avatar" style={{ width: 40, height: 40, minWidth: 40, minHeight: 40, maxWidth: 40, maxHeight: 40, fontSize: '1.1rem' }}>
                         {previewImage ? (
-                          <img src={previewImage} alt="Profile" className="avatar-image" />
+                          <img 
+                            src={previewImage} 
+                            alt="Profile" 
+                            className="avatar-image"
+                            onError={(e) => {
+                              console.error('Failed to load dropdown profile image:', previewImage);
+                              e.target.style.display = 'none';
+                              e.target.parentElement.textContent = avatar;
+                            }}
+                          />
                         ) : avatar}
                       </div>
                       <div className="profile-dropdown-info" style={{ display: 'flex', flexDirection: 'column' }}>
