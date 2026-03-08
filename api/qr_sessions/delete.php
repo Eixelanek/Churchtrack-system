@@ -1,15 +1,13 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Content-Type: application/json');
-header('Access-Control-Allow-Methods: DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
-
-require_once '../config/database.php';
-
+// CORS handled by Apache (apache-cors.conf)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+
+header("Content-Type: application/json; charset=UTF-8");
+
+require_once '../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     http_response_code(405);
