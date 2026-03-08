@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './AttendanceHistory.css';
 import { fetchMemberAttendanceSummary } from '../../api/memberAttendance';
 import { fetchFamilyTree } from '../../api/familyTree';
+import { API_BASE_URL } from '../../config/api';
 
 const AttendanceHistory = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -147,7 +148,7 @@ const AttendanceHistory = () => {
       try {
         const response = await fetchFamilyTree(Number(memberId));
         const tree = response?.tree ?? {};
-        const apiBaseUrl = window.location.origin;
+        const apiBaseUrl = API_BASE_URL;
 
         let selfPhotoUrl = null;
         try {

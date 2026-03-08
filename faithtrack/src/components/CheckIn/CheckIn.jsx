@@ -5,6 +5,7 @@ import '../GuestCheckIn/GuestCheckIn.css';
 import logoImage from '../../assets/logo2.png';
 import { getHeaderLogo as loadStoredHeaderLogo } from '../../utils/churchSettings';
 import { fetchFamilyTree } from '../../api/familyTree';
+import { API_BASE_URL } from '../../config/api';
 
 const suffixOptions = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV'];
 
@@ -71,7 +72,6 @@ const CheckIn = () => {
   const navigate = useNavigate();
   const sessionToken = searchParams.get('session');
   const memberIdentifier = searchParams.get('member');
-  const apiBaseUrl = window.location.origin;
 
   const [headerLogo, setHeaderLogo] = useState(resolveInitialHeaderLogo);
 
@@ -245,7 +245,7 @@ const CheckIn = () => {
         relationshipToGuardian: memberFormData.relationshipToGuardian.trim()
       };
 
-      const response = await fetch(`${apiBaseUrl}/api/guest/convert_to_member.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/guest/convert_to_member.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -307,7 +307,7 @@ const CheckIn = () => {
   useEffect(() => {
     const fetchHeaderLogo = async () => {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/admin/get_church_settings.php`);
+        const response = await fetch(`${API_BASE_URL}/api/admin/get_church_settings.php`);
         if (!response.ok) {
           return;
         }
@@ -333,7 +333,7 @@ const CheckIn = () => {
     };
 
     fetchHeaderLogo();
-  }, [apiBaseUrl]);
+  }, []);
 
   // Helper function to calculate age from birthday
   const calculateAge = (birthday) => {
@@ -405,7 +405,7 @@ const CheckIn = () => {
             filteredFamily.map(async (relative) => {
               try {
                 const params = new URLSearchParams({ token: sessionToken, member_id: String(relative.id) });
-                const res = await fetch(`${apiBaseUrl}/api/qr_sessions/get_session.php?${params.toString()}`);
+                const res = await fetch(`${API_BASE_URL}/api/qr_sessions/get_session.php?${params.toString()}`);
                 if (!res.ok) {
                   return false;
                 }
@@ -437,7 +437,7 @@ const CheckIn = () => {
     };
 
     loadFamilyMembers();
-  }, [detectedMember, sessionToken, apiBaseUrl]);
+  }, [detectedMember, sessionToken]);
 
   const primaryInitials = detectedMember ? getInitials(detectedMember.name) : '';
   const selectedCount = (primarySelected ? 1 : 0) + selectedFamilyIds.length;
@@ -500,7 +500,7 @@ const CheckIn = () => {
         params.append('member_name', storedMemberName);
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/qr_sessions/get_session.php?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/api/qr_sessions/get_session.php?${params.toString()}`);
       const result = await response.json();
 
       if (result.success) {
@@ -542,7 +542,7 @@ const CheckIn = () => {
           return;
         }
 
-        const response = await fetch(`${apiBaseUrl}/api/members/get.php?id=${memberId}`);
+        const response = await fetch(`${API_BASE_URL}/api/members/get.php?id=${memberId}`);
         if (!response.ok) {
           setIsMinorRestricted(false);
           return;
@@ -571,7 +571,7 @@ const CheckIn = () => {
     };
 
     checkMemberAge();
-  }, [detectedMember, sessionToken, apiBaseUrl]);
+  }, [detectedMember, sessionToken]);
 
   useEffect(() => {
     if (!alreadyCheckedIn) {
@@ -641,7 +641,7 @@ const CheckIn = () => {
           : (!Number.isNaN(storedMemberIdNumber) && storedMemberIdNumber !== null ? storedMemberIdNumber : null);
 
         // Check in primary member
-        const response = await fetch(`${apiBaseUrl}/api/qr_sessions/checkin.php`, {
+        const response = await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -668,7 +668,7 @@ const CheckIn = () => {
             const familyMember = familyMembers.find(m => m.id === familyMemberId);
             if (familyMember) {
               try {
-                await fetch(`${apiBaseUrl}/api/qr_sessions/checkin.php`, {
+                await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -703,7 +703,7 @@ const CheckIn = () => {
 
         const numericContact = guestFormData.contact_number.replace(/\D+/g, '');
 
-        const response = await fetch(`${apiBaseUrl}/api/guest/checkin.php`, {
+        const response = await fetch(`${API_BASE_URL}/api/guest/checkin.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

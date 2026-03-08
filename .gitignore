@@ -49,3 +49,6 @@ api/config/database.php
 # Composer
 composer.phar
 composer.lock
+
+# Local Netlify folder
+.netlify

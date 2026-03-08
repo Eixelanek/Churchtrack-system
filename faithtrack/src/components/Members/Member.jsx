@@ -11,6 +11,7 @@ import ScanQR from './ScanQR';
 import { loadChurchSettingsFromAPI, updateFavicon } from '../../utils/churchSettings';
 import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/memberAttendance';
 import { fetchFamilyTree, searchMembers, sendFamilyInvite, respondToInvite, removeFamilyRelationship } from '../../api/familyTree';
+import { API_BASE_URL } from '../../config/api';
 
 // --- LAYOUT, LOGIC, AND STYLES COPIED FROM ADMIN.JSX ---
 
@@ -114,7 +115,7 @@ const Member = () => {
 
     try {
       setForcePasswordLoading(true);
-      const response = await fetch(`${window.location.origin}/api/members/change_password.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/members/change_password.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -156,8 +157,7 @@ const Member = () => {
       if (!memberId) return;
 
       try {
-        const apiBaseUrl = window.location.origin;
-        const res = await fetch(`${apiBaseUrl}/api/members/notifications.php?member_id=${memberId}`);
+        const res = await fetch(`${API_BASE_URL}/api/members/notifications.php?member_id=${memberId}`);
         const data = await res.json();
         
         // Map backend notifications to frontend format
@@ -507,8 +507,7 @@ const Member = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      const apiBaseUrl = window.location.origin;
-      await fetch(`${apiBaseUrl}/api/members/mark_notification_read.php`, {
+      await fetch(`${API_BASE_URL}/api/members/mark_notification_read.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -527,8 +526,7 @@ const Member = () => {
 
   const deleteNotification = async (notificationId) => {
     try {
-      const apiBaseUrl = window.location.origin;
-      await fetch(`${apiBaseUrl}/api/members/delete_notification.php`, {
+      await fetch(`${API_BASE_URL}/api/members/delete_notification.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -757,8 +755,7 @@ const Member = () => {
       if (!memberId) return;
 
       try {
-        const apiBaseUrl = window.location.origin;
-        const response = await fetch(`${apiBaseUrl}/api/members/get.php?id=${memberId}`);
+        const response = await fetch(`${API_BASE_URL}/api/members/get.php?id=${memberId}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.member) {
@@ -805,7 +802,7 @@ const Member = () => {
             // Set preview image if profile picture exists
             if (member.profile_picture) {
               const imagePath = member.profile_picture.replace('/uploads/profile_pictures/', '');
-              const imageUrl = `${apiBaseUrl}/api/uploads/get_profile_picture.php?path=${imagePath}`;
+              const imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
               setPreviewImage(imageUrl);
             }
           }
@@ -1089,8 +1086,7 @@ const Member = () => {
     }
 
     try {
-      const apiBaseUrl = window.location.origin;
-      const response = await fetch(`${apiBaseUrl}/api/members/change_password.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/members/change_password.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1128,7 +1124,6 @@ const Member = () => {
     }
 
     try {
-      const apiBaseUrl = window.location.origin;
       
       // Prepare data to send
       const updateData = {
@@ -1158,7 +1153,7 @@ const Member = () => {
         updateData.profile_picture = previewImage;
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/members/update_profile.php`, {
+      const response = await fetch(`${API_BASE_URL}/api/members/update_profile.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1181,12 +1176,12 @@ const Member = () => {
         const savedImagePath = data.member?.profile_picture ? data.member.profile_picture.replace('/uploads/profile_pictures/', '') : null;
         setOriginalData({
           ...updatedProfileData,
-          previewImage: savedImagePath ? `${apiBaseUrl}/api/uploads/get_profile_picture.php?path=${savedImagePath}` : previewImage
+          previewImage: savedImagePath ? `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${savedImagePath}` : previewImage
         });
         
         // Update preview image with the saved path
         if (savedImagePath) {
-          setPreviewImage(`${apiBaseUrl}/api/uploads/get_profile_picture.php?path=${savedImagePath}`);
+          setPreviewImage(`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${savedImagePath}`);
         }
         
         setHasChanges(false);
