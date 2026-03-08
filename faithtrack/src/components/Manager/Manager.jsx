@@ -1625,15 +1625,22 @@ const Manager = () => {
           const eventStatus = session.event_status?.toLowerCase() || '';
           const sessionStatus = session.status?.toLowerCase() || '';
           
-          // If filtering for 'completed', show if either event or session is completed
+          // Also check if session should be completed based on time
+          const eventDateTime = session.event_datetime ? new Date(session.event_datetime.replace(' ', 'T')) : null;
+          const now = new Date();
+          const isPrayerMeeting = session.service_name?.toLowerCase().includes('prayer meeting');
+          const hoursToComplete = isPrayerMeeting ? 2 : 4;
+          const shouldBeCompleted = eventDateTime && (now - eventDateTime) > (hoursToComplete * 60 * 60 * 1000);
+          
+          // If filtering for 'completed', show if either event or session is completed, OR if it should be completed based on time
           if (sessionStatusFilter === 'completed') {
-            return eventStatus === 'completed' || sessionStatus === 'completed';
+            return eventStatus === 'completed' || sessionStatus === 'completed' || shouldBeCompleted;
           }
           
-          // If filtering for 'active', show if event is active/upcoming or session is active
+          // If filtering for 'active', show if event is active/upcoming or session is active, AND not completed
           if (sessionStatusFilter === 'active') {
             return (eventStatus === 'active' || eventStatus === 'upcoming' || sessionStatus === 'active') 
-                   && eventStatus !== 'completed' && sessionStatus !== 'completed';
+                   && eventStatus !== 'completed' && sessionStatus !== 'completed' && !shouldBeCompleted;
           }
           
           return eventStatus === sessionStatusFilter;
