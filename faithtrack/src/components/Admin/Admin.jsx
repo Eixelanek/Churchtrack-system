@@ -100,7 +100,8 @@ const Admin = () => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/get_profile.php?admin_id=1`);
+        const userId = localStorage.getItem('userId') || '1';
+        const response = await fetch(`${API_BASE_URL}/api/admin/get_profile.php?admin_id=${userId}`);
         const result = await response.json();
         if (result.success) {
           setProfileData(prev => ({
@@ -224,7 +225,8 @@ const Admin = () => {
     const loadLoginHistory = async () => {
       if (activeTab === 'security' && showProfileView) {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/admin/get_login_history.php?admin_id=1`);
+          const userId = localStorage.getItem('userId') || '1';
+          const response = await fetch(`${API_BASE_URL}/api/admin/get_login_history.php?admin_id=${userId}`);
           const result = await response.json();
           if (result.success) {
             setLoginHistory(result.data);
@@ -503,7 +505,8 @@ const Admin = () => {
     const loadSessions = async () => {
       if (activeTab === 'security' && showProfileView) {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=1`);
+          const userId = localStorage.getItem('userId') || '1';
+          const response = await fetch(`${API_BASE_URL}/api/admin/get_sessions.php?admin_id=${userId}`);
           const result = await response.json();
           if (result.success) {
             setSessions(result.data);
