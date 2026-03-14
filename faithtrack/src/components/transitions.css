@@ -119,28 +119,27 @@ button:active,
   box-shadow: 0 5px 15px rgba(0, 73, 175, 0.2);
 }
 
-/* Page exit transition */
+/* Page exit transition - slides up */
 .page-transition-exit-active {
-  opacity: 0 !important;
-  transform: translateY(-20px) scale(0.98) !important;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 1, 1), 
-              transform 0.4s cubic-bezier(0.4, 0, 1, 1) !important;
+  opacity: 1 !important;
+  transform: translateY(-100vh) !important;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
   pointer-events: none !important;
 }
 
-/* Page enter transition */
+/* Page enter transition - slides up from bottom */
 .page-transition-enter-active {
-  animation: pageEnterSmooth 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUpFromBottom 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes pageEnterSmooth {
+@keyframes slideUpFromBottom {
   from { 
-    opacity: 0; 
-    transform: translateY(20px) scale(0.98);
+    opacity: 1; 
+    transform: translateY(100vh);
   }
   to { 
     opacity: 1; 
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -156,18 +155,9 @@ button:active,
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, 
-    rgba(0, 73, 175, 0.03) 0%, 
-    rgba(16, 149, 210, 0.05) 100%);
-  backdrop-filter: blur(2px);
+  background: transparent;
   z-index: 999;
-  animation: overlayFade 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   pointer-events: none;
-}
-
-@keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* Card hover effects with smooth transitions */
@@ -221,25 +211,9 @@ button:active,
   transform: translateY(-2px);
 }
 
-/* Floating images smooth animation */
+/* Floating images - static, no animation */
 .floating-img {
-  animation: floatSmooth 6s ease-in-out infinite;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes floatSmooth {
-  0%, 100% { 
-    transform: translateY(0) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-15px) rotate(2deg);
-  }
-  50% { 
-    transform: translateY(-10px) rotate(-2deg);
-  }
-  75% {
-    transform: translateY(-20px) rotate(1deg);
-  }
 }
 
 .floating-img:hover {
