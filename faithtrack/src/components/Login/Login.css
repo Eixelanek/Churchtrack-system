@@ -589,14 +589,14 @@
   
   .loading-spinner {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     border-top-color: #ffffff;
     animation: spin 0.8s linear infinite;
-    margin-right: 10px;
-    vertical-align: middle;
+    margin-right: 8px;
+    flex-shrink: 0;
   }
   
   /* Enhanced Animations */
