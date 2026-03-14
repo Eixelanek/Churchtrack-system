@@ -123,7 +123,7 @@ function Home() {
     // Delay navigation to allow transition to complete
     setTimeout(() => {
       navigate('/login');
-    }, 500);
+    }, 600);
   };
   
   return (
