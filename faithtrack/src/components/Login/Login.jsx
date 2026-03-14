@@ -273,15 +273,15 @@ const Login = () => {
 
           <button
             type="submit"
-            className="submit-button"
+            className={`submit-button ${isLoading ? 'loading' : ''}`}
             style={{ width: '105%', marginLeft: '-2.5%' }}
             disabled={isLoading}
           >
             {isLoading ? (
-              <>
-                <span className="loading-spinner"></span>
-                <span>Signing In...</span>
-              </>
+              <span className="button-loading-content">
+                <span className="spinner"></span>
+                <span className="loading-text">Signing In...</span>
+              </span>
             ) : (
               'Sign In'
             )}
