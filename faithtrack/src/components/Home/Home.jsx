@@ -123,11 +123,11 @@ function Home() {
     // Delay navigation to allow transition to complete
     setTimeout(() => {
       navigate('/login');
-    }, 300);
+    }, 500);
   };
   
   return (
-    <div className="home-minimal-wrapper">
+    <div className={`home-minimal-wrapper ${isExiting ? 'page-transition-exit-active' : ''}`}>
       <div className="home-bg-decoration"></div>
       {/* Top Navigation */}
       <nav className="minimal-nav">
@@ -182,7 +182,7 @@ function Home() {
             <NavLink 
               to="/login" 
               ref={buttonRef}
-              className={`minimal-cta-btn ${isExiting ? 'page-transition-exit-active' : ''}`}
+              className="minimal-cta-btn"
               onClick={handleJoinUsClick}
             >
               Join Us
