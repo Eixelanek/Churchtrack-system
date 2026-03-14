@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import Home from './components/Home/Home';
@@ -96,9 +96,9 @@ const App = () => {
                   </span>
                 </div>
                 <div className="nav-links desktop-nav">
-                  <Link to="/">Home</Link>
-                  <Link to="/about">About</Link>
-                  <Link to="/contact">Contact</Link>
+                  <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
+                  <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+                  <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
                 </div>
                 <div className="hamburger-menu">
                   <input type="checkbox" id="menu-toggle" />
@@ -106,9 +106,9 @@ const App = () => {
                     <span></span>
                   </label>
                   <div className="mobile-menu">
-                    <Link to="/" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</Link>
-                    <Link to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</Link>
-                    <Link to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</Link>
+                    <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
+                    <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
+                    <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
                   </div>
                 </div>
               </nav>
@@ -129,9 +129,9 @@ const App = () => {
                   </span>
                 </div>
                 <div className="nav-links desktop-nav">
-                  <Link to="/">Home</Link>
-                  <Link to="/about">About</Link>
-                  <Link to="/contact">Contact</Link>
+                  <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
+                  <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+                  <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
                 </div>
                 <div className="hamburger-menu">
                   <input type="checkbox" id="menu-toggle" />
@@ -139,9 +139,9 @@ const App = () => {
                     <span></span>
                   </label>
                   <div className="mobile-menu">
-                    <Link to="/" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</Link>
-                    <Link to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</Link>
-                    <Link to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</Link>
+                    <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
+                    <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
+                    <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
                   </div>
                 </div>
               </nav>

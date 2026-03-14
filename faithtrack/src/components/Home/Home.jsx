@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import logoImage from '../../assets/logo.png';
 import './Home.css';
 import '../transitions.css';
@@ -140,9 +140,9 @@ function Home() {
         </div>
         {/* Desktop Navigation Links */}
         <div className="nav-links desktop-nav">
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-          <Link to="/contact">Contact</Link>
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
+          <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+          <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
         </div>
         {/* Mobile Hamburger Menu */}
         <div className="hamburger-menu">
@@ -151,9 +151,9 @@ function Home() {
             <span></span>
           </label>
           <div className="mobile-menu">
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-            <Link to="/contact">Contact</Link>
+            <NavLink to="/" end>Home</NavLink>
+            <NavLink to="/about">About</NavLink>
+            <NavLink to="/contact">Contact</NavLink>
           </div>
         </div>
       </nav>
@@ -179,14 +179,14 @@ function Home() {
               ))}
             </h1>
             <p className="minimal-subtext">{homepageHeroSubtitle}</p>
-            <Link 
+            <NavLink 
               to="/login" 
               ref={buttonRef}
               className={`minimal-cta-btn ${isExiting ? 'page-transition-exit-active' : ''}`}
               onClick={handleJoinUsClick}
             >
               Join Us
-            </Link>
+            </NavLink>
           </div>
         </main>
       </div>
