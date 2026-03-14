@@ -117,9 +117,6 @@ function Home() {
     e.preventDefault();
     setIsExiting(true);
     
-    // Apply the transition class to the entire page
-    document.body.classList.add('page-transitioning');
-    
     // Delay navigation to allow transition to complete
     setTimeout(() => {
       navigate('/login');
