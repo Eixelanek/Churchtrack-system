@@ -1,4 +1,30 @@
 <?php
+// Disable HTML error output and ensure JSON responses
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+// Set error handler to return JSON
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error occurred',
+        'error' => $errstr
+    ]);
+    exit();
+});
+
+// Set exception handler to return JSON
+set_exception_handler(function($exception) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error occurred',
+        'error' => $exception->getMessage()
+    ]);
+    exit();
+});
+
 // Add CORS headers for cross-origin requests
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -10,17 +36,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 include_once '../config/database.php';
 
-// Auto-cleaning: Delete rejected members older than 30 days
-$database = new Database();
-$db = $database->getConnection();
-$cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
-$db->prepare($cleanup_query)->execute();
-// Auto-cleaning: Delete expired and used verification codes
-$cleanup_codes_query = "DELETE FROM verification_codes WHERE is_used = TRUE OR created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-$db->prepare($cleanup_codes_query)->execute();
+try {
+    // Auto-cleaning: Delete rejected members older than 30 days
+    $database = new Database();
+    $db = $database->getConnection();
+    $cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $db->prepare($cleanup_query)->execute();
+    // Auto-cleaning: Delete expired and used verification codes
+    $cleanup_codes_query = "DELETE FROM verification_codes WHERE is_used = TRUE OR created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+    $db->prepare($cleanup_codes_query)->execute();
+} catch (Exception $e) {
+    // Log cleanup errors but don't fail registration
+    error_log("Cleanup error: " . $e->getMessage());
+}
 
 // Get posted data
 $data = json_decode(file_get_contents("php://input"));
+
+// Ensure database connection
+if (!isset($database)) {
+    $database = new Database();
+}
+if (!isset($db)) {
+    $db = $database->getConnection();
+}
 
 // Validate required fields
 if (
