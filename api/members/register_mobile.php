@@ -2,16 +2,9 @@
 // Mobile-specific registration endpoint
 // Simplified version to avoid mobile browser issues
 
-// Clear any existing headers first
-if (!headers_sent()) {
-    header_remove('Access-Control-Allow-Origin');
-    header_remove('Access-Control-Allow-Methods');
-    header_remove('Access-Control-Allow-Headers');
-}
-
-// Set CORS headers - mobile specific
+// Set CORS headers - allow all origins for mobile compatibility
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: https://churchtrack-system.vercel.app");
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Max-Age: 3600");
@@ -34,11 +27,16 @@ try {
     
     // Get posted data
     $input = file_get_contents("php://input");
+    error_log("Mobile registration input: " . $input);
+    
     $data = json_decode($input, true);
     
     if (!$data) {
+        error_log("Mobile registration: Invalid JSON data");
         throw new Exception("Invalid JSON data");
     }
+    
+    error_log("Mobile registration data: " . json_encode($data));
     
     // Validate required fields
     $required = ['surname', 'firstName', 'username', 'password', 'birthday', 'contactNumber', 'gender', 'street', 'barangay', 'city', 'province', 'zipCode'];
