@@ -470,19 +470,9 @@ const Register = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify(payload),
-        credentials: 'omit', // Avoid CORS issues on mobile
-        mode: 'cors',
       });
-
-      // Check if response is actually JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned non-JSON response');
-      }
 
       const data = await response.json();
 
@@ -499,22 +489,7 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        userAgent: navigator.userAgent
-      });
-      
-      let errorMessage = 'Failed to submit registration. Please try again.';
-      
-      // Mobile-specific error messages
-      if (error.message.includes('Failed to fetch')) {
-        errorMessage = 'Network error. Please check your internet connection and try again.';
-      } else if (error.message.includes('non-JSON response')) {
-        errorMessage = 'Server error occurred. Please try again later.';
-      }
-      
-      setMessage({ type: 'error', text: errorMessage });
+      setMessage({ type: 'error', text: 'Failed to submit registration. Please try again.' });
     } finally {
       setIsLoading(false);
     }
