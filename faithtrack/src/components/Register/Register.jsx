@@ -466,7 +466,11 @@ const Register = () => {
         payload.relationshipToReferrer = formData.relationshipToReferrer || null;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/members/register.php`, {
+      // Detect mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const endpoint = isMobile ? '/api/members/register_mobile.php' : '/api/members/register.php';
+      
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
