@@ -478,23 +478,23 @@ const Register = () => {
         body: JSON.stringify(payload),
       });
 
+      // Check response status first before parsing JSON
+      if (response.status === 201) {
+        // Registration successful
+        setMessage({ type: 'success', text: 'Registration successful!' });
+        setNotificationMessage('Registration successful! Please wait for admin approval. We will notify you via email if you provided one.');
+        setShowNotification(true);
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
+
       let data;
       try {
         data = await response.json();
       } catch (jsonError) {
-        // If JSON parsing fails, check if it's a successful registration (201)
-        if (response.status === 201) {
-          // Registration was successful despite CORS error
-          setMessage({ type: 'success', text: 'Registration successful!' });
-          setNotificationMessage('Registration successful! Please wait for admin approval. We will notify you via email if you provided one.');
-          setShowNotification(true);
-
-          setTimeout(() => {
-            navigate('/login');
-          }, 2000);
-          return;
-        }
-        
         console.error('JSON parse error:', jsonError);
         throw new Error('Server returned invalid response. Please try again.');
       }
