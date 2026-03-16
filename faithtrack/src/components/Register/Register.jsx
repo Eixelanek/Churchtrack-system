@@ -276,15 +276,27 @@ const Register = () => {
     }
     setCheckingUsername(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/members/check_username.php?username=${encodeURIComponent(username)}`);
+      const res = await fetch(`${API_BASE_URL}/api/members/check_username.php?username=${encodeURIComponent(username)}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
       setUsernameAvailable(data.available);
       setUsernameCheckMessage(data.message);
     } catch (err) {
+      console.error('Username check error:', err);
       setUsernameAvailable(null);
-      setUsernameCheckMessage('Error checking username');
+      setUsernameCheckMessage('Unable to verify username. Please try again.');
+    } finally {
+      setCheckingUsername(false);
     }
-    setCheckingUsername(false);
   };
 
   const checkEmailAvailability = async (email) => {
@@ -295,15 +307,27 @@ const Register = () => {
     }
     setCheckingEmail(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/members/check_email.php?email=${encodeURIComponent(email)}`);
+      const res = await fetch(`${API_BASE_URL}/api/members/check_email.php?email=${encodeURIComponent(email)}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
       setEmailAvailable(data.available);
       setEmailCheckMessage(data.message);
     } catch (err) {
+      console.error('Email check error:', err);
       setEmailAvailable(null);
-      setEmailCheckMessage('Error checking email');
+      setEmailCheckMessage('Unable to verify email. Please try again.');
+    } finally {
+      setCheckingEmail(false);
     }
-    setCheckingEmail(false);
   };
 
   // Debounce username check
@@ -1134,8 +1158,17 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
                   />
-                  {usernameCheckMessage && (
+                  {checkingUsername && (
+                    <div className="field-message info">
+                      Checking username availability...
+                    </div>
+                  )}
+                  {!checkingUsername && usernameCheckMessage && (
                     <div className={`field-message ${usernameAvailable === true ? 'success' : usernameAvailable === false ? 'error' : 'info'}`}>
                       {usernameCheckMessage}
                     </div>
