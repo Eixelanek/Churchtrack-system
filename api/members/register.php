@@ -2,6 +2,15 @@
 // Add CORS headers for cross-origin requests
 header("Content-Type: application/json; charset=UTF-8");
 
+// Simple error handling for mobile compatibility
+if (!function_exists('handleError')) {
+    function handleError($message, $code = 400) {
+        http_response_code($code);
+        echo json_encode(["message" => $message]);
+        exit();
+    }
+}
+
 // Handle preflight (OPTIONS) requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -11,13 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 include_once '../config/database.php';
 
 // Auto-cleaning: Delete rejected members older than 30 days
-$database = new Database();
-$db = $database->getConnection();
-$cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
-$db->prepare($cleanup_query)->execute();
-// Auto-cleaning: Delete expired and used verification codes
-$cleanup_codes_query = "DELETE FROM verification_codes WHERE is_used = TRUE OR created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-$db->prepare($cleanup_codes_query)->execute();
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    $cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    $db->prepare($cleanup_query)->execute();
+    // Auto-cleaning: Delete expired and used verification codes
+    $cleanup_codes_query = "DELETE FROM verification_codes WHERE is_used = TRUE OR created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)";
+    $db->prepare($cleanup_codes_query)->execute();
+} catch (Exception $e) {
+    // If database connection fails, return JSON error
+    handleError("Database connection failed", 500);
+}
 
 // Get posted data
 $data = json_decode(file_get_contents("php://input"));

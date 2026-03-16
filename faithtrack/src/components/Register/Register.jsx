@@ -474,7 +474,14 @@ const Register = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, likely got HTML error page
+        console.error('JSON parse error:', jsonError);
+        throw new Error('Server returned invalid response. Please try again.');
+      }
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Registration successful!' });
