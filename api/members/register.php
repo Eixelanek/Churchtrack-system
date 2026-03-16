@@ -53,6 +53,9 @@ try {
 // Get posted data
 $data = json_decode(file_get_contents("php://input"));
 
+// Log the received data for debugging
+error_log("Registration data received: " . json_encode($data));
+
 // Ensure database connection
 if (!isset($database)) {
     $database = new Database();
@@ -236,8 +239,13 @@ if (
             "status" => "pending"
         ]);
     } else {
+        $errorInfo = $stmt->errorInfo();
+        error_log("Database execution error: " . json_encode($errorInfo));
         http_response_code(503);
-        echo json_encode(["message" => "Unable to complete registration"]);
+        echo json_encode([
+            "message" => "Unable to complete registration",
+            "error" => $errorInfo[2] ?? "Unknown database error"
+        ]);
     }
 } else {
     http_response_code(400);

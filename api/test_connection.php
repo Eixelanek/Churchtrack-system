@@ -1,30 +1,40 @@
 <?php
-// Add CORS headers for cross-origin requests
-// Test database connection using the Database class
-require_once 'config/database.php';
+// Test database connection
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-echo "Testing connection using Database class...<br><br>";
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 try {
+    include_once 'config/database.php';
+    
     $database = new Database();
-    $conn = $database->getConnection();
+    $db = $database->getConnection();
     
-    if ($conn) {
-        echo "<strong style='color:green;'>✓ Connection successful!</strong><br>";
-        
-        // Test query
-        $stmt = $conn->query("SHOW TABLES");
-        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        echo "<br>Tables found: " . count($tables) . "<br>";
-        echo "<pre>";
-        print_r($tables);
-        echo "</pre>";
-    } else {
-        echo "<strong style='color:red;'>✗ Connection failed!</strong><br>";
-    }
+    // Test query
+    $test_query = "SELECT 1 as test";
+    $stmt = $db->prepare($test_query);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
     
-} catch(PDOException $e) {
-    echo "<strong style='color:red;'>✗ Connection failed!</strong><br>";
-    echo "Error: " . $e->getMessage();
+    echo json_encode([
+        'success' => true,
+        'message' => 'Database connection successful',
+        'test_result' => $result
+    ]);
+    
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection failed',
+        'error' => $e->getMessage()
+    ]);
 }
 ?>
