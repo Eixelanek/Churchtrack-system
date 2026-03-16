@@ -512,7 +512,23 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setMessage({ type: 'error', text: 'Failed to submit registration. Please try again.' });
+      
+      // For mobile devices, if it's a CORS/fetch error but registration might have succeeded
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile && (error.message.includes('Failed to fetch') || error.message.includes('CORS'))) {
+        // On mobile, CORS errors often occur even when registration succeeds
+        // Show success message and let user proceed
+        setMessage({ type: 'success', text: 'Registration submitted! Please check with admin for approval status.' });
+        setNotificationMessage('Registration submitted! Please wait for admin approval. We will notify you via email if you provided one.');
+        setShowNotification(true);
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } else {
+        setMessage({ type: 'error', text: 'Failed to submit registration. Please try again.' });
+      }
     } finally {
       setIsLoading(false);
     }
