@@ -2441,3 +2441,151 @@ html, body {
     margin-top: 6px;
   }
 }
+/* Safe Area Support for Mobile Devices with Navigation Bars */
+@supports (padding: max(0px)) {
+  .register-container {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  
+  .register-box {
+    margin-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Additional mobile viewport fixes */
+@media (max-width: 768px) {
+  .register-container {
+    /* Add extra bottom padding for devices with navigation bars */
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 60px));
+    /* Ensure minimum height accounts for viewport variations */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  .register-box {
+    /* Add bottom margin to ensure content is visible above navigation */
+    margin-bottom: calc(10px + env(safe-area-inset-bottom, 40px));
+    /* Ensure the box doesn't get cut off */
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 60px) - 20px);
+    max-height: calc(-webkit-fill-available - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 60px) - 20px);
+  }
+  
+  /* Ensure submit button area is always visible */
+  .step-navigation {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 20px));
+  }
+  
+  .submit-button {
+    margin-bottom: calc(10px + env(safe-area-inset-bottom, 20px));
+  }
+}
+
+/* Specific handling for devices with bottom navigation */
+@media (max-width: 768px) and (orientation: portrait) {
+  .register-container {
+    /* Extra padding for portrait mode where nav bars are more common */
+    padding-bottom: calc(15px + env(safe-area-inset-bottom, 80px));
+  }
+}
+
+/* Handle landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .register-container {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 40px));
+  }
+  
+  .register-box {
+    padding: 50px 20px 20px 20px;
+  }
+}
+
+/* Fallback for older browsers that don't support env() */
+@media (max-width: 768px) {
+  .register-container {
+    padding-bottom: 80px; /* Fallback padding */
+  }
+  
+  .register-box {
+    margin-bottom: 60px; /* Fallback margin */
+  }
+}
+/* Enhanced mobile scroll and navigation handling */
+@media (max-width: 768px) {
+  /* Prevent content from being hidden behind navigation bars */
+  .register-container {
+    /* Use the full available height */
+    height: 100vh;
+    height: -webkit-fill-available;
+    /* Ensure smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure the back button is always visible above navigation */
+  .back-link {
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    z-index: 1000;
+  }
+  
+  /* Add breathing room for the form content */
+  .step-content {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 60px));
+  }
+  
+  /* Ensure terms and conditions are visible */
+  .terms-section {
+    margin-bottom: calc(30px + env(safe-area-inset-bottom, 40px));
+  }
+  
+  /* Make sure error/success messages are visible */
+  .message-error,
+  .message-success {
+    position: relative;
+    z-index: 10;
+  }
+}
+
+/* Handle devices with notches or dynamic islands */
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    .register-container {
+      padding-top: max(10px, env(safe-area-inset-top));
+      padding-left: max(12px, env(safe-area-inset-left));
+      padding-right: max(12px, env(safe-area-inset-right));
+    }
+    
+    .back-link {
+      left: max(16px, calc(16px + env(safe-area-inset-left)));
+      top: max(16px, calc(16px + env(safe-area-inset-top)));
+    }
+  }
+}
+
+/* Specific fixes for common mobile navigation patterns */
+@media (max-width: 768px) {
+  /* Android gesture navigation */
+  @media (pointer: coarse) {
+    .register-container {
+      padding-bottom: calc(20px + env(safe-area-inset-bottom, 100px));
+    }
+  }
+  
+  /* iOS Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .register-container {
+      /* iOS Safari bottom bar handling */
+      padding-bottom: calc(25px + env(safe-area-inset-bottom, 90px));
+      /* Prevent zoom on input focus */
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    .form-group input,
+    .form-group select {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .phone-input-container input {
+      font-size: 16px !important; /* Prevent zoom on iOS */
+    }
+  }
+}
