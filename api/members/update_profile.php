@@ -1,5 +1,8 @@
 <?php
 // Add CORS headers for cross-origin requests
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -8,6 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include_once '../config/database.php';
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 $database = new Database();
 $db = $database->getConnection();
@@ -28,6 +35,20 @@ if (!isset($data->member_id)) {
 try {
     $memberId = $data->member_id;
     
+    // Check if guardian_middle_name column exists, if not create it
+    try {
+        $checkColumnQuery = "SHOW COLUMNS FROM members LIKE 'guardian_middle_name'";
+        $checkStmt = $db->query($checkColumnQuery);
+        if ($checkStmt->rowCount() === 0) {
+            // Column doesn't exist, create it
+            $alterQuery = "ALTER TABLE members ADD COLUMN guardian_middle_name VARCHAR(100) NULL AFTER guardian_first_name";
+            $db->exec($alterQuery);
+        }
+    } catch (Exception $e) {
+        // Log the error but continue
+        error_log("Guardian middle name column check: " . $e->getMessage());
+    }
+    
     // Check if profile_picture column exists, if not create it
     try {
         $checkColumnQuery = "SHOW COLUMNS FROM members LIKE 'profile_picture'";
@@ -38,7 +59,7 @@ try {
             $db->exec($alterQuery);
         }
     } catch (Exception $e) {
-        // Ignore if column already exists or other minor issues
+        // Log the error but continue
         error_log("Profile picture column check: " . $e->getMessage());
     }
     
@@ -235,17 +256,26 @@ try {
     
     // Regenerate full_name if name fields were updated
     if (isset($data->first_name) || isset($data->middle_name) || isset($data->last_name) || isset($data->suffix)) {
-        $updateFields[] = "full_name = CONCAT(
-            COALESCE(first_name, ''), ' ',
-            COALESCE(CONCAT(middle_name, ' '), ''),
-            COALESCE(surname, ''),
-            CASE WHEN suffix != 'None' AND suffix IS NOT NULL THEN CONCAT(' ', suffix) ELSE '' END
-        )";
+        $updateFields[] = "full_name = TRIM(CONCAT(
+            COALESCE(first_name, ''), 
+            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
+            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
+            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
+        ))";
     }
     
     // Build and execute update query
     $query = "UPDATE members SET " . implode(", ", $updateFields) . " WHERE id = :member_id";
+    
+    // Log the query for debugging
+    error_log("Update query: " . $query);
+    error_log("Parameters: " . json_encode($params));
+    
     $stmt = $db->prepare($query);
+    
+    if (!$stmt) {
+        throw new Exception("Failed to prepare statement: " . implode(", ", $db->errorInfo()));
+    }
     
     foreach ($params as $key => $value) {
         $stmt->bindValue($key, $value);
@@ -268,16 +298,30 @@ try {
                         city,
                         province,
                         zip_code,
+                        guardian_first_name,
+                        guardian_middle_name,
+                        guardian_surname,
+                        guardian_suffix,
+                        relationship_to_guardian,
                         profile_picture,
-                        CONCAT(first_name, ' ', 
-                               COALESCE(CONCAT(middle_name, ' '), ''), 
-                               surname,
-                               CASE WHEN suffix != 'None' THEN CONCAT(' ', suffix) ELSE '' END) as full_name
+                        TRIM(CONCAT(
+                            COALESCE(first_name, ''), 
+                            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
+                            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
+                            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
+                        )) as full_name
                        FROM members 
                        WHERE id = :member_id";
         $fetchStmt = $db->prepare($fetchQuery);
+        if (!$fetchStmt) {
+            throw new Exception("Failed to prepare fetch statement: " . implode(", ", $db->errorInfo()));
+        }
+        
         $fetchStmt->bindParam(':member_id', $memberId);
-        $fetchStmt->execute();
+        if (!$fetchStmt->execute()) {
+            throw new Exception("Failed to execute fetch statement: " . implode(", ", $fetchStmt->errorInfo()));
+        }
+        
         $updatedMember = $fetchStmt->fetch(PDO::FETCH_ASSOC);
         
         http_response_code(200);
@@ -287,10 +331,12 @@ try {
             "member" => $updatedMember
         ]);
     } else {
+        $errorInfo = $stmt->errorInfo();
+        error_log("SQL Error: " . implode(", ", $errorInfo));
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "Failed to update profile"
+            "message" => "Failed to update profile: " . $errorInfo[2]
         ]);
     }
     
