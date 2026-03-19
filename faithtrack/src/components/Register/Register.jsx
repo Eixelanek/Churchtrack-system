@@ -1010,7 +1010,7 @@ const Register = () => {
                     </div>
                     
                     <div className="form-group">
-                      <label>Guardian Middle Name</label>
+                      <label>Guardian Middle Name (optional)</label>
                       <input
                         type="text"
                         name="guardianMiddleName"
