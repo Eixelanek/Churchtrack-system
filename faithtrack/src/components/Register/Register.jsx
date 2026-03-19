@@ -951,20 +951,30 @@ const Register = () => {
                     Contact Number
                     <span className="required-asterisk">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    placeholder="09XX XXX XXXX"
-                    value={formData.contactNumber}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    inputMode="numeric"
-                    pattern="09[0-9]{9}"
-                    minLength={11}
-                    maxLength={11}
-                    title="Enter a valid 11-digit Philippine mobile number starting with 09"
-                  />
+                  <div className="phone-input-container">
+                    <span className="phone-prefix">09</span>
+                    <input
+                      type="tel"
+                      name="contactNumber"
+                      placeholder="XX XXX XXXX"
+                      value={formData.contactNumber.startsWith('09') ? formData.contactNumber.slice(2) : formData.contactNumber}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                        handleChange({ target: { name: 'contactNumber', value: '09' + value } });
+                      }}
+                      required
+                      disabled={isLoading}
+                      inputMode="numeric"
+                      minLength={9}
+                      maxLength={9}
+                      title="Enter the remaining 9 digits of your Philippine mobile number"
+                    />
+                  </div>
+                  {formData.contactNumber && formData.contactNumber.length !== 11 && (
+                    <div className="field-message error">
+                      Please enter a complete 11-digit mobile number
+                    </div>
+                  )}
                 </div>
               </div>
 
