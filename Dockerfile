@@ -21,6 +21,7 @@ RUN printf '%s\n' \
     'post_max_size=32M' \
     'upload_max_filesize=32M' \
     'max_execution_time=120' \
+    'auto_prepend_file=/var/www/html/api/rate_limit_bootstrap.php' \
     > /usr/local/etc/php/conf.d/churchtrack.ini
 
 # Enable Apache mod_rewrite
