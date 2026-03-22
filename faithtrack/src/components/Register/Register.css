@@ -1571,6 +1571,13 @@ html, body {
   vertical-align: middle;
 }
 
+.field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #64748b;
+}
+
 .field-message {
   margin-top: 8px !important;
   font-size: 13px !important;

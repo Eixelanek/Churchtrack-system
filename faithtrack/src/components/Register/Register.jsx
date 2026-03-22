@@ -5,6 +5,7 @@ import logoImage from '../../assets/logo.png';
 import Notification from '../Notification/Notification';
 import '../transitions.css';
 import { API_BASE_URL } from '../../config/api';
+import { findZipCode } from '../../utils/philippinesZipLookup';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -361,6 +362,20 @@ const Register = () => {
     return () => clearTimeout(handler);
     // eslint-disable-next-line
   }, [formData.email]);
+
+  useEffect(() => {
+    const city = (formData.city || '').trim();
+    const province = (formData.province || '').trim();
+    if (!city || !province) return undefined;
+
+    const t = setTimeout(() => {
+      const zip = findZipCode(city, province);
+      if (zip) {
+        setFormData((prev) => (prev.zipCode === zip ? prev : { ...prev, zipCode: zip }));
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [formData.city, formData.province]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -1166,12 +1181,17 @@ const Register = () => {
                   <input
                     type="text"
                     name="zipCode"
-                    placeholder="Enter ZIP code"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="Filled from city & province when known"
                     value={formData.zipCode}
                     onChange={handleChange}
                     required
                     disabled={isLoading}
                   />
+                  <p className="field-hint">
+                    Enter city and province first — ZIP fills automatically when recognized. You can edit it if needed.
+                  </p>
                 </div>
               </div>
               <div className="step-navigation">
