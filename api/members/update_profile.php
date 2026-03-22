@@ -1,29 +1,6 @@
 <?php
-// CORS: production + Vercel previews + localhost; optional CORS_ALLOWED_ORIGINS (comma-separated)
-$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$fromEnv = array_filter(array_map('trim', explode(',', (string) getenv('CORS_ALLOWED_ORIGINS'))));
-$allowList = array_values(array_unique(array_merge(
-    [
-        'https://churchtrack-system.vercel.app',
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-    ],
-    $fromEnv
-)));
-
-$allowOrigin = 'https://churchtrack-system.vercel.app';
-if ($requestOrigin !== '') {
-    if (in_array($requestOrigin, $allowList, true)) {
-        $allowOrigin = $requestOrigin;
-    } elseif (preg_match('#^https://[^/]+\.vercel\.app$#i', $requestOrigin)) {
-        $allowOrigin = $requestOrigin;
-    }
-}
-
-header('Access-Control-Allow-Origin: ' . $allowOrigin);
-header('Vary: Origin');
+// Wildcard CORS: no cookies on this endpoint; avoids broken saves from custom domains / previews
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=UTF-8');
@@ -70,8 +47,17 @@ if (!is_object($data) || !isset($data->member_id)) {
     exit();
 }
 
+$memberId = (int) $data->member_id;
+if ($memberId <= 0) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid member ID',
+    ]);
+    exit();
+}
+
 try {
-    $memberId = $data->member_id;
     
     // Check if guardian_middle_name column exists, if not create it
     try {
@@ -102,115 +88,67 @@ try {
     }
 
     $validCols = memberTableColumns($db);
-    
-    // Build update query dynamically based on provided fields
+
     $updateFields = [];
     $params = [':member_id' => $memberId];
+
+    $setIfPresent = function ($jsonKey, $column, $paramName) use ($data, &$updateFields, &$params, $validCols) {
+        if (empty($validCols[$column]) || !property_exists($data, $jsonKey)) {
+            return;
+        }
+        $val = $data->{$jsonKey};
+        $updateFields[] = "{$column} = {$paramName}";
+        $params[$paramName] = $val;
+    };
     
-    if (isset($data->first_name)) {
-        $updateFields[] = "first_name = :first_name";
-        $params[':first_name'] = $data->first_name;
+    $setIfPresent('first_name', 'first_name', ':first_name');
+    $setIfPresent('middle_name', 'middle_name', ':middle_name');
+    $setIfPresent('last_name', 'surname', ':surname');
+    $setIfPresent('suffix', 'suffix', ':suffix');
+    $setIfPresent('contact_number', 'contact_number', ':contact_number');
+    $setIfPresent('gender', 'gender', ':gender');
+    // Empty birthday string breaks MySQL DATE / strict mode when the app always sends all keys
+    if (!empty($validCols['birthday']) && property_exists($data, 'birthday')) {
+        $b = $data->birthday;
+        if ($b !== null && $b !== '') {
+            $updateFields[] = 'birthday = :birthday';
+            $params[':birthday'] = $b;
+        }
     }
-    
-    if (isset($data->middle_name)) {
-        $updateFields[] = "middle_name = :middle_name";
-        $params[':middle_name'] = $data->middle_name;
-    }
-    
-    if (isset($data->last_name)) {
-        $updateFields[] = "surname = :surname";
-        $params[':surname'] = $data->last_name;
-    }
-    
-    if (isset($data->suffix)) {
-        $updateFields[] = "suffix = :suffix";
-        $params[':suffix'] = $data->suffix;
-    }
-    
-    if (isset($data->contact_number)) {
-        $updateFields[] = "contact_number = :contact_number";
-        $params[':contact_number'] = $data->contact_number;
-    }
-    
-    if (isset($data->gender)) {
-        $updateFields[] = "gender = :gender";
-        $params[':gender'] = $data->gender;
-    }
-    
-    if (isset($data->birthday)) {
-        $updateFields[] = "birthday = :birthday";
-        $params[':birthday'] = $data->birthday;
-    }
-    
-    if (isset($data->street)) {
-        $updateFields[] = "street = :street";
-        $params[':street'] = $data->street;
-    }
-    
-    if (isset($data->barangay)) {
-        $updateFields[] = "barangay = :barangay";
-        $params[':barangay'] = $data->barangay;
-    }
-    
-    if (isset($data->city)) {
-        $updateFields[] = "city = :city";
-        $params[':city'] = $data->city;
-    }
-    
-    if (isset($data->province)) {
-        $updateFields[] = "province = :province";
-        $params[':province'] = $data->province;
-    }
-    
-    if (isset($data->zip_code)) {
-        $updateFields[] = "zip_code = :zip_code";
-        $params[':zip_code'] = $data->zip_code;
-    }
-    
-    if (isset($data->guardian_first_name)) {
-        $updateFields[] = "guardian_first_name = :guardian_first_name";
-        $params[':guardian_first_name'] = $data->guardian_first_name;
-    }
-    
-    if (isset($data->guardian_middle_name) && !empty($validCols['guardian_middle_name'])) {
-        $updateFields[] = "guardian_middle_name = :guardian_middle_name";
+    $setIfPresent('street', 'street', ':street');
+    $setIfPresent('barangay', 'barangay', ':barangay');
+    $setIfPresent('city', 'city', ':city');
+    $setIfPresent('province', 'province', ':province');
+    $setIfPresent('zip_code', 'zip_code', ':zip_code');
+    $setIfPresent('guardian_first_name', 'guardian_first_name', ':guardian_first_name');
+    if (!empty($validCols['guardian_middle_name']) && property_exists($data, 'guardian_middle_name')) {
+        $updateFields[] = 'guardian_middle_name = :guardian_middle_name';
         $params[':guardian_middle_name'] = $data->guardian_middle_name;
     }
+    $setIfPresent('guardian_surname', 'guardian_surname', ':guardian_surname');
+    $setIfPresent('guardian_suffix', 'guardian_suffix', ':guardian_suffix');
+    $setIfPresent('relationship_to_guardian', 'relationship_to_guardian', ':relationship_to_guardian');
     
-    if (isset($data->guardian_surname)) {
-        $updateFields[] = "guardian_surname = :guardian_surname";
-        $params[':guardian_surname'] = $data->guardian_surname;
-    }
-    
-    if (isset($data->guardian_suffix)) {
-        $updateFields[] = "guardian_suffix = :guardian_suffix";
-        $params[':guardian_suffix'] = $data->guardian_suffix;
-    }
-    
-    if (isset($data->relationship_to_guardian)) {
-        $updateFields[] = "relationship_to_guardian = :relationship_to_guardian";
-        $params[':relationship_to_guardian'] = $data->relationship_to_guardian;
-    }
-    
-    if (isset($data->email)) {
-        // Check if email is already used by another member
-        $emailCheckQuery = "SELECT id FROM members WHERE email = :email AND id != :member_id";
-        $emailStmt = $db->prepare($emailCheckQuery);
-        $emailStmt->bindParam(':email', $data->email);
-        $emailStmt->bindParam(':member_id', $memberId);
-        $emailStmt->execute();
-        
-        if ($emailStmt->fetch()) {
-            http_response_code(400);
-            echo json_encode([
-                "success" => false,
-                "message" => "Email is already in use by another member"
-            ]);
-            exit();
+    if (!empty($validCols['email']) && property_exists($data, 'email')) {
+        $emailVal = $data->email;
+        if ($emailVal !== null && trim((string) $emailVal) !== '') {
+            $emailTrim = trim((string) $emailVal);
+            $emailCheckQuery = 'SELECT id FROM members WHERE email = :email AND id != :member_id';
+            $emailStmt = $db->prepare($emailCheckQuery);
+            $emailStmt->bindValue(':email', $emailTrim);
+            $emailStmt->bindValue(':member_id', $memberId, PDO::PARAM_INT);
+            $emailStmt->execute();
+            if ($emailStmt->fetch()) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Email is already in use by another member',
+                ]);
+                exit();
+            }
+            $updateFields[] = 'email = :email';
+            $params[':email'] = $emailTrim;
         }
-        
-        $updateFields[] = "email = :email";
-        $params[':email'] = $data->email;
     }
     
     // Handle profile picture upload
@@ -303,7 +241,14 @@ try {
         $updateFields[] = "updated_at = NOW()";
     }
     
-    if (!empty($validCols['full_name']) && (isset($data->first_name) || isset($data->middle_name) || isset($data->last_name) || isset($data->suffix))) {
+    $nameFieldUpdated = false;
+    foreach ($updateFields as $frag) {
+        if (preg_match('/^(first_name|middle_name|surname|suffix) =/', $frag)) {
+            $nameFieldUpdated = true;
+            break;
+        }
+    }
+    if (!empty($validCols['full_name']) && $nameFieldUpdated) {
         $updateFields[] = "full_name = TRIM(CONCAT(
             COALESCE(first_name, ''), 
             CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
@@ -316,7 +261,7 @@ try {
     $query = "UPDATE members SET " . implode(", ", $updateFields) . " WHERE id = :member_id";
     
     error_log('Update query: ' . $query);
-    $paramLog = json_encode($params, JSON_INVALID_UTF8_SUBSTITUTE);
+    $paramLog = json_encode($params);
     if ($paramLog !== false) {
         error_log('Parameters: ' . $paramLog);
     }
@@ -350,7 +295,7 @@ try {
         $fetchQuery = 'SELECT ' . implode(', ', $selectParts) . ' FROM members WHERE id = :member_id';
         $fetchStmt = $db->prepare($fetchQuery);
         
-        $fetchStmt->bindParam(':member_id', $memberId);
+        $fetchStmt->bindValue(':member_id', $memberId, PDO::PARAM_INT);
         if (!$fetchStmt->execute()) {
             throw new Exception('Failed to execute fetch statement: ' . implode(', ', $fetchStmt->errorInfo()));
         }
