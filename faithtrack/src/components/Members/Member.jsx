@@ -203,7 +203,8 @@ const Member = () => {
                  n.type === 'profile_incomplete' ? '📝 Complete Your Profile' :
                  n.type === 'streak_milestone' ? '🔥 Streak Milestone!' :
                  n.type === 'family_checkin' ? '👨‍👩‍👧‍👦 Family Check-in' :
-                 n.type === 'family_invite' ? '👥 Family Circle Invite' : 'Notification',
+                 n.type === 'family_invite' ? '👥 Family Circle Invite' :
+                 n.type === 'family_registration' ? '👨‍👩‍👧 Family circle' : 'Notification',
           message: n.message,
           time: formatNotificationTime(n.timestamp),
           read: n.is_read,
@@ -598,6 +599,9 @@ const Member = () => {
         break;
       case 'family_invite':
         // Open family tree modal to manage invite
+        handleFamilyTreeClick();
+        break;
+      case 'family_registration':
         handleFamilyTreeClick();
         break;
       default:

@@ -7,6 +7,17 @@ import '../transitions.css';
 import { API_BASE_URL } from '../../config/api';
 import { findZipCode } from '../../utils/philippinesZipLookup';
 
+const FAMILY_LINK_RELATIONSHIPS = [
+  'Brother',
+  'Sister',
+  'Father',
+  'Mother',
+  'Son',
+  'Daughter',
+  'Spouse',
+  'Other'
+];
+
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,6 +83,11 @@ const Register = () => {
   const [emailCheckMessage, setEmailCheckMessage] = useState('');
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [familyLinks, setFamilyLinks] = useState([]);
+  const [familyLinkSearch, setFamilyLinkSearch] = useState('');
+  const [familyLinkResults, setFamilyLinkResults] = useState([]);
+  const [showFamilyLinkResults, setShowFamilyLinkResults] = useState(false);
+  const [searchingFamilyLink, setSearchingFamilyLink] = useState(false);
 
   // Calculate the max allowed birthday (5 years ago from today)
   const today = new Date();
@@ -369,6 +385,71 @@ const Register = () => {
   }, [formData.email]);
 
   useEffect(() => {
+    if (parseInt(formData.age, 10) > 17) {
+      setFamilyLinks([]);
+      setFamilyLinkSearch('');
+      setFamilyLinkResults([]);
+      setShowFamilyLinkResults(false);
+    }
+  }, [formData.age]);
+
+  useEffect(() => {
+    const q = familyLinkSearch.trim();
+    if (q.length < 2) {
+      setFamilyLinkResults([]);
+      setShowFamilyLinkResults(false);
+      return undefined;
+    }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      (async () => {
+        setSearchingFamilyLink(true);
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/api/family/search_members.php?q=${encodeURIComponent(q)}`
+          );
+          const data = await res.json();
+          if (cancelled) return;
+          const members = data.members || [];
+          setFamilyLinkResults(members.slice(0, 12));
+          setShowFamilyLinkResults(true);
+        } catch {
+          if (!cancelled) setFamilyLinkResults([]);
+        } finally {
+          if (!cancelled) setSearchingFamilyLink(false);
+        }
+      })();
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [familyLinkSearch]);
+
+  const addFamilyMemberLink = (member) => {
+    if (familyLinks.length >= 5) return;
+    if (familyLinks.some((f) => f.id === member.id)) return;
+    const name = member.full_name || member.name || member.email || `Member #${member.id}`;
+    setFamilyLinks((prev) => [
+      ...prev,
+      { id: member.id, name, relationship: 'Brother' }
+    ]);
+    setFamilyLinkSearch('');
+    setFamilyLinkResults([]);
+    setShowFamilyLinkResults(false);
+  };
+
+  const removeFamilyMemberLink = (id) => {
+    setFamilyLinks((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const updateFamilyMemberLinkRelationship = (id, relationship) => {
+    setFamilyLinks((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, relationship } : f))
+    );
+  };
+
+  useEffect(() => {
     const city = (formData.city || '').trim();
     const province = (formData.province || '').trim();
     if (!city || !province) return undefined;
@@ -484,6 +565,12 @@ const Register = () => {
         payload.guardianMiddleName = formData.guardianMiddleName || null;
         payload.guardianSuffix = formData.guardianSuffix || 'None';
         payload.relationshipToGuardian = formData.relationshipToGuardian;
+        if (familyLinks.length > 0) {
+          payload.familyLinks = familyLinks.map((f) => ({
+            relativeId: f.id,
+            relationship: f.relationship
+          }));
+        }
       }
 
       if (hasReferral && formData.referrerId) {
@@ -1097,6 +1184,88 @@ const Register = () => {
                         <option value="Sibling">Sibling</option>
                         <option value="Other">Other</option>
                       </select>
+                    </div>
+
+                    <div className="form-group family-registration-links">
+                      <label>Link church members to your family circle (optional)</label>
+                      <p className="field-hint">
+                        If a parent or sibling already has an account, you can link them now. Skip this if no one in your household is registered yet.
+                      </p>
+                      <div className="form-group referrer-group">
+                        <input
+                          type="text"
+                          placeholder="Search by name or email..."
+                          value={familyLinkSearch}
+                          onChange={(e) => setFamilyLinkSearch(e.target.value)}
+                          onFocus={() => {
+                            if (familyLinkResults.length > 0) setShowFamilyLinkResults(true);
+                          }}
+                          disabled={isLoading || familyLinks.length >= 5}
+                          autoComplete="off"
+                        />
+                        {searchingFamilyLink && (
+                          <div className="searching-indicator">Searching...</div>
+                        )}
+                        {showFamilyLinkResults &&
+                          familyLinkResults.filter((m) => !familyLinks.some((f) => f.id === m.id))
+                            .length > 0 && (
+                            <div className="search-results">
+                              {familyLinkResults
+                                .filter((m) => !familyLinks.some((f) => f.id === m.id))
+                                .map((m) => (
+                                  <div
+                                    key={m.id}
+                                    className="search-result-item"
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => addFamilyMemberLink(m)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        addFamilyMemberLink(m);
+                                      }
+                                    }}
+                                  >
+                                    <div className="referrer-name">{m.full_name || m.name}</div>
+                                    {m.email && (
+                                      <div className="referrer-username">{m.email}</div>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                      </div>
+                      {familyLinks.length > 0 && (
+                        <ul className="family-registration-link-list">
+                          {familyLinks.map((fl) => (
+                            <li key={fl.id} className="family-registration-link-row">
+                              <span className="family-registration-link-name">{fl.name}</span>
+                              <select
+                                value={fl.relationship}
+                                onChange={(e) =>
+                                  updateFamilyMemberLinkRelationship(fl.id, e.target.value)
+                                }
+                                disabled={isLoading}
+                                aria-label={`Relationship to ${fl.name}`}
+                              >
+                                {FAMILY_LINK_RELATIONSHIPS.map((r) => (
+                                  <option key={r} value={r}>
+                                    {r}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                type="button"
+                                className="family-registration-link-remove"
+                                onClick={() => removeFamilyMemberLink(fl.id)}
+                                disabled={isLoading}
+                              >
+                                Remove
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>

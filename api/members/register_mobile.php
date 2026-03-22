@@ -122,6 +122,11 @@ try {
     $stmt->bindParam(":password", $hashed_password);
     
     if ($stmt->execute()) {
+        $newMemberId = (int) $db->lastInsertId();
+        require_once __DIR__ . '/../family/link_at_registration.php';
+        $familyLinks = isset($data['familyLinks']) ? $data['familyLinks'] : null;
+        link_family_after_registration($db, $newMemberId, $familyLinks, $age);
+
         http_response_code(201);
         echo json_encode([
             "message" => "Registration successful. Please wait for admin approval.",
