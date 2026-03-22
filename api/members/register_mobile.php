@@ -2,12 +2,8 @@
 // Mobile-specific registration endpoint
 // Simplified version to avoid mobile browser issues
 
-// Set CORS headers - allow all origins for mobile compatibility
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Access-Control-Max-Age: 3600");
+// CORS: apache-config.conf sets ACAO (duplicate PHP + Apache headers become "*, *" and break fetch)
+header('Content-Type: application/json; charset=UTF-8');
 
 // Handle preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
