@@ -249,22 +249,8 @@ try {
     if (!empty($validCols['updated_at'])) {
         $updateFields[] = "updated_at = NOW()";
     }
-    
-    $nameFieldUpdated = false;
-    foreach ($updateFields as $frag) {
-        if (preg_match('/^(first_name|middle_name|surname|suffix) =/', $frag)) {
-            $nameFieldUpdated = true;
-            break;
-        }
-    }
-    if (!empty($validCols['full_name']) && $nameFieldUpdated) {
-        $updateFields[] = "full_name = TRIM(CONCAT(
-            COALESCE(first_name, ''), 
-            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
-            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
-            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
-        ))";
-    }
+
+    // full_name is a generated column in production DB — cannot SET it (MySQL error 3105)
     
     // Build and execute update query
     $query = "UPDATE members SET " . implode(", ", $updateFields) . " WHERE id = :member_id";
@@ -283,12 +269,6 @@ try {
     
     $stmt->execute();
 
-        $nameExpr = "TRIM(CONCAT(
-            COALESCE(first_name, ''), 
-            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
-            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
-            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
-        )) as full_name";
         $wantCols = [
             'id', 'first_name', 'middle_name', 'surname', 'suffix', 'email', 'contact_number',
             'gender', 'birthday', 'street', 'barangay', 'city', 'province', 'zip_code',
@@ -301,7 +281,16 @@ try {
                 $selectParts[] = $col;
             }
         }
-        $selectParts[] = $nameExpr;
+        if (!empty($validCols['full_name'])) {
+            $selectParts[] = 'full_name';
+        } else {
+            $selectParts[] = "TRIM(CONCAT(
+            COALESCE(first_name, ''), 
+            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
+            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
+            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
+        )) AS full_name";
+        }
         $fetchQuery = 'SELECT ' . implode(', ', $selectParts) . ' FROM members WHERE id = :member_id';
         $fetchStmt = $db->prepare($fetchQuery);
         
