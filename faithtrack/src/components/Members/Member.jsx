@@ -13,6 +13,40 @@ import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/
 import { fetchFamilyTree, searchMembers, sendFamilyInvite, respondToInvite, removeFamilyRelationship } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
 
+/** Shrink base64 photos before POST (avoids post_max_size / memory issues on the API) */
+function compressDataUrlForProfile(dataUrl, maxSide = 1280, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!dataUrl || !dataUrl.startsWith('data:image')) {
+      resolve(dataUrl);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth || img.width;
+        const h = img.naturalHeight || img.height;
+        const scale = Math.min(1, maxSide / Math.max(w, h, 1));
+        const tw = Math.round(w * scale);
+        const th = Math.round(h * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = tw;
+        canvas.height = th;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, tw, th);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 // --- LAYOUT, LOGIC, AND STYLES COPIED FROM ADMIN.JSX ---
 
 const Member = () => {
@@ -1165,9 +1199,14 @@ const Member = () => {
         relationship_to_guardian: profileData.relationshipToGuardian
       };
 
-      // Include profile picture if it was changed
-      if (previewImage && previewImage !== originalData?.previewImage) {
-        updateData.profile_picture = previewImage;
+      // Only send new uploads as data URLs (never send API URLs — reduces payload and avoids server confusion)
+      const isNewPhoto =
+        previewImage &&
+        typeof previewImage === 'string' &&
+        previewImage.startsWith('data:image') &&
+        previewImage !== originalData?.previewImage;
+      if (isNewPhoto) {
+        updateData.profile_picture = await compressDataUrlForProfile(previewImage);
       }
 
       const response = await fetch(`${API_BASE_URL}/api/members/update_profile.php`, {

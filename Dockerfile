@@ -15,6 +15,14 @@ RUN apt-get update && apt-get install -y \
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mysqli mbstring exif pcntl bcmath gd zip
 
+# Larger JSON bodies (base64 profile photos) — post_max must exceed upload payload
+RUN printf '%s\n' \
+    'memory_limit=256M' \
+    'post_max_size=32M' \
+    'upload_max_filesize=32M' \
+    'max_execution_time=120' \
+    > /usr/local/etc/php/conf.d/churchtrack.ini
+
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite headers
 

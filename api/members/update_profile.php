@@ -1,8 +1,5 @@
 <?php
-// Wildcard CORS: no cookies on this endpoint; avoids broken saves from custom domains / previews
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// Do not set CORS here — apache-config.conf already sends ACAO (duplicate headers break browsers)
 header('Content-Type: application/json; charset=UTF-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -111,6 +108,10 @@ try {
     if (!empty($validCols['birthday']) && property_exists($data, 'birthday')) {
         $b = $data->birthday;
         if ($b !== null && $b !== '') {
+            $b = trim((string) $b);
+            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $b, $m)) {
+                $b = $m[1];
+            }
             $updateFields[] = 'birthday = :birthday';
             $params[':birthday'] = $b;
         }
@@ -189,10 +190,17 @@ try {
                 exit();
             }
             
-            // Create uploads directory if it doesn't exist
-            $uploadDir = '../../uploads/profile_pictures/';
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+            // Paths relative to this file — CWD is often DocumentRoot, NOT api/members
+            $uploadDir = __DIR__ . '/../../uploads/profile_pictures/';
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                    http_response_code(500);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Cannot create upload directory on server',
+                    ]);
+                    exit();
+                }
             }
             
             // Generate unique filename
@@ -209,9 +217,10 @@ try {
                 $oldPicture = $oldPictureStmt->fetch(PDO::FETCH_ASSOC);
                 
                 if ($oldPicture && !empty($oldPicture['profile_picture'])) {
-                    $oldFilePath = '../../' . ltrim($oldPicture['profile_picture'], '/');
-                    if (file_exists($oldFilePath)) {
-                        unlink($oldFilePath);
+                    $rel = ltrim((string) $oldPicture['profile_picture'], '/');
+                    $oldFilePath = __DIR__ . '/../../' . $rel;
+                    if (is_file($oldFilePath)) {
+                        @unlink($oldFilePath);
                     }
                 }
                 
@@ -272,7 +281,8 @@ try {
         $stmt->bindValue($key, $value);
     }
     
-    if ($stmt->execute()) {
+    $stmt->execute();
+
         $nameExpr = "TRIM(CONCAT(
             COALESCE(first_name, ''), 
             CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
@@ -303,20 +313,12 @@ try {
         $updatedMember = $fetchStmt->fetch(PDO::FETCH_ASSOC);
         
         http_response_code(200);
-        echo json_encode([
-            "success" => true,
-            "message" => "Profile updated successfully",
-            "member" => $updatedMember
+        $payload = json_encode([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'member' => $updatedMember,
         ]);
-    } else {
-        $errorInfo = $stmt->errorInfo();
-        error_log("SQL Error: " . implode(", ", $errorInfo));
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Failed to update profile: " . $errorInfo[2]
-        ]);
-    }
+        echo $payload !== false ? $payload : '{"success":false,"message":"JSON encode failed"}';
     
 } catch (Throwable $e) {
     error_log('update_profile: ' . $e->getMessage());
@@ -326,4 +328,3 @@ try {
         'message' => 'Error updating profile: ' . $e->getMessage(),
     ]);
 }
-?>
