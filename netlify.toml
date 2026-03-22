@@ -1,5 +1,6 @@
-# Netlify build config for ChurchTrack frontend
-# Frontend is in faithtrack/ subfolder
+# Optional Netlify build config (legacy / alternate host).
+# Production frontend: https://churchtrack-system.vercel.app/ (Vercel).
+# App folder: faithtrack/
 
 [build]
   base = "faithtrack"

@@ -1,4 +1,4 @@
-// Netlify Function to proxy API requests to InfinityFree backend
+// Optional Netlify serverless proxy (unused when frontend is on Vercel + API on Render).
 // This bypasses CORS issues and InfinityFree's anti-bot protection
 
 // Simple in-memory cookie store (resets on cold start)
