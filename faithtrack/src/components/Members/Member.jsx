@@ -1178,7 +1178,19 @@ const Member = () => {
         body: JSON.stringify(updateData)
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        triggerToast('Could not read server response. Try again or contact support.', 'error');
+        return;
+      }
+
+      if (!response.ok) {
+        triggerToast(data.message || `Save failed (${response.status})`, 'error');
+        return;
+      }
 
       if (data.success) {
         // Update profile data with the response from server

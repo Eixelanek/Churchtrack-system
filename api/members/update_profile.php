@@ -1,10 +1,32 @@
 <?php
-// Add CORS headers for cross-origin requests
-header("Access-Control-Allow-Origin: https://churchtrack-system.vercel.app");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Credentials: true");
-header("Content-Type: application/json; charset=UTF-8");
+// CORS: production + Vercel previews + localhost; optional CORS_ALLOWED_ORIGINS (comma-separated)
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$fromEnv = array_filter(array_map('trim', explode(',', (string) getenv('CORS_ALLOWED_ORIGINS'))));
+$allowList = array_values(array_unique(array_merge(
+    [
+        'https://churchtrack-system.vercel.app',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+    ],
+    $fromEnv
+)));
+
+$allowOrigin = 'https://churchtrack-system.vercel.app';
+if ($requestOrigin !== '') {
+    if (in_array($requestOrigin, $allowList, true)) {
+        $allowOrigin = $requestOrigin;
+    } elseif (preg_match('#^https://[^/]+\.vercel\.app$#i', $requestOrigin)) {
+        $allowOrigin = $requestOrigin;
+    }
+}
+
+header('Access-Control-Allow-Origin: ' . $allowOrigin);
+header('Vary: Origin');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json; charset=UTF-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -13,22 +35,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 include_once '../config/database.php';
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+$isProd = getenv('RENDER') || getenv('RAILWAY_ENVIRONMENT');
+ini_set('display_errors', $isProd ? '0' : '1');
 
 $database = new Database();
 $db = $database->getConnection();
 
-// Get the posted data
-$data = json_decode(file_get_contents("php://input"));
+function memberTableColumns(PDO $db) {
+    $stmt = $db->query('SHOW COLUMNS FROM members');
+    $cols = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $cols[$row['Field']] = true;
+    }
+    return $cols;
+}
 
-// Validate required fields
-if (!isset($data->member_id)) {
+$rawInput = file_get_contents('php://input');
+$data = json_decode($rawInput);
+if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
     echo json_encode([
-        "success" => false,
-        "message" => "Member ID is required"
+        'success' => false,
+        'message' => 'Invalid JSON body',
+    ]);
+    exit();
+}
+if (!is_object($data) || !isset($data->member_id)) {
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Member ID is required',
     ]);
     exit();
 }
@@ -63,6 +100,8 @@ try {
         // Log the error but continue
         error_log("Profile picture column check: " . $e->getMessage());
     }
+
+    $validCols = memberTableColumns($db);
     
     // Build update query dynamically based on provided fields
     $updateFields = [];
@@ -133,7 +172,7 @@ try {
         $params[':guardian_first_name'] = $data->guardian_first_name;
     }
     
-    if (isset($data->guardian_middle_name)) {
+    if (isset($data->guardian_middle_name) && !empty($validCols['guardian_middle_name'])) {
         $updateFields[] = "guardian_middle_name = :guardian_middle_name";
         $params[':guardian_middle_name'] = $data->guardian_middle_name;
     }
@@ -176,6 +215,14 @@ try {
     
     // Handle profile picture upload
     if (isset($data->profile_picture) && !empty($data->profile_picture)) {
+        if (empty($validCols['profile_picture'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Profile picture column is missing. Ask an admin to run the database migration (profile_picture on members).',
+            ]);
+            exit();
+        }
         // Decode base64 image
         $imageData = $data->profile_picture;
         
@@ -252,11 +299,11 @@ try {
         exit();
     }
     
-    // Add updated_at timestamp and regenerate full_name
-    $updateFields[] = "updated_at = NOW()";
+    if (!empty($validCols['updated_at'])) {
+        $updateFields[] = "updated_at = NOW()";
+    }
     
-    // Regenerate full_name if name fields were updated
-    if (isset($data->first_name) || isset($data->middle_name) || isset($data->last_name) || isset($data->suffix)) {
+    if (!empty($validCols['full_name']) && (isset($data->first_name) || isset($data->middle_name) || isset($data->last_name) || isset($data->suffix))) {
         $updateFields[] = "full_name = TRIM(CONCAT(
             COALESCE(first_name, ''), 
             CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
@@ -268,59 +315,44 @@ try {
     // Build and execute update query
     $query = "UPDATE members SET " . implode(", ", $updateFields) . " WHERE id = :member_id";
     
-    // Log the query for debugging
-    error_log("Update query: " . $query);
-    error_log("Parameters: " . json_encode($params));
+    error_log('Update query: ' . $query);
+    $paramLog = json_encode($params, JSON_INVALID_UTF8_SUBSTITUTE);
+    if ($paramLog !== false) {
+        error_log('Parameters: ' . $paramLog);
+    }
     
     $stmt = $db->prepare($query);
-    
-    if (!$stmt) {
-        throw new Exception("Failed to prepare statement: " . implode(", ", $db->errorInfo()));
-    }
     
     foreach ($params as $key => $value) {
         $stmt->bindValue($key, $value);
     }
     
     if ($stmt->execute()) {
-        // Fetch updated member data with all relevant fields
-        $fetchQuery = "SELECT 
-                        id, 
-                        first_name, 
-                        middle_name, 
-                        surname, 
-                        suffix,
-                        email, 
-                        contact_number,
-                        gender,
-                        birthday,
-                        street,
-                        barangay,
-                        city,
-                        province,
-                        zip_code,
-                        guardian_first_name,
-                        guardian_middle_name,
-                        guardian_surname,
-                        guardian_suffix,
-                        relationship_to_guardian,
-                        profile_picture,
-                        TRIM(CONCAT(
-                            COALESCE(first_name, ''), 
-                            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
-                            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
-                            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
-                        )) as full_name
-                       FROM members 
-                       WHERE id = :member_id";
-        $fetchStmt = $db->prepare($fetchQuery);
-        if (!$fetchStmt) {
-            throw new Exception("Failed to prepare fetch statement: " . implode(", ", $db->errorInfo()));
+        $nameExpr = "TRIM(CONCAT(
+            COALESCE(first_name, ''), 
+            CASE WHEN middle_name IS NOT NULL AND middle_name != '' THEN CONCAT(' ', middle_name) ELSE '' END,
+            CASE WHEN surname IS NOT NULL AND surname != '' THEN CONCAT(' ', surname) ELSE '' END,
+            CASE WHEN suffix IS NOT NULL AND suffix != 'None' AND suffix != '' THEN CONCAT(' ', suffix) ELSE '' END
+        )) as full_name";
+        $wantCols = [
+            'id', 'first_name', 'middle_name', 'surname', 'suffix', 'email', 'contact_number',
+            'gender', 'birthday', 'street', 'barangay', 'city', 'province', 'zip_code',
+            'guardian_first_name', 'guardian_middle_name', 'guardian_surname', 'guardian_suffix',
+            'relationship_to_guardian', 'profile_picture',
+        ];
+        $selectParts = [];
+        foreach ($wantCols as $col) {
+            if (!empty($validCols[$col])) {
+                $selectParts[] = $col;
+            }
         }
+        $selectParts[] = $nameExpr;
+        $fetchQuery = 'SELECT ' . implode(', ', $selectParts) . ' FROM members WHERE id = :member_id';
+        $fetchStmt = $db->prepare($fetchQuery);
         
         $fetchStmt->bindParam(':member_id', $memberId);
         if (!$fetchStmt->execute()) {
-            throw new Exception("Failed to execute fetch statement: " . implode(", ", $fetchStmt->errorInfo()));
+            throw new Exception('Failed to execute fetch statement: ' . implode(', ', $fetchStmt->errorInfo()));
         }
         
         $updatedMember = $fetchStmt->fetch(PDO::FETCH_ASSOC);
@@ -341,11 +373,12 @@ try {
         ]);
     }
     
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    error_log('update_profile: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
-        "success" => false,
-        "message" => "Error updating profile: " . $e->getMessage()
+        'success' => false,
+        'message' => 'Error updating profile: ' . $e->getMessage(),
     ]);
 }
 ?>
