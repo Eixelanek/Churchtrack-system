@@ -43,9 +43,11 @@ const Register = () => {
     // Security
     username: '',
     password: '',
+    confirmPassword: '',
     referralCode: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -197,7 +199,10 @@ const Register = () => {
   const validateStep4 = () => {
     const usernameValid = (formData.username || '').trim() !== '' && usernameAvailable === true;
     const passwordValid = formData.password.length >= 8;
-    return usernameValid && passwordValid;
+    const confirmOk =
+      (formData.confirmPassword || '').length > 0 &&
+      formData.password === formData.confirmPassword;
+    return usernameValid && passwordValid && confirmOk;
   };
 
   // Handle step navigation
@@ -434,6 +439,11 @@ const Register = () => {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match' });
+      return;
+    }
+
     if (!formData.birthday) {
       setMessage({ type: 'error', text: 'Please enter your birthday' });
       return;
@@ -551,6 +561,10 @@ const Register = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -1258,6 +1272,7 @@ const Register = () => {
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="new-password"
                     />
                     <button
                       type="button"
@@ -1282,6 +1297,46 @@ const Register = () => {
                     <div className="field-message error">
                       Password must be at least 8 characters long
                     </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>
+                    Confirm password
+                    <span className="required-asterisk">*</span>
+                  </label>
+                  <div className="password-input">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      placeholder="Re-enter your password"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      disabled={isLoading}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={toggleConfirmPasswordVisibility}
+                      disabled={isLoading}
+                    >
+                      {showConfirmPassword ? (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <div className="field-message error">Passwords do not match</div>
                   )}
                 </div>
 
