@@ -82,7 +82,7 @@ const Admin = () => {
         return acc;
       }, {});
     } catch (error) {
-      console.error('Failed to parse stored temp passwords:', error);
+
       return {};
     }
   });
@@ -92,7 +92,7 @@ const Admin = () => {
     try {
       window.sessionStorage.setItem(TEMP_PASSWORD_STORAGE_KEY, JSON.stringify(map));
     } catch (error) {
-      console.error('Failed to persist temp passwords:', error);
+
     }
   }, []);
 
@@ -111,7 +111,7 @@ const Admin = () => {
           setOriginalData(result.data);
         }
       } catch (error) {
-        console.error('Error loading profile:', error);
+
       }
     };
 
@@ -152,7 +152,7 @@ const Admin = () => {
           setHomepageHeroTitle(cachedSettings.homepage_hero_title || 'SHAPING FUTURES\nWITH FAITH');
           setHomepageHeroSubtitle(cachedSettings.homepage_hero_subtitle || 'Join us for an uplifting experience');
         } catch (error) {
-          console.error('Error parsing cached church settings:', error);
+
         }
       }
       
@@ -160,7 +160,7 @@ const Admin = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/admin/get_church_settings.php`);
         const result = await response.json();
-        console.log('Church settings from API:', result);
+
         if (result.success) {
           setChurchName(result.data.churchName);
           setChurchAddress(result.data.churchAddress || '');
@@ -169,8 +169,7 @@ const Admin = () => {
           setDateFormat(result.data.dateFormat);
           // Set church logo if it exists, otherwise use default
           if (result.data.churchLogo) {
-            console.log('Church logo length:', result.data.churchLogo?.length);
-            console.log('Church logo preview:', result.data.churchLogo?.substring(0, 50));
+
             setChurchLogo(result.data.churchLogo);
             // Update favicon
             updateFavicon(result.data.churchLogo);
@@ -214,7 +213,7 @@ const Admin = () => {
           });
         }
       } catch (error) {
-        console.error('Error loading church settings:', error);
+
       }
     };
     loadChurchSettings();
@@ -234,7 +233,7 @@ const Admin = () => {
             setShowLoginHistoryModal(false);
           }
         } catch (error) {
-          console.error('Error loading login history:', error);
+
         }
       }
     };
@@ -257,7 +256,7 @@ const Admin = () => {
         setPasswordResetRequests([]);
       }
     } catch (error) {
-      console.error('Error fetching password reset requests:', error);
+
       setPasswordResetError('Unable to load password reset requests. Please try again.');
       setPasswordResetRequests([]);
     } finally {
@@ -346,7 +345,7 @@ const Admin = () => {
 
       await fetchPasswordResetRequests();
     } catch (error) {
-      console.error('Error generating temporary password:', error);
+
       setPasswordResetModalError(error.message || 'Unable to generate temporary password.');
       setShowToast(true);
       setToastMessage(error.message || 'Failed to generate temporary password.');
@@ -369,7 +368,7 @@ const Admin = () => {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
     } catch (error) {
-      console.error('Failed to copy temporary password:', error);
+
       setToastMessage('Unable to copy password automatically.');
       setToastType('error');
       setShowToast(true);
@@ -513,7 +512,7 @@ const Admin = () => {
             setSessionsPage(0);
           }
         } catch (error) {
-          console.error('Error loading sessions:', error);
+
         }
       }
     };
@@ -533,7 +532,7 @@ const Admin = () => {
           
           // Only process if response is ok
           if (!response.ok) {
-            console.error('Session check failed with status:', response.status);
+
             return;
           }
           
@@ -543,7 +542,7 @@ const Admin = () => {
             
             // Only logout if we're sure the session is invalid
             if (currentSession && !currentSession.isActive) {
-              console.log('Session is inactive, logging out');
+
               localStorage.removeItem('token');
               localStorage.removeItem('userType');
               localStorage.removeItem('userId');
@@ -555,7 +554,7 @@ const Admin = () => {
             // This prevents logout during session creation
           }
         } catch (error) {
-          console.error('Error polling session status:', error);
+
           // Don't logout on network errors
         }
       }, 30000); // Check every 30 seconds instead of 15
@@ -573,7 +572,7 @@ const Admin = () => {
         const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
         
         if (!adminId) {
-          console.warn('No admin ID available for fetching notifications');
+
           return;
         }
         
@@ -598,7 +597,7 @@ const Admin = () => {
           member_id: n.member_id
         })));
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+
       }
     };
     fetchNotifications();
@@ -778,7 +777,7 @@ const Admin = () => {
         throw new Error(result.message || 'Failed to end session');
       }
     } catch (error) {
-      console.error('Error ending session:', error);
+
       setToastMessage('Unable to end session. Please try again.');
       setToastType('error');
       setShowToast(true);
@@ -793,7 +792,7 @@ const Admin = () => {
       const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
       
       if (!adminId) {
-        console.warn('No admin ID available for marking notification as read');
+
         return;
       }
       
@@ -818,10 +817,10 @@ const Admin = () => {
           )
         );
       } else {
-        console.error('Failed to mark notification as read:', await response.text());
+
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+
     }
   };
 
@@ -835,7 +834,7 @@ const Admin = () => {
       const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || profileData.id;
       
       if (!adminId) {
-        console.warn('No admin ID available for marking notifications as read');
+
         return;
       }
       
@@ -859,7 +858,7 @@ const Admin = () => {
         prevNotifications.map(notification => ({...notification, read: true}))
       );
     } catch (error) {
-      console.error('Error marking all as read:', error);
+
     }
   };
 
@@ -875,7 +874,7 @@ const Admin = () => {
       // Update local state
       setNotifications(notifications.filter(notification => notification.id !== id));
     } catch (error) {
-      console.error('Error deleting notification:', error);
+
     }
   };
 
@@ -1038,7 +1037,7 @@ const Admin = () => {
         setCalendarEvents(data.events);
       }
     } catch (error) {
-      console.error('Error loading calendar:', error);
+
     }
   };
 
@@ -1059,11 +1058,11 @@ const Admin = () => {
       if (data.success) {
         setReportData(data.data);
       } else {
-        console.error('Report generation failed:', data.message);
+
         alert('Failed to generate report: ' + (data.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error generating report:', error);
+
       alert('Error generating report. Please try again.');
     }
   };
@@ -1098,7 +1097,7 @@ const Admin = () => {
       form.submit();
       document.body.removeChild(form);
     } catch (error) {
-      console.error('Error exporting report:', error);
+
     }
   };
 
@@ -1132,7 +1131,7 @@ const Admin = () => {
       form.submit();
       document.body.removeChild(form);
     } catch (error) {
-      console.error('Error exporting PDF report:', error);
+
     }
   };
 
@@ -1140,10 +1139,8 @@ const Admin = () => {
     const loadDashboardStats = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/dashboard/get_stats.php`);
-        console.log('Stats response status:', response.status);
 
         const data = await response.json();
-        console.log('Stats data:', data);
 
         if (response.ok && data.success) {
           setStats(prev => ({
@@ -1156,10 +1153,10 @@ const Admin = () => {
             weeklyAttendance: data.stats.weeklyAttendanceRate
           }));
         } else {
-          console.error('API returned error:', data.message);
+
         }
       } catch (error) {
-        console.error('Error loading dashboard stats:', error);
+
       }
     };
 
@@ -1173,7 +1170,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading birthdays:', error);
+
       }
     };
 
@@ -1187,7 +1184,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading weekly attendance:', error);
+
       }
     };
 
@@ -1196,7 +1193,7 @@ const Admin = () => {
         const response = await fetch(`${API_BASE_URL}/api/dashboard/get_member_growth.php`);
         if (response.ok) {
           const data = await response.json();
-          console.log('Member growth data:', data);
+
           if (data.success) {
             setMemberGrowthData(data.data);
             setGrowthStats({
@@ -1206,7 +1203,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading member growth:', error);
+
       }
     };
 
@@ -1220,7 +1217,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading service attendance:', error);
+
       }
     };
 
@@ -1234,7 +1231,7 @@ const Admin = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading recent records:', error);
+
       }
     };
 
@@ -1353,9 +1350,7 @@ const Admin = () => {
   const handleSave = async () => {
     try {
       const profilePic = previewImage || profileData.profilePicture || null;
-      console.log('Saving profile data:', profileData);
-      console.log('Profile picture length:', profilePic ? profilePic.length : 0);
-      
+
       // Save to backend
       const response = await fetch(`${API_BASE_URL}/api/admin/update_profile.php`, {
         method: 'POST',
@@ -1369,13 +1364,11 @@ const Admin = () => {
           profilePicture: profilePic
         })
       });
-      
-      console.log('Response status:', response.status);
+
       const responseText = await response.text();
-      console.log('Response text:', responseText);
+
       const result = JSON.parse(responseText);
-      console.log('Response data:', result);
-      
+
       if (result.status === 'success') {
         // Update the avatar initials if name changed
         const newAvatar = `${profileData.firstName[0]}${profileData.lastName[0]}`;
@@ -1402,7 +1395,7 @@ const Admin = () => {
         setTimeout(() => setShowToast(false), 3000);
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+
       // Show error toast
       setToastMessage('Error saving profile. Please try again.');
       setToastType('error');
@@ -1412,7 +1405,7 @@ const Admin = () => {
   };
 
   const handleSaveClick = () => {
-    console.log('Save button clicked!');
+
     setShowSaveModal(true);
   };
 
@@ -1431,7 +1424,7 @@ const Admin = () => {
   };
 
   const handleConfirmSave = async () => {
-    console.log('Confirm button clicked in modal!');
+
     await handleSave();
     setShowSaveModal(false);
     // Don't close profile view, just hide the modal
@@ -1548,7 +1541,7 @@ const Admin = () => {
         setTimeout(() => setShowToast(false), 3000);
       }
     } catch (error) {
-      console.error('Error updating password:', error);
+
       setToastMessage('Error updating password. Please try again.');
       setToastType('error');
       setShowToast(true);
@@ -1728,7 +1721,7 @@ const Admin = () => {
         setTimeout(() => setShowToast(false), 3000);
       }
     } catch (error) {
-      console.error('Error running system maintenance:', error);
+
       const errorMessage = 'Unable to run maintenance. Please try again.';
       setMaintenanceError(errorMessage);
       setToastMessage(errorMessage);
@@ -1837,7 +1830,7 @@ const Admin = () => {
         throw new Error(result.message || 'Failed to update church settings');
       }
     } catch (error) {
-      console.error('Error updating church settings:', error);
+
       setToastMessage('Unable to update church settings. Please try again.');
       setToastType('error');
       setShowToast(true);
@@ -1998,8 +1991,6 @@ const Admin = () => {
     }
   };
 
-
-
   const handleLeaderboardModalClose = (e) => {
     if (e.target.classList.contains('modal-overlay')) {
       setShowLeaderboardModal(false);
@@ -2024,7 +2015,7 @@ const Admin = () => {
         })
       });
     } catch (error) {
-      console.error('Error logging out session:', error);
+
     }
 
     localStorage.removeItem('token');
@@ -2121,7 +2112,7 @@ const Admin = () => {
   useEffect(() => {
     // Function to handle refresh notification events
     const handleRefreshNotifications = () => {
-      console.log('Refresh notifications event received');
+
       // The backend fetch already handles this, so no need to call a ref function here
     };
     
@@ -2131,7 +2122,7 @@ const Admin = () => {
     // Check for session storage flag
     const checkSessionStorage = () => {
       if (window.sessionStorage && window.sessionStorage.getItem('refreshNotifications')) {
-        console.log('Refresh notifications flag found in session storage');
+
         // The backend fetch already handles this, so no need to call a ref function here
         window.sessionStorage.removeItem('refreshNotifications');
       }

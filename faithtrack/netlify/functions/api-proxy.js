@@ -138,7 +138,6 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Proxy error:', error);
     return {
       statusCode: 500,
       headers: {

@@ -177,7 +177,7 @@ const Member = () => {
       setForcePasswordForm({ newPassword: '', confirmPassword: '' });
       triggerToast('Password updated successfully. You can continue.', 'success');
     } catch (error) {
-      console.error('Forced password update failed:', error);
+
       setForcePasswordError(error.message || 'Unable to update password.');
     } finally {
       setForcePasswordLoading(false);
@@ -213,7 +213,7 @@ const Member = () => {
           related_member_id: n.related_member_id
         })));
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+
       }
     };
     
@@ -263,7 +263,7 @@ const Member = () => {
         try {
           applySettings(JSON.parse(stored));
         } catch (error) {
-          console.error('Error parsing church settings:', error);
+
         }
       }
 
@@ -292,7 +292,6 @@ const Member = () => {
     }
     return /^https?:\/\//i.test(helpCenterUrl) ? helpCenterUrl : `https://${helpCenterUrl}`;
   }, [helpCenterUrl]);
-
 
   const stopScanner = useCallback(() => {
     isScanningRef.current = false;
@@ -385,7 +384,7 @@ const Member = () => {
         requestAnimationFrame(scanLoop);
       })
       .catch((error) => {
-        console.error('QR detect error:', error);
+
         requestAnimationFrame(scanLoop);
       });
   }, [handleScanResult]);
@@ -415,7 +414,7 @@ const Member = () => {
             decoded = detections[0]?.rawValue || null;
           }
         } catch (detectorError) {
-          console.warn('BarcodeDetector failed, falling back to jsQR', detectorError);
+
         }
       }
 
@@ -433,7 +432,7 @@ const Member = () => {
         setScanError('Unable to read a QR code from that image. Please try a clearer photo.');
       }
     } catch (error) {
-      console.error('QR image processing error:', error);
+
       setScanError('Unable to process the selected image.');
     }
   }, [handleScanResult]);
@@ -479,7 +478,7 @@ const Member = () => {
       setIsScanning(true);
       requestAnimationFrame(scanLoop);
     } catch (error) {
-      console.error('Unable to start scanner:', error);
+
       setScanError('Unable to access the camera. Please check browser permissions.');
       stopScanner();
     }
@@ -555,7 +554,7 @@ const Member = () => {
         notification.id === notificationId ? {...notification, read: true} : notification
       ));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+
     }
   };
 
@@ -572,7 +571,7 @@ const Member = () => {
       // Update local state
       setNotifications(notifications.filter(notification => notification.id !== notificationId));
     } catch (error) {
-      console.error('Error deleting notification:', error);
+
     }
   };
 
@@ -856,14 +855,13 @@ const Member = () => {
                 // Just the filename
                 imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture}`;
               }
-              
-              console.log('Loading profile picture:', imageUrl);
+
               setPreviewImage(imageUrl);
             }
           }
         }
       } catch (error) {
-        console.error('Error loading profile picture:', error);
+
       }
     };
 
@@ -891,7 +889,7 @@ const Member = () => {
         const data = await fetchFamilyTree(parseInt(memberId));
         setFamilyTreeData(data);
       } catch (error) {
-        console.error('Error fetching family tree:', error);
+
       }
     }
   };
@@ -965,7 +963,7 @@ const Member = () => {
 
       setSearchResults(normalizedResults);
     } catch (error) {
-      console.error('Error searching members:', error);
+
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -991,7 +989,7 @@ const Member = () => {
       setSearchResults([]);
       triggerToast('Invitation sent successfully!', 'success');
     } catch (error) {
-      console.error('Error sending invite:', error);
+
       triggerToast(error.message || 'Failed to send invitation', 'error');
     } finally {
       setInviteLoading(false);
@@ -1009,7 +1007,7 @@ const Member = () => {
       setFamilyTreeData(data);
       triggerToast(`Invitation ${action === 'accept' ? 'accepted' : 'declined'}!`, 'success');
     } catch (error) {
-      console.error('Error responding to invite:', error);
+
       triggerToast(error.message || 'Failed to respond to invitation', 'error');
     }
   };
@@ -1038,7 +1036,7 @@ const Member = () => {
       setShowRemoveConfirm(false);
       setRemoveTarget(null);
     } catch (error) {
-      console.error('Error removing family member:', error);
+
       triggerToast(error.message || 'Failed to remove family member', 'error');
     } finally {
       setIsRemovingFamily(false);
@@ -1166,7 +1164,7 @@ const Member = () => {
         triggerToast(data.message || 'Failed to update password', 'error');
       }
     } catch (error) {
-      console.error('Error updating password:', error);
+
       triggerToast('Error updating password', 'error');
     }
   };
@@ -1280,7 +1278,7 @@ const Member = () => {
         triggerToast(data.message || 'Failed to update profile', 'error');
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+
       triggerToast('Error saving profile changes', 'error');
     }
   };
@@ -1320,7 +1318,7 @@ const Member = () => {
   const [activeView, setActiveView] = useState('dashboard');
 
   const handleNavigation = (view) => {
-    console.log("Navigation clicked:", view);
+
     setActiveView(view);
     setShowMobileMenu(false); // Close mobile menu when navigating
   };
@@ -1367,7 +1365,7 @@ const Member = () => {
         });
         setAttendanceError(null);
       } catch (error) {
-        console.error('Attendance summary load failed:', error);
+
         setAttendanceSummary({
           total_visits: 0,
           attendance_rate: 0,
@@ -1387,7 +1385,7 @@ const Member = () => {
         const data = await fetchMonthlyAttendance(effectiveMemberId);
         setMonthlyAttendanceData(data);
       } catch (error) {
-        console.error('Monthly attendance load failed:', error);
+
         setMonthlyAttendanceData([]);
       }
     };
@@ -1519,7 +1517,6 @@ const Member = () => {
     if (monthlyData.length === 0) return 1;
     return Math.max(...monthlyData.map(d => d.count), 1);
   }, [monthlyData]);
-
 
   const renderStatIcon = useCallback((type) => {
     switch (type) {
@@ -2194,7 +2191,7 @@ const Member = () => {
                                 alt="Profile" 
                                 className="avatar-image"
                                 onError={(e) => {
-                                  console.error('Failed to load profile image:', previewImage);
+
                                   e.target.style.display = 'none';
                                   e.target.parentElement.textContent = profileData.avatar;
                                 }}
@@ -2743,7 +2740,7 @@ const Member = () => {
                       alt="Profile" 
                       className="avatar-image"
                       onError={(e) => {
-                        console.error('Failed to load header profile image:', previewImage);
+
                         e.target.style.display = 'none';
                         e.target.parentElement.textContent = avatar;
                       }}
@@ -2763,7 +2760,7 @@ const Member = () => {
                             alt="Profile" 
                             className="avatar-image"
                             onError={(e) => {
-                              console.error('Failed to load dropdown profile image:', previewImage);
+
                               e.target.style.display = 'none';
                               e.target.parentElement.textContent = avatar;
                             }}

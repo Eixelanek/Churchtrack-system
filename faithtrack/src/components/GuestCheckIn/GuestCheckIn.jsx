@@ -107,7 +107,7 @@ const GuestCheckIn = () => {
 
         setSessionData(result.data || null);
       } catch (err) {
-        console.error('Guest session fetch failed:', err);
+
         setError(err.message || 'Unable to load guest session.');
       } finally {
         setLoading(false);
@@ -209,15 +209,6 @@ const GuestCheckIn = () => {
       const data = result.data || null;
       setSuccessData(data);
       
-      // Debug logging
-      console.log('Guest check-in response:', {
-        ready_for_membership: data?.ready_for_membership,
-        sunday_streak: data?.sunday_streak,
-        effective_streak: data?.effective_sunday_streak,
-        remaining: data?.remaining_for_membership,
-        debug_info: data?.debug_info
-      });
-      
       // If ready for membership, show member registration form
       if (data?.ready_for_membership) {
         // Pre-fill member form with guest data from the form that was just submitted
@@ -253,7 +244,7 @@ const GuestCheckIn = () => {
       resetForm();
       }
     } catch (err) {
-      console.error('Guest check-in failed:', err);
+
       setError(err.message || 'Unable to record guest attendance.');
     } finally {
       setSubmitting(false);
@@ -366,7 +357,7 @@ const GuestCheckIn = () => {
       setMemberConverted(true);
       setShowMemberForm(false);
     } catch (err) {
-      console.error('Member conversion failed:', err);
+
       setError(err.message || 'Failed to convert to member');
     } finally {
       setConvertingMember(false);

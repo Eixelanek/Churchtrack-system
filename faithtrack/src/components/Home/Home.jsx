@@ -57,7 +57,7 @@ function Home() {
           const settings = JSON.parse(stored);
           applySettings(settings);
         } catch (error) {
-          console.error('Error parsing church settings:', error);
+
         }
       }
 

@@ -231,7 +231,6 @@ const Manager = () => {
           localStorage.setItem('managerId', mergedProfile.id);
         }
       } catch (error) {
-        console.error('Failed to load manager profile:', error);
         setManagerProfile(baseProfile);
         setOriginalProfile(baseProfile);
         setPreviewImage(baseProfile.profilePicture || null);
@@ -264,7 +263,6 @@ const Manager = () => {
           setHelpCenterUrl(s.helpCenterUrl || '');
           return;
         } catch (error) {
-          console.warn('Unable to parse cached church settings', error);
         }
       }
 
@@ -305,7 +303,6 @@ const Manager = () => {
           weeklyAttendanceRate: Number(stats.weeklyAttendanceRate) || 0
         }));
       } catch (error) {
-        console.error('Failed to load dashboard stats:', error);
         // Don't reset stats on error, keep previous values (including QR stats)
       } finally {
         setIsDashboardStatsLoading(false);
@@ -334,7 +331,6 @@ const Manager = () => {
           activeQrSessions: Number(result.data.activeSessions) || 0
         }));
       } catch (error) {
-        console.error('Failed to load QR stats:', error);
         setDashboardStats((prev) => ({
           ...prev,
           totalQrGenerated: 0,
@@ -366,7 +362,6 @@ const Manager = () => {
           count: Number(item.count) || 0
         })));
       } catch (error) {
-        console.error('Failed to load weekly attendance trend:', error);
         setWeeklyTrendRaw([]);
       } finally {
         setIsWeeklyTrendLoading(false);
@@ -400,7 +395,6 @@ const Manager = () => {
 
       setQuickQrSessions(sessions.slice(0, 4));
     } catch (error) {
-      console.error('Failed to load quick QR sessions:', error);
       setQuickQrSessions([]);
     } finally {
       setIsQuickQrLoading(false);
@@ -427,7 +421,6 @@ const Manager = () => {
 
         setRecentAttendanceRaw(result.records);
       } catch (error) {
-        console.error('Failed to load recent attendance:', error);
         setRecentAttendanceRaw([]);
       } finally {
         setIsRecentAttendanceLoading(false);
@@ -451,7 +444,6 @@ const Manager = () => {
 
         setTopActiveMembersRaw(result.data);
       } catch (error) {
-        console.error('Failed to load top active members:', error);
         setTopActiveMembersRaw([]);
       } finally {
         setIsTopActiveMembersLoading(false);
@@ -611,7 +603,6 @@ const Manager = () => {
           }
         }
       } catch (error) {
-        console.error('Failed to load login history:', error);
         setLoginHistory([]);
         setProfileMessage('Unable to load recent login activity.');
         setProfileMessageType('error');
@@ -703,7 +694,6 @@ const Manager = () => {
       const data = await response.json();
       setNotifications(Array.isArray(data) ? data.map(transformNotification) : []);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
     }
   }, [backendBaseUrl, resolveManagerId, transformNotification]);
 
@@ -733,7 +723,6 @@ const Manager = () => {
         notification.id === id ? { ...notification, read: true } : notification
       )));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   }, [backendBaseUrl, resolveManagerId]);
 
@@ -767,7 +756,6 @@ const Manager = () => {
 
       setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
     }
   }, [backendBaseUrl, notifications, resolveManagerId]);
 
@@ -785,7 +773,6 @@ const Manager = () => {
 
       setNotifications((prev) => prev.filter((notification) => notification.id !== id));
     } catch (error) {
-      console.error('Error deleting notification:', error);
     }
   }, [backendBaseUrl, resolveManagerId]);
 
@@ -1122,7 +1109,6 @@ const Manager = () => {
       setProfileMessage('Profile updated successfully!');
       setProfileMessageType('success');
     } catch (error) {
-      console.error('Failed to save manager profile:', error);
       setProfileMessage(error.message || 'Error saving profile. Please try again.');
       setProfileMessageType('error');
     } finally {
@@ -1202,7 +1188,6 @@ const Manager = () => {
       setShowNewPassword(false);
       setShowConfirmPassword(false);
     } catch (error) {
-      console.error('Failed to update password:', error);
       setProfileMessage(error.message || 'Error updating password. Please try again.');
       setProfileMessageType('error');
     } finally {
@@ -1531,12 +1516,10 @@ const Manager = () => {
       }
 
       if (!svg) {
-        console.error('QR SVG element not found for', filenameSuffix || 'member');
         // Try a more general search as last resort
         const allSvgs = document.querySelectorAll('.qr-modal-body svg, .qr-display svg');
         if (allSvgs.length > 0) {
           svg = allSvgs[0];
-          console.warn('Using fallback SVG element');
         } else {
           return;
         }
@@ -1557,7 +1540,6 @@ const Manager = () => {
 
         canvas.toBlob((blob) => {
           if (!blob) {
-            console.error('Failed to create PNG blob from canvas');
             URL.revokeObjectURL(url);
             return;
           }
@@ -1578,7 +1560,6 @@ const Manager = () => {
       };
 
       img.onerror = (error) => {
-        console.error('Failed to load SVG for conversion', error);
         URL.revokeObjectURL(url);
       };
 
@@ -1717,7 +1698,6 @@ const Manager = () => {
           throw new Error(result.message || 'Failed to load sessions');
         }
       } catch (error) {
-        console.error('Error fetching QR sessions:', error);
         setSessionsError(error.message || 'Unable to load sessions');
       } finally {
         setSessionsLoading(false);
@@ -1763,7 +1743,6 @@ const Manager = () => {
         setSessionsMessage('QR session deleted successfully.');
         setSessionsMessageType('success');
       } catch (error) {
-        console.error('Error deleting QR session:', error);
         setSessionsMessage(error.message || 'Unable to delete session');
         setSessionsMessageType('error');
       } finally {
@@ -2346,7 +2325,6 @@ const Manager = () => {
           throw new Error(result.message || 'Failed to generate QR code');
         }
       } catch (error) {
-        console.error('QR generation error:', error);
         setQrMessage(error.message || 'Error generating QR code');
         setQrMessageType('error');
       } finally {
@@ -2376,28 +2354,22 @@ const Manager = () => {
     try {
       const response = await fetch(`${backendBaseUrl}/api/qr_sessions/list.php?status=active&limit=50`);
       if (!response.ok) {
-        console.error('Failed to fetch sessions:', response.status);
         setActiveSessions([]);
         setIsLoadingSessions(false);
         return;
       }
 
       const result = await response.json();
-      console.log('Sessions API response:', result); // Debug log
-      
       if (result.success && Array.isArray(result.data)) {
         // Filter to only active sessions and sort by event_datetime
         const active = result.data
           .filter(session => session.status === 'active')
           .sort((a, b) => new Date(b.event_datetime) - new Date(a.event_datetime));
-        console.log('Active sessions:', active); // Debug log
         setActiveSessions(active);
       } else {
-        console.log('No active sessions or invalid response format');
         setActiveSessions([]);
       }
     } catch (error) {
-      console.error('Error fetching active sessions:', error);
       setActiveSessions([]);
     } finally {
       setIsLoadingSessions(false);
@@ -2410,7 +2382,6 @@ const Manager = () => {
     try {
       const response = await fetch(`${backendBaseUrl}/api/members/get_all.php`);
       if (!response.ok) {
-        console.error('Failed to fetch members:', response.status);
         setAllMembers([]);
         setFilteredMembers([]);
         setIsLoadingMembers(false);
@@ -2433,7 +2404,6 @@ const Manager = () => {
         setFilteredMembers([]);
       }
     } catch (error) {
-      console.error('Error loading members:', error);
       setAllMembers([]);
       setFilteredMembers([]);
     } finally {
@@ -2530,7 +2500,6 @@ const Manager = () => {
         setCheckInMessage({ type: 'error', text: errorMsg });
       }
     } catch (error) {
-      console.error('Error checking in members:', error);
       setCheckInMessage({ type: 'error', text: 'An error occurred while checking in members' });
     } finally {
       setIsCheckingIn(false);

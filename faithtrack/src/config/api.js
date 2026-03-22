@@ -30,7 +30,6 @@ export const apiCall = async (endpoint, options = {}) => {
     const response = await fetch(url, fetchOptions);
     return await response.json();
   } catch (error) {
-    console.error('API call error:', error);
     throw error;
   }
 };

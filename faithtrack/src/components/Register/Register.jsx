@@ -136,7 +136,6 @@ const Register = () => {
       setReferrerSearchResults(filtered.slice(0, 10)); // Limit to 10 results
       setShowReferrerResults(true);
     } catch (error) {
-      console.error('Error searching referrers:', error);
       setReferrerSearchResults([]);
     }
     setSearchingReferrers(false);
@@ -313,7 +312,6 @@ const Register = () => {
       setUsernameAvailable(data.available);
       setUsernameCheckMessage(data.message);
     } catch (err) {
-      console.error('Username check error:', err);
       setUsernameAvailable(null);
       setUsernameCheckMessage('Unable to verify username. Please try again.');
     } finally {
@@ -344,7 +342,6 @@ const Register = () => {
       setEmailAvailable(data.available);
       setEmailCheckMessage(data.message);
     } catch (err) {
-      console.error('Email check error:', err);
       setEmailAvailable(null);
       setEmailCheckMessage('Unable to verify email. Please try again.');
     } finally {
@@ -607,7 +604,6 @@ const Register = () => {
       try {
         data = await response.json();
       } catch (jsonError) {
-        console.error('JSON parse error:', jsonError);
         throw new Error('Server returned invalid response. Please try again.');
       }
 
@@ -623,8 +619,6 @@ const Register = () => {
         setMessage({ type: 'error', text: data.message || 'Failed to submit registration. Please try again.' });
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      
       // For mobile devices, if it's a CORS/fetch error but registration might have succeeded
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       

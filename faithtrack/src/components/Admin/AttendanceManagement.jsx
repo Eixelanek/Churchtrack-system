@@ -160,7 +160,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         }
       }
     } catch (error) {
-      console.error('Error loading attendance events:', error);
+
     }
   };
 
@@ -243,7 +243,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         }
       }
     } catch (error) {
-      console.error('Error loading event details:', error);
+
     }
     return null;
   };
@@ -269,11 +269,11 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         const data = await response.json();
         setEvents(data || []); // Default to empty array if no data
       } else {
-        console.error('Failed to load events, but continuing...');
+
         setEvents([]); // Set empty array instead of error
       }
     } catch (error) {
-      console.error('Error loading events:', error);
+
       setEvents([]); // Set empty array instead of error
     } finally {
       setLoading(false);
@@ -287,11 +287,11 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         const data = await response.json();
         setMembers(data || []); // Default to empty array if no data
       } else {
-        console.error('Failed to load members, but continuing...');
+
         setMembers([]); // Set empty array instead of error
       }
     } catch (error) {
-      console.error('Error loading members:', error);
+
       setMembers([]); // Set empty array instead of error
     }
   };
@@ -369,7 +369,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           alert('Invalid QR code format!');
         }
       }, (error) => {
-        console.warn(error);
+
       });
     }
     
@@ -424,7 +424,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         }
       }
     } catch (error) {
-      console.error('Error loading merged attendance:', error);
+
       // Fallback to original event attendees
       if (event.attendees && event.attendees.length > 0) {
         event.attendees.forEach(attendee => {
@@ -583,16 +583,6 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     // Clear any previous errors
     setTimeError('');
     setShowAddEventModal(true);
-    
-    // Debug log to help trace the issue
-    console.log('Editing event with data:', {
-      id: event.id,
-      title: event.title,
-      date: event.date,
-      time: event.time,
-      endTime: event.endTime,
-      formatted: event.endTime ? formatTimeForInput(event.endTime) : 'No end time'
-    });
   };
 
   // Convert time from 24-hour to 12-hour format with AM/PM
@@ -612,7 +602,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       
       return `${hour12}:${String(minutes).padStart(2, '0')} ${period}`;
     } catch (error) {
-      console.error('Error formatting time:', error);
+
       return timeString;
     }
   };
@@ -700,7 +690,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         setTimeError(errorData.message || 'Failed to update event');
       }
     } catch (error) {
-      console.error('Error updating event:', error);
+
       setTimeError('Failed to update event');
     }
   };
@@ -758,7 +748,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         setTimeError(errorData.message || 'Failed to create event');
       }
     } catch (error) {
-      console.error('Error creating event:', error);
+
       setTimeError('Failed to create event');
     }
   };
@@ -795,8 +785,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Attendance recorded:', result);
-        
+
         // Reload events to get updated attendance data
         await loadEvents();
         // Reload merged attendance counts for real-time update
@@ -811,11 +800,11 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         setMemberSearchQuery('');
       } else {
         const errorData = await response.json();
-        console.error('Failed to record attendance:', errorData.message);
+
         // You might want to show this error to the user
       }
     } catch (error) {
-      console.error('Error recording attendance:', error);
+
       // You might want to show this error to the user
     }
   };
@@ -842,10 +831,10 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           setEvents(events.filter(event => event.id !== eventToAction));
         } else {
           const errorData = await response.json();
-          console.error('Failed to delete event:', errorData.message);
+
         }
       } catch (error) {
-        console.error('Error deleting event:', error);
+
       }
     } else if (confirmAction === 'end' && eventToAction) {
       try {
@@ -862,10 +851,10 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           await loadEvents();
         } else {
           const errorData = await response.json();
-          console.error('Failed to end event:', errorData.message);
+
         }
       } catch (error) {
-        console.error('Error ending event:', error);
+
       }
     } else if (confirmAction === 'unlink' && eventToAction) {
       try {
@@ -908,10 +897,10 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         await loadMergedAttendanceCounts();
         } else {
           const errorData = await response.json();
-          console.error('Failed to unlink events:', errorData.message);
+
         }
       } catch (error) {
-        console.error('Error unlinking events:', error);
+
       }
     }
     
@@ -1007,13 +996,13 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       }
       
       if (isNaN(hours) || isNaN(minutes)) {
-        console.error('Invalid time format:', timeString);
+
         return '';
       }
       
       return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     } catch (error) {
-      console.error('Error formatting time for input:', error, timeString);
+
       return '';
     }
   };
@@ -1052,7 +1041,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       
       return timeString;
     } catch (error) {
-      console.error('Error formatting attendance time:', error, timeString);
+
       return timeString;
     }
   };
@@ -1163,7 +1152,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
             hasChanges = true;
           }
         } catch (error) {
-          console.error('Error parsing end time:', error, event);
+
         }
       }
     });
@@ -1209,12 +1198,12 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
       });
 
       if (response.ok) {
-        console.log(`Event ${eventId} auto-ended successfully`);
+
       } else {
-        console.error('Failed to auto-end event');
+
       }
     } catch (error) {
-      console.error('Error auto-ending event:', error);
+
     } finally {
       // Remove from auto-ending set after a delay
       setTimeout(() => {
@@ -1251,7 +1240,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         }));
       }
     } catch (error) {
-      console.error('Error loading linked events:', error);
+
     }
   };
   
@@ -1286,10 +1275,10 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           await loadMergedAttendanceCounts();
         } else {
           const errorData = await response.json();
-          console.error('Failed to link events:', errorData.message);
+
         }
       } catch (error) {
-        console.error('Error linking events:', error);
+
       }
     }
     
@@ -1336,7 +1325,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
             counts[event.id] = uniqueMembers.size;
           }
         } catch (error) {
-          console.error('Error fetching merged attendance count for event', event.id, ':', error);
+
           // Fallback to local calculation
           const linkedEventIds = [event.id, ...linkedEvents[event.id].map(e => e.id)];
           const uniqueMembers = new Set();
@@ -1434,7 +1423,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         alert('Failed to unlink event: ' + errorData.message);
       }
     } catch (error) {
-      console.error('Error unlinking event:', error);
+
       alert('Error unlinking event. Please try again.');
     }
   };

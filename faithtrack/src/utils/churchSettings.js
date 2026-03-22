@@ -8,7 +8,6 @@ export const getChurchSettings = () => {
       return JSON.parse(stored);
     }
   } catch (error) {
-    console.error('Error loading church settings from localStorage:', error);
   }
   return null;
 };
@@ -25,7 +24,6 @@ export const loadChurchSettingsFromAPI = async () => {
     }
     
     // Fallback to defaults
-    console.warn('Using default church settings');
     const defaultSettings = {
       churchName: 'Christ-Like Christian Church',
       churchAddress: null,
@@ -49,7 +47,6 @@ export const loadChurchSettingsFromAPI = async () => {
     localStorage.setItem('churchSettings', JSON.stringify(defaultSettings));
     return defaultSettings;
   } catch (error) {
-    console.error('Error loading church settings from API:', error);
     const defaultSettings = {
       churchName: 'Christ-Like Christian Church',
       churchAddress: null,

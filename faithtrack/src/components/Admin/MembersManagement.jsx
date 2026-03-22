@@ -13,7 +13,7 @@ const loadManagerReviewMap = () => {
     const raw = window.localStorage.getItem(MANAGER_REVIEW_STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch (error) {
-    console.error('Failed to parse manager review cache:', error);
+
     return {};
   }
 };
@@ -23,7 +23,7 @@ const writeManagerReviewMap = (map) => {
   try {
     window.localStorage.setItem(MANAGER_REVIEW_STORAGE_KEY, JSON.stringify(map));
   } catch (error) {
-    console.error('Failed to persist manager review cache:', error);
+
   }
 };
 
@@ -116,7 +116,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         }));
       }
     } catch (error) {
-      console.error('Error fetching referred members:', error);
+
     }
   };
 
@@ -183,7 +183,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         });
       }
     } catch (error) {
-      console.error('Error marking tab notifications as read:', error);
+
     }
   };
 
@@ -214,7 +214,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   // Fetch members from backend with polling
   const fetchData = () => {
     if (!backendBaseUrl) {
-      console.warn('Backend base URL not available yet');
+
       return;
     }
 
@@ -234,7 +234,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         })
         .then(data => ({ status: 'fulfilled', value: data }))
         .catch((error) => {
-          console.error('Error fetching members:', error);
+
           return { status: 'rejected', reason: error };
         }),
       fetch(`${apiBase}/get_pending.php?scope=${pendingScope}`).then(res => res.json()).then(data => ({ status: 'fulfilled', value: data })).catch((error) => ({ status: 'rejected', reason: error })),
@@ -243,7 +243,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     ])
       .then(([membersResult, pendingResult, rejectedResult, guestsResult]) => {
         if (membersResult.status === 'rejected') {
-          console.error('Failed to fetch members:', membersResult.reason);
+
         }
         setMembers(membersResult.status === 'fulfilled' && Array.isArray(membersResult.value) ? membersResult.value : []);
 
@@ -273,7 +273,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         }
       })
       .catch((error) => {
-        console.error('Failed to fetch member data:', error);
+
         setMembers([]);
         setPendingRequests([]);
         setRejectedRequests([]);
@@ -478,7 +478,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         (item.rejection_reason && item.rejection_reason.toLowerCase().includes(searchLower))
       );
     } catch (error) {
-      console.error('Error searching item:', item, error);
+
       return false;
     }
   };
@@ -970,7 +970,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
           finishAction(msg);
         })
         .catch((error) => {
-          console.error('Manager update failed:', error);
+
           finishAction('Something went wrong. Please try again.');
         });
       return;
@@ -1008,7 +1008,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
           finishAction(actionMessage);
         })
         .catch((error) => {
-          console.error('Guest deletion failed:', error);
+
           finishAction('Failed to delete guest. Please try again.');
         })
         .finally(() => {
@@ -1104,7 +1104,7 @@ ChurchTrack System`;
         alert('Credentials copied to clipboard!');
       })
       .catch(err => {
-        console.error('Failed to copy credentials: ', err);
+
       });
   };
 
@@ -1192,7 +1192,7 @@ ChurchTrack System`;
         [memberId]: transformed,
       }));
     } catch (error) {
-      console.error('Error fetching family members:', error);
+
       setFamilyErrors((prev) => ({
         ...prev,
         [memberId]: 'Unable to load family tree right now.',
@@ -1208,7 +1208,6 @@ ChurchTrack System`;
       }));
     }
   };
-
 
   return (
     <div className="members-management">

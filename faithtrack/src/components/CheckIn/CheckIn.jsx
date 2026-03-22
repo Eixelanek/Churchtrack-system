@@ -260,7 +260,7 @@ const CheckIn = () => {
       setMemberConverted(true);
       setShowMemberForm(false);
     } catch (err) {
-      console.error('Member conversion failed:', err);
+
       setError(err.message || 'Failed to convert to member');
     } finally {
       setConvertingMember(false);
@@ -317,7 +317,7 @@ const CheckIn = () => {
             try {
               window.localStorage.setItem('churchSettings', JSON.stringify(result.data));
             } catch (storageError) {
-              console.warn('Unable to cache church settings:', storageError);
+
             }
           }
 
@@ -328,7 +328,7 @@ const CheckIn = () => {
           }
         }
       } catch (err) {
-        console.warn('Failed to load header logo for check-in:', err);
+
       }
     };
 
@@ -412,7 +412,7 @@ const CheckIn = () => {
                 const payload = await res.json();
                 return Boolean(payload?.success && payload?.data?.already_checked_in);
               } catch (statusErr) {
-                console.error('Unable to verify family attendance:', statusErr);
+
                 return false;
               }
             })
@@ -428,7 +428,7 @@ const CheckIn = () => {
           setCheckedInFamilyIds([]);
         }
       } catch (error) {
-        console.error('Error fetching family members:', error);
+
         setFamilyMembers([]);
         setCheckedInFamilyIds([]);
       } finally {
@@ -484,7 +484,6 @@ const CheckIn = () => {
     };
   }, [sessionData?.event_datetime, sessionData?.expiration_hours, sessionData?.service_name]);
 
-
   const fetchSessionData = async () => {
     setError('');
     setLoading(true);
@@ -512,7 +511,7 @@ const CheckIn = () => {
         setError(result.message || 'Failed to load session data');
       }
     } catch (err) {
-      console.error('Error fetching session:', err);
+
       setError('Unable to connect to server. Please try again.');
     } finally {
       setLoading(false);
@@ -565,7 +564,7 @@ const CheckIn = () => {
           setIsMinorRestricted(false);
         }
       } catch (error) {
-        console.error('Error checking member age:', error);
+
         setIsMinorRestricted(false);
       }
     };
@@ -680,7 +679,7 @@ const CheckIn = () => {
                   })
                 });
               } catch (err) {
-                console.error(`Failed to check in family member ${familyMember.name}:`, err);
+
               }
             }
           }
@@ -772,7 +771,7 @@ const CheckIn = () => {
         setSuccess(false);
       }
     } catch (err) {
-      console.error('Check-in error:', err);
+
       setError(err.message || 'Unable to submit check-in. Please try again.');
     } finally {
       setSubmitting(false);

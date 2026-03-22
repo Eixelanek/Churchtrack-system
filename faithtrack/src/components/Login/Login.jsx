@@ -17,9 +17,6 @@ const Login = () => {
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const navigate = useNavigate();
   const apiBaseUrl = API_BASE_URL;
-  
-  // Debug: log the API URL
-  console.log('API Base URL:', apiBaseUrl);
 
   useEffect(() => {
     // Simple logo setup - no API calls
@@ -168,7 +165,7 @@ const Login = () => {
         setError(memberData.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      console.error('Login error:', err);
+
       if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
         setError('Server is starting up (this takes 30 seconds on first use). Please wait a moment and try again.');
       } else {

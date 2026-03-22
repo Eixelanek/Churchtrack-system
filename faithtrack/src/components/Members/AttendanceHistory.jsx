@@ -122,7 +122,7 @@ const AttendanceHistory = () => {
           monthVisits: data.month_visits ?? 0
         });
       } catch (fetchError) {
-        console.error('Failed to load attendance records:', fetchError);
+
         setError('Unable to load your attendance history right now.');
       } finally {
         setIsLoading(false);
@@ -163,7 +163,7 @@ const AttendanceHistory = () => {
             }
           }
         } catch (selfError) {
-          console.error('Failed to load member profile picture for family circle:', selfError);
+
         }
 
         const storedName = localStorage.getItem('memberName') || 'You';
@@ -264,11 +264,11 @@ const AttendanceHistory = () => {
             const allFamilyAttendance = await Promise.all(familyAttendancePromises);
             setFamilyAttendance(allFamilyAttendance.flat());
           } catch (err) {
-            console.error('Failed to load family attendance:', err);
+
           }
         }
       } catch (loadError) {
-        console.error('Family circle load failed:', loadError);
+
         setFamilyMembers([]);
         setFamilyError('Unable to load your family circle right now.');
       } finally {
