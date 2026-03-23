@@ -1,9 +1,17 @@
 <?php
 
 /**
- * Global rate limit: per-IP, UTC hour buckets (default 100/hour via RATE_LIMIT_PER_HOUR).
+ * Selective rate limit: Only applies to security-critical endpoints.
  * Loaded via auto_prepend_file (Docker) for API scripts under /api/.
  * Set RATE_LIMIT_DISABLED=1 to bypass. Fails open if the database is unavailable.
+ * 
+ * RATE LIMITED ENDPOINTS (100 req/hour per IP):
+ * 1. Login: /api/admin/login.php, /api/members/login.php, /api/manager/login.php
+ * 2. Registration: /api/members/register.php, /api/members/register_mobile.php
+ * 3. Password Reset: /api/members/request_password_reset.php, /api/admin/reset_member_password.php
+ * 4. Guest endpoints: /api/guest/*
+ * 
+ * ALL OTHER ENDPOINTS: No rate limiting (dashboard, get operations, etc.)
  */
 
 if (defined('CHURCHTRACK_RATE_LIMIT_RAN')) {
@@ -28,13 +36,32 @@ if (getenv('RATE_LIMIT_DISABLED') === '1') {
     return;
 }
 
+// ONLY apply rate limiting to these specific endpoints
 $basename = basename($scriptPath);
-$exemptScripts = [
-    'notifications.php',
-    'mark_notification_read.php',
-    'delete_notification.php',
-];
-if (in_array($basename, $exemptScripts, true)) {
+$shouldRateLimit = false;
+
+// 1. Login endpoints
+if (in_array($basename, ['login.php'], true)) {
+    $shouldRateLimit = true;
+}
+
+// 2. Registration endpoints
+if (in_array($basename, ['register.php', 'register_mobile.php'], true)) {
+    $shouldRateLimit = true;
+}
+
+// 3. Password reset endpoints
+if (in_array($basename, ['request_password_reset.php', 'reset_member_password.php'], true)) {
+    $shouldRateLimit = true;
+}
+
+// 4. Guest endpoints
+if (strpos($scriptPath, '/api/guest/') !== false) {
+    $shouldRateLimit = true;
+}
+
+// If this endpoint doesn't need rate limiting, skip it
+if (!$shouldRateLimit) {
     return;
 }
 
