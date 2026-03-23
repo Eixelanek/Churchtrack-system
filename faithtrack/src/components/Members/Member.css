@@ -2451,10 +2451,11 @@ button,
 .tree-row.couple::before {
   content: '♥';
   position: absolute;
-  top: 36px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 180px);
+  transform: translate(-50%, -50%);
+  width: calc(100% - 200px);
+  max-width: 400px;
   height: 4px;
   background: linear-gradient(90deg, 
     rgba(99, 102, 241, 0.4) 0%,
@@ -2472,6 +2473,7 @@ button,
   line-height: 1;
   padding-top: 2px;
   text-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+  pointer-events: none;
 }
 
 /* Vertical line from couple down to children */
@@ -2490,6 +2492,13 @@ button,
   border-radius: 999px;
   z-index: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  pointer-events: none;
+}
+
+/* Remove individual node connectors for couple row */
+.tree-row.couple .family-tree-node::before,
+.tree-row.couple .family-tree-node::after {
+  display: none !important;
 }
 
 /* Parents row - vertical lines going down */
@@ -2508,6 +2517,7 @@ button,
   border-radius: 999px;
   z-index: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  pointer-events: none;
 }
 
 /* Horizontal line connecting parents */
@@ -2517,7 +2527,8 @@ button,
   bottom: -2.5rem;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 120px);
+  width: calc(100% - 200px);
+  max-width: 600px;
   height: 4px;
   background: linear-gradient(90deg, 
     rgba(99, 102, 241, 0.4) 0%,
@@ -2527,20 +2538,18 @@ button,
   border-radius: 999px;
   z-index: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  pointer-events: none;
 }
 
-/* Siblings/Children row - T-junction connector */
-.tree-row:has(.family-tree-node) + .tree-connector.vertical + .tree-row {
-  position: relative;
-}
-
-.tree-row:has(.family-tree-node) + .tree-connector.vertical + .tree-row::before {
+/* Children/Siblings row - horizontal line at top */
+.tree-row:not(:first-child):not(.couple)::before {
   content: '';
   position: absolute;
   top: -2.5rem;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 120px);
+  width: calc(100% - 200px);
+  max-width: 600px;
   height: 4px;
   background: linear-gradient(90deg, 
     rgba(99, 102, 241, 0.4) 0%,
@@ -2550,9 +2559,11 @@ button,
   border-radius: 999px;
   z-index: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  pointer-events: none;
 }
 
-.tree-row:has(.family-tree-node) + .tree-connector.vertical + .tree-row .family-tree-node::after {
+/* Children/Siblings - vertical lines going up to horizontal connector */
+.tree-row:not(:first-child):not(.couple) .family-tree-node::after {
   content: '';
   position: absolute;
   top: -2.5rem;
@@ -2567,42 +2578,7 @@ button,
   border-radius: 999px;
   z-index: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
-}
-
-/* Children row - similar to siblings */
-.tree-row:last-child::before {
-  content: '';
-  position: absolute;
-  top: -2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 120px);
-  height: 4px;
-  background: linear-gradient(90deg, 
-    rgba(99, 102, 241, 0.4) 0%,
-    rgba(139, 92, 246, 0.7) 50%,
-    rgba(99, 102, 241, 0.4) 100%
-  );
-  border-radius: 999px;
-  z-index: 0;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
-}
-
-.tree-row:last-child .family-tree-node::after {
-  content: '';
-  position: absolute;
-  top: -2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 4px;
-  height: 2.5rem;
-  background: linear-gradient(180deg, 
-    rgba(99, 102, 241, 0.4) 0%,
-    rgba(99, 102, 241, 0.7) 100%
-  );
-  border-radius: 999px;
-  z-index: 0;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  pointer-events: none;
 }
 
 .family-tree-node {
