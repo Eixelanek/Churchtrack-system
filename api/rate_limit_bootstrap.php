@@ -9,9 +9,8 @@
  * 1. Login: /api/admin/login.php, /api/members/login.php, /api/manager/login.php
  * 2. Registration: /api/members/register.php, /api/members/register_mobile.php
  * 3. Password Reset: /api/members/request_password_reset.php, /api/admin/reset_member_password.php
- * 4. Guest endpoints: /api/guest/*
  * 
- * ALL OTHER ENDPOINTS: No rate limiting (dashboard, get operations, etc.)
+ * ALL OTHER ENDPOINTS: No rate limiting (dashboard, get operations, guest APIs, etc.)
  */
 
 if (defined('CHURCHTRACK_RATE_LIMIT_RAN')) {
@@ -55,10 +54,8 @@ if (in_array($basename, ['request_password_reset.php', 'reset_member_password.ph
     $shouldRateLimit = true;
 }
 
-// 4. Guest endpoints
-if (strpos($scriptPath, '/api/guest/') !== false) {
-    $shouldRateLimit = true;
-}
+// Guest endpoints are now EXEMPT from rate limiting
+// Removed: if (strpos($scriptPath, '/api/guest/') !== false) { $shouldRateLimit = true; }
 
 // If this endpoint doesn't need rate limiting, skip it
 if (!$shouldRateLimit) {
