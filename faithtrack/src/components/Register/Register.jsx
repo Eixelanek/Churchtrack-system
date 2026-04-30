@@ -512,6 +512,17 @@ const Register = () => {
       return;
     }
 
+    const trimmedEmail = (formData.email || '').trim();
+    if (!trimmedEmail) {
+      setMessage({ type: 'error', text: 'Please enter your email address' });
+      return;
+    }
+
+    if (emailAvailable !== true) {
+      setMessage({ type: 'error', text: 'Please use an available email address' });
+      return;
+    }
+
     if (formData.password.length < 8) {
       setMessage({ type: 'error', text: 'Password must be at least 8 characters long' });
       return;
@@ -533,7 +544,6 @@ const Register = () => {
       setError('');
 
       const isMinor = parseInt(formData.age) <= 17;
-      const trimmedEmail = (formData.email || '').trim();
       
       const payload = {
         surname: formData.surname,
@@ -1054,6 +1064,16 @@ const Register = () => {
                           : ''
                     }
                   />
+                  {checkingEmail && (
+                    <div className="field-message info">
+                      Checking email availability...
+                    </div>
+                  )}
+                  {!checkingEmail && emailCheckMessage && (
+                    <div className={`field-message ${emailAvailable === true ? 'success' : emailAvailable === false ? 'error' : 'info'}`}>
+                      {emailCheckMessage}
+                    </div>
+                  )}
                 </div>
 
 

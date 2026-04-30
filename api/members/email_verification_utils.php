@@ -57,22 +57,31 @@ if (!function_exists('sendEmailVerificationLink')) {
         $mail = new PHPMailer(true);
 
         try {
-            $mail->isSMTP();
-            $mail->Host = getenv('SMTP_HOST') ?: 'sandbox.smtp.mailtrap.io';
-            $mail->SMTPAuth = true;
-            $mail->Username = getenv('SMTP_USERNAME') ?: '6d9592f68fe27b';
-            $mail->Password = getenv('SMTP_PASSWORD') ?: 'b66f2375c2b4db';
-            $mail->Port = (int)(getenv('SMTP_PORT') ?: 2525);
+            $smtpHost = getenv('SMTP_HOST') ?: '';
+            $smtpUsername = getenv('SMTP_USERNAME') ?: '';
+            $smtpPassword = getenv('SMTP_PASSWORD') ?: '';
+            $smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
+            $fromEmail = getenv('SMTP_FROM_EMAIL') ?: '';
+            $fromName = getenv('SMTP_FROM_NAME') ?: 'ChurchTrack';
+            $secure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'tls')));
 
-            $secure = getenv('SMTP_SECURE');
+            if ($smtpHost === '' || $smtpUsername === '' || $smtpPassword === '' || $fromEmail === '') {
+                return ['success' => false, 'message' => 'Email service is not configured. Please set SMTP env variables.'];
+            }
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->Port = $smtpPort;
+
             if ($secure === 'ssl') {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             } else {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
 
-            $fromEmail = getenv('SMTP_FROM_EMAIL') ?: 'noreply@yourdomain.com';
-            $fromName = getenv('SMTP_FROM_NAME') ?: 'ChurchTrack';
             $displayName = trim($recipientName) !== '' ? $recipientName : $recipientEmail;
 
             $mail->CharSet = 'UTF-8';
