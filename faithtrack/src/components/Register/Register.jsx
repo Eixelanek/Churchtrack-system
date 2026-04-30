@@ -186,9 +186,9 @@ const Register = () => {
 
   const validateStep2 = () => {
     const trimmedEmail = (formData.email || '').trim();
-    const emailProvided = trimmedEmail !== '';
-    const emailValid = !emailProvided || /^\S+@\S+\.\S+$/.test(trimmedEmail);
-    const contactValid = /^09\d{9}$/.test((formData.contactNumber || '').trim());
+    const emailValid = /^\S+@\S+\.\S+$/.test(trimmedEmail);
+    const trimmedContact = (formData.contactNumber || '').trim();
+    const contactValid = trimmedContact === '' || /^09\d{9}$/.test(trimmedContact);
     
     // Check if guardian information is required (age 17 and below)
     const isMinor = parseInt(formData.age) <= 17;
@@ -238,7 +238,7 @@ const Register = () => {
     } else if ((activeStep === 2 && !hasReferral) || (activeStep === 3 && hasReferral)) {
       // Contact Information step
       if (!validateStep2()) {
-        setMessage({ type: 'error', text: 'Please enter a valid contact number (and matching email if provided)' });
+        setMessage({ type: 'error', text: 'Please enter a valid email address (contact number is optional)' });
         return;
       }
     } else if ((activeStep === 3 && !hasReferral) || (activeStep === 4 && hasReferral)) {
@@ -591,7 +591,7 @@ const Register = () => {
       if (response.status === 201) {
         // Registration successful
         setMessage({ type: 'success', text: 'Registration successful!' });
-        setNotificationMessage('Registration successful! Please wait for admin approval. We will notify you via email if you provided one.');
+        setNotificationMessage('Registration successful! Please verify your email from the link we sent, then wait for admin approval.');
         setShowNotification(true);
 
         setTimeout(() => {
@@ -609,7 +609,7 @@ const Register = () => {
 
       if (response.ok) {
         setMessage({ type: 'success', text: 'Registration successful!' });
-        setNotificationMessage('Registration successful! Please wait for admin approval. We will notify you via email if you provided one.');
+        setNotificationMessage('Registration successful! Please verify your email from the link we sent, then wait for admin approval.');
         setShowNotification(true);
 
         setTimeout(() => {
@@ -626,7 +626,7 @@ const Register = () => {
         // On mobile, CORS errors often occur even when registration succeeds
         // Show success message and let user proceed
         setMessage({ type: 'success', text: 'Registration submitted! Please check with admin for approval status.' });
-        setNotificationMessage('Registration submitted! Please wait for admin approval. We will notify you via email if you provided one.');
+        setNotificationMessage('Registration submitted! Please verify your email from the link we sent, then wait for admin approval.');
         setShowNotification(true);
 
         setTimeout(() => {
@@ -1037,13 +1037,14 @@ const Register = () => {
               </div>
               <div className="form-groups">
                 <div className="form-group">
-                  <label>Email Address (optional)</label>
+                  <label>Email Address <span className="required-asterisk">*</span></label>
                   <input
                     type="email"
                     name="email"
                     placeholder="your.email@example.com"
                     value={formData.email}
                     onChange={handleChange}
+                    required
                     disabled={isLoading}
                     className={
                       emailAvailable === false
@@ -1058,8 +1059,7 @@ const Register = () => {
 
                 <div className="form-group">
                   <label>
-                    Contact Number
-                    <span className="required-asterisk">*</span>
+                    Contact Number <span style={{ color: '#94a3b8', fontWeight: 500 }}>(optional)</span>
                   </label>
                   <div className="phone-input-container">
                     <span className="phone-prefix">09</span>
@@ -1072,7 +1072,6 @@ const Register = () => {
                         const value = e.target.value.replace(/\D/g, '').slice(0, 9);
                         handleChange({ target: { name: 'contactNumber', value: '09' + value } });
                       }}
-                      required
                       disabled={isLoading}
                       inputMode="numeric"
                       minLength={9}

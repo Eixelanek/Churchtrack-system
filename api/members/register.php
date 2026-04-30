@@ -18,11 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include_once '../config/database.php';
+require_once __DIR__ . '/email_verification_utils.php';
 
 // Auto-cleaning: Delete rejected members older than 30 days
 try {
     $database = new Database();
     $db = $database->getConnection();
+    ensureEmailVerificationInfrastructure($db);
     $cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
     $db->prepare($cleanup_query)->execute();
     // Auto-cleaning: Delete expired and used verification codes
@@ -43,7 +45,7 @@ if (
     !empty($data->username) &&
     !empty($data->password) &&
     !empty($data->birthday) &&
-    !empty($data->contactNumber) &&
+    !empty($data->email) &&
     !empty($data->gender) &&
     !empty($data->street) &&
     !empty($data->barangay) &&
@@ -80,13 +82,16 @@ if (
         }
     }
 
+    $verificationToken = generateEmailVerificationToken();
+    $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+
     // Insert new member with comprehensive data
     $query = "INSERT INTO members 
-              (surname, first_name, middle_name, suffix, gender, birthday, email, contact_number,
+              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
                street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer, username, password, status) 
               VALUES 
-              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :contact_number,
+              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
                :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer, :username, :password, 'pending')";
 
@@ -99,10 +104,10 @@ if (
     $suffix = !empty($data->suffix) ? htmlspecialchars(strip_tags($data->suffix)) : 'None';
     $gender = htmlspecialchars(strip_tags($data->gender));
     $birthday = htmlspecialchars(strip_tags($data->birthday));
-    $email = isset($data->email) && trim($data->email) !== ''
-        ? htmlspecialchars(strip_tags($data->email))
+    $email = htmlspecialchars(strip_tags($data->email));
+    $contact_number = !empty($data->contactNumber)
+        ? htmlspecialchars(strip_tags($data->contactNumber))
         : null;
-    $contact_number = htmlspecialchars(strip_tags($data->contactNumber));
     
     // Guardian fields
     $guardian_surname = ($age <= 17 && !empty($data->guardianSurname)) ? htmlspecialchars(strip_tags($data->guardianSurname)) : null;
@@ -162,17 +167,15 @@ if (
     }
 
     // Check if email already exists (excluding rejected members)
-    if ($email !== null) {
-        $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
-        $check_email_stmt = $db->prepare($check_email_query);
-        $check_email_stmt->bindParam(":email", $email);
-        $check_email_stmt->execute();
+    $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
+    $check_email_stmt = $db->prepare($check_email_query);
+    $check_email_stmt->bindParam(":email", $email);
+    $check_email_stmt->execute();
 
-        if ($check_email_stmt->rowCount() > 0) {
-            http_response_code(400);
-            echo json_encode(["message" => "Email already exists"]);
-            exit();
-        }
+    if ($check_email_stmt->rowCount() > 0) {
+        http_response_code(400);
+        echo json_encode(["message" => "Email already exists"]);
+        exit();
     }
 
     // Bind all parameters
@@ -182,12 +185,15 @@ if (
     $stmt->bindParam(":suffix", $suffix);
     $stmt->bindParam(":gender", $gender);
     $stmt->bindParam(":birthday", $birthday);
-    if ($email !== null) {
-        $stmt->bindParam(":email", $email);
+    $stmt->bindParam(":email", $email);
+    $stmt->bindValue(":email_verified_at", null, PDO::PARAM_NULL);
+    $stmt->bindParam(":email_verification_token", $verificationToken);
+    $stmt->bindParam(":email_verification_expires_at", $verificationExpiresAt);
+    if ($contact_number !== null) {
+        $stmt->bindParam(":contact_number", $contact_number);
     } else {
-        $stmt->bindValue(":email", null, PDO::PARAM_NULL);
+        $stmt->bindValue(":contact_number", null, PDO::PARAM_NULL);
     }
-    $stmt->bindParam(":contact_number", $contact_number);
     $stmt->bindParam(":guardian_surname", $guardian_surname);
     $stmt->bindParam(":guardian_first_name", $guardian_first_name);
     $stmt->bindParam(":guardian_middle_name", $guardian_middle_name);
@@ -208,11 +214,15 @@ if (
         $newMemberId = (int) $db->lastInsertId();
         require_once __DIR__ . '/../family/link_at_registration.php';
         link_family_after_registration($db, $newMemberId, $data->familyLinks ?? null, $age);
+        $displayName = trim($first_name . ' ' . $surname);
+        $emailSendResult = sendEmailVerificationLink($email, $displayName, $verificationToken);
 
         http_response_code(201);
         echo json_encode([
-            "message" => "Registration successful. Please wait for admin approval.",
-            "status" => "pending"
+            "message" => "Registration successful. Please verify your email and wait for admin approval.",
+            "status" => "pending",
+            "email_verification_sent" => $emailSendResult['success'],
+            "email_verification_message" => $emailSendResult['message']
         ]);
     } else {
         $errorInfo = $stmt->errorInfo();

@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 try {
     include_once '../config/database.php';
+    require_once __DIR__ . '/email_verification_utils.php';
     
     // Get posted data
     $input = file_get_contents("php://input");
@@ -35,7 +36,7 @@ try {
     error_log("Mobile registration data: " . json_encode($data));
     
     // Validate required fields
-    $required = ['surname', 'firstName', 'username', 'password', 'birthday', 'contactNumber', 'gender', 'street', 'barangay', 'city', 'province', 'zipCode'];
+    $required = ['surname', 'firstName', 'username', 'password', 'birthday', 'email', 'gender', 'street', 'barangay', 'city', 'province', 'zipCode'];
     
     foreach ($required as $field) {
         if (empty($data[$field])) {
@@ -46,6 +47,7 @@ try {
     // Connect to database
     $database = new Database();
     $db = $database->getConnection();
+    ensureEmailVerificationInfrastructure($db);
     
     // Check if username exists
     $check_query = "SELECT id FROM members WHERE username = :username AND status != 'rejected'";
@@ -72,25 +74,26 @@ try {
         }
     }
     
-    // Check email if provided
-    if (!empty($data['email'])) {
-        $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
-        $check_email_stmt = $db->prepare($check_email_query);
-        $check_email_stmt->bindParam(":email", $data['email']);
-        $check_email_stmt->execute();
-        
-        if ($check_email_stmt->rowCount() > 0) {
-            throw new Exception("Email already exists");
-        }
+    // Check email uniqueness
+    $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
+    $check_email_stmt = $db->prepare($check_email_query);
+    $check_email_stmt->bindParam(":email", $data['email']);
+    $check_email_stmt->execute();
+    
+    if ($check_email_stmt->rowCount() > 0) {
+        throw new Exception("Email already exists");
     }
     
+    $verificationToken = generateEmailVerificationToken();
+    $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+
     // Insert member
     $query = "INSERT INTO members 
-              (surname, first_name, middle_name, suffix, gender, birthday, email, contact_number,
+              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
                street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer, username, password, status) 
               VALUES 
-              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :contact_number,
+              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
                :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer, :username, :password, 'pending')";
     
@@ -103,8 +106,16 @@ try {
     $stmt->bindValue(":suffix", $data['suffix'] ?? 'None');
     $stmt->bindParam(":gender", $data['gender']);
     $stmt->bindParam(":birthday", $data['birthday']);
-    $stmt->bindValue(":email", $data['email'] ?? null);
-    $stmt->bindParam(":contact_number", $data['contactNumber']);
+    $stmt->bindParam(":email", $data['email']);
+    $stmt->bindValue(":email_verified_at", null, PDO::PARAM_NULL);
+    $stmt->bindParam(":email_verification_token", $verificationToken);
+    $stmt->bindParam(":email_verification_expires_at", $verificationExpiresAt);
+    $contactNumber = isset($data['contactNumber']) && trim((string)$data['contactNumber']) !== '' ? $data['contactNumber'] : null;
+    if ($contactNumber !== null) {
+        $stmt->bindParam(":contact_number", $contactNumber);
+    } else {
+        $stmt->bindValue(":contact_number", null, PDO::PARAM_NULL);
+    }
     $stmt->bindValue(":guardian_surname", ($age <= 17) ? ($data['guardianSurname'] ?? null) : null);
     $stmt->bindValue(":guardian_first_name", ($age <= 17) ? ($data['guardianFirstName'] ?? null) : null);
     $stmt->bindValue(":guardian_middle_name", ($age <= 17) ? ($data['guardianMiddleName'] ?? null) : null);
@@ -126,11 +137,15 @@ try {
         require_once __DIR__ . '/../family/link_at_registration.php';
         $familyLinks = isset($data['familyLinks']) ? $data['familyLinks'] : null;
         link_family_after_registration($db, $newMemberId, $familyLinks, $age);
+        $displayName = trim(($data['firstName'] ?? '') . ' ' . ($data['surname'] ?? ''));
+        $emailSendResult = sendEmailVerificationLink($data['email'], $displayName, $verificationToken);
 
         http_response_code(201);
         echo json_encode([
-            "message" => "Registration successful. Please wait for admin approval.",
-            "status" => "pending"
+            "message" => "Registration successful. Please verify your email and wait for admin approval.",
+            "status" => "pending",
+            "email_verification_sent" => $emailSendResult['success'],
+            "email_verification_message" => $emailSendResult['message']
         ]);
     } else {
         throw new Exception("Unable to complete registration");

@@ -8,15 +8,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header("Content-Type: application/json; charset=UTF-8");
 
 include_once '../config/database.php';
+require_once __DIR__ . '/email_verification_utils.php';
 
 try {
     $database = new Database();
     $db = $database->getConnection();
+    ensureEmailVerificationInfrastructure($db);
 
     $data = json_decode(file_get_contents("php://input"));
 
     if(!empty($data->username) && !empty($data->password)) {
-        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, must_change_password, password_temp_expires_at FROM members WHERE username = :username LIMIT 1";
+        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, must_change_password, password_temp_expires_at, email_verified_at FROM members WHERE username = :username LIMIT 1";
         $stmt = $db->prepare($query);
         $stmt->bindParam(":username", $data->username);
         $stmt->execute();
@@ -29,9 +31,29 @@ try {
             $email = $row['email'];
             $birthday = $row['birthday'];
             $status = $row['status'];
+            $emailVerifiedAt = $row['email_verified_at'];
             $hashed_password = $row['password'];
 
             if(password_verify($data->password, $hashed_password)) {
+                if ($emailVerifiedAt === null || trim((string)$emailVerifiedAt) === '') {
+                    http_response_code(403);
+                    echo json_encode(array(
+                        "message" => "Please verify your email before logging in. Check your inbox for the verification link.",
+                        "code" => "EMAIL_NOT_VERIFIED"
+                    ));
+                    exit();
+                }
+
+                if ($status !== 'active') {
+                    http_response_code(403);
+                    echo json_encode(array(
+                        "message" => "Your account is not yet approved by admin.",
+                        "code" => "ACCOUNT_NOT_APPROVED",
+                        "status" => $status
+                    ));
+                    exit();
+                }
+
                 if ((int)($row['must_change_password'] ?? 0) === 1) {
                     $expiresAt = $row['password_temp_expires_at'];
                     if ($expiresAt) {

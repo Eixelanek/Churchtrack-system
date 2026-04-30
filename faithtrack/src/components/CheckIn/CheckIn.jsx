@@ -129,15 +129,15 @@ const CheckIn = () => {
       errors.surname = 'Surname is required';
     }
     const contact = guestFormData.contact_number.trim();
-    if (contact === '') {
-      errors.contact_number = 'Contact number is required';
-    } else {
+    if (contact !== '') {
       const digits = contact.replace(/\D+/g, '');
       if (digits.length !== 11) {
         errors.contact_number = 'Contact number must be 11 digits';
       }
     }
-    if (guestFormData.email.trim() !== '') {
+    if (guestFormData.email.trim() === '') {
+      errors.email = 'Email address is required';
+    } else {
       const emailRegex = /^\S+@\S+\.\S+$/;
       if (!emailRegex.test(guestFormData.email.trim())) {
         errors.email = 'Please enter a valid email address';
@@ -165,9 +165,11 @@ const CheckIn = () => {
     if (!memberFormData.gender) errors.gender = 'Gender is required';
 
     const contact = memberFormData.contactNumber.trim().replace(/\D+/g, '');
-    if (contact.length !== 11) errors.contactNumber = 'Contact number must be 11 digits';
+    if (contact.length > 0 && contact.length !== 11) errors.contactNumber = 'Contact number must be 11 digits';
 
-    if (memberFormData.email.trim() && !/^\S+@\S+\.\S+$/.test(memberFormData.email.trim())) {
+    if (!memberFormData.email.trim()) {
+      errors.email = 'Email address is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(memberFormData.email.trim())) {
       errors.email = 'Please enter a valid email address';
     }
 
@@ -1448,7 +1450,7 @@ const CheckIn = () => {
 
               <div className="form-group">
                 <label htmlFor="guestContact">
-                  Contact Number <span className="required-asterisk">*</span>
+                  Contact Number <span style={{color: '#94a3b8', fontWeight: 500}}>(optional)</span>
                 </label>
                 <input
                   type="tel"
@@ -1459,20 +1461,20 @@ const CheckIn = () => {
                     handleGuestInputChange('contact_number', value);
                   }}
                   placeholder="e.g., 09123456789"
-                  required
                   disabled={submitting}
                 />
                 {guestFormErrors.contact_number && <span className="field-error">{guestFormErrors.contact_number}</span>}
               </div>
 
               <div className="form-group">
-                <label htmlFor="guestEmail">Email Address <span style={{color: '#94a3b8', fontWeight: 500}}>(optional)</span></label>
+                <label htmlFor="guestEmail">Email Address <span className="required-asterisk">*</span></label>
                 <input
                   type="email"
                   id="guestEmail"
                   value={guestFormData.email}
                   onChange={(e) => handleGuestInputChange('email', e.target.value)}
                   placeholder="you@example.com"
+                  required
                   disabled={submitting}
                 />
               </div>

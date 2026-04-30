@@ -35,7 +35,7 @@ try {
         empty($data->username) ||
         empty($data->password) ||
         empty($data->birthday) ||
-        empty($data->contactNumber) ||
+        empty($data->email) ||
         empty($data->gender) ||
         empty($data->street) ||
         empty($data->barangay) ||
@@ -81,24 +81,24 @@ try {
     }
     
     // Check if contact number or email already exists in members
-    $contactCheck = $db->prepare("SELECT id FROM members WHERE contact_number = :contact_number AND status != 'rejected'");
-    $contactCheck->bindParam(':contact_number', $data->contactNumber);
-    $contactCheck->execute();
-    if ($contactCheck->rowCount() > 0) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Contact number is already registered']);
-        exit();
-    }
-    
-    if (!empty($data->email)) {
-        $emailCheck = $db->prepare("SELECT id FROM members WHERE email = :email AND email IS NOT NULL AND email != '' AND status != 'rejected'");
-        $emailCheck->bindParam(':email', $data->email);
-        $emailCheck->execute();
-        if ($emailCheck->rowCount() > 0) {
+    if (!empty($data->contactNumber)) {
+        $contactCheck = $db->prepare("SELECT id FROM members WHERE contact_number = :contact_number AND status != 'rejected'");
+        $contactCheck->bindParam(':contact_number', $data->contactNumber);
+        $contactCheck->execute();
+        if ($contactCheck->rowCount() > 0) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Email is already registered']);
+            echo json_encode(['success' => false, 'message' => 'Contact number is already registered']);
             exit();
         }
+    }
+
+    $emailCheck = $db->prepare("SELECT id FROM members WHERE email = :email AND email IS NOT NULL AND email != '' AND status != 'rejected'");
+    $emailCheck->bindParam(':email', $data->email);
+    $emailCheck->execute();
+    if ($emailCheck->rowCount() > 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Email is already registered']);
+        exit();
     }
     
     // Hash password
@@ -129,8 +129,10 @@ try {
         $suffix = !empty($data->suffix) ? htmlspecialchars(strip_tags($data->suffix)) : ($guest['suffix'] ?? 'None');
         $gender = htmlspecialchars(strip_tags($data->gender));
         $birthday = htmlspecialchars(strip_tags($data->birthday));
-        $email = !empty($data->email) ? htmlspecialchars(strip_tags($data->email)) : ($guest['email'] ?? null);
-        $contact_number = htmlspecialchars(strip_tags($data->contactNumber ?? $guest['contact_number']));
+        $email = htmlspecialchars(strip_tags($data->email));
+        $contact_number = !empty($data->contactNumber)
+            ? htmlspecialchars(strip_tags($data->contactNumber))
+            : null;
         
         // Guardian fields (only for minors)
         $guardian_surname = ($age <= 17 && !empty($data->guardianSurname)) ? htmlspecialchars(strip_tags($data->guardianSurname)) : null;
@@ -192,7 +194,11 @@ try {
         $memberStmt->bindParam(':gender', $gender);
         $memberStmt->bindParam(':birthday', $birthday);
         $memberStmt->bindParam(':email', $email);
-        $memberStmt->bindParam(':contact_number', $contact_number);
+        if ($contact_number !== null) {
+            $memberStmt->bindParam(':contact_number', $contact_number);
+        } else {
+            $memberStmt->bindValue(':contact_number', null, PDO::PARAM_NULL);
+        }
         $memberStmt->bindParam(':guardian_surname', $guardian_surname);
         $memberStmt->bindParam(':guardian_first_name', $guardian_first_name);
         $memberStmt->bindParam(':guardian_middle_name', $guardian_middle_name);

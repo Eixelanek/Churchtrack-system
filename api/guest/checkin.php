@@ -120,11 +120,11 @@ try {
         exit();
     }
 
-    if ($contactNumber === '') {
+    if ($email === '') {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'message' => 'Please provide a contact number.'
+            'message' => 'Please provide an email address.'
         ]);
         exit();
     }
@@ -140,6 +140,15 @@ try {
             exit();
         }
         $contactNumber = $numericContact;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Please provide a valid email address.'
+        ]);
+        exit();
     }
 
     if ($suffix !== '' && strcasecmp($suffix, 'none') === 0) {

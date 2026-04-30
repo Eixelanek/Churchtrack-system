@@ -12,6 +12,7 @@ import Member from './components/Members/Member';
 import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
 import CheckIn from './components/CheckIn/CheckIn';
+import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import logoImage from './assets/logo.png';
 
@@ -53,6 +54,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/referral-selection" element={<ReferralSelection />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/guest-checkin" element={<GuestCheckIn />} />
