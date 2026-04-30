@@ -57,17 +57,30 @@ if (!function_exists('sendEmailVerificationLink')) {
         $mail = new PHPMailer(true);
 
         try {
-            $smtpHost = getenv('SMTP_HOST') ?: '';
-            $smtpUsername = getenv('SMTP_USERNAME') ?: '';
-            $smtpPassword = getenv('SMTP_PASSWORD') ?: '';
+            $smtpHost = trim((string)(getenv('SMTP_HOST') ?: ''));
+            $smtpUsername = trim((string)(getenv('SMTP_USERNAME') ?: ''));
+            $smtpPassword = (string)(getenv('SMTP_PASSWORD') ?: '');
             $smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
-            $fromEmail = getenv('SMTP_FROM_EMAIL') ?: '';
-            $fromName = getenv('SMTP_FROM_NAME') ?: 'ChurchTrack';
+            $fromEmail = trim((string)(getenv('SMTP_FROM_EMAIL') ?: ''));
+            $fromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'ChurchTrack'));
             $secure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'tls')));
+            $smtpDebug = strtolower(trim((string)(getenv('SMTP_DEBUG') ?: 'false')));
+            $frontendUrl = getFrontendBaseUrl();
 
             if ($smtpHost === '' || $smtpUsername === '' || $smtpPassword === '' || $fromEmail === '') {
                 return ['success' => false, 'message' => 'Email service is not configured. Please set SMTP env variables.'];
             }
+
+            error_log(sprintf(
+                'Email verification SMTP attempt host=%s port=%d secure=%s user=%s from=%s frontend=%s recipient=%s',
+                $smtpHost,
+                $smtpPort,
+                $secure,
+                $smtpUsername,
+                $fromEmail,
+                $frontendUrl,
+                $recipientEmail
+            ));
 
             $mail->isSMTP();
             $mail->Host = $smtpHost;
@@ -75,6 +88,15 @@ if (!function_exists('sendEmailVerificationLink')) {
             $mail->Username = $smtpUsername;
             $mail->Password = $smtpPassword;
             $mail->Port = $smtpPort;
+            $mail->Timeout = 20;
+            $mail->SMTPKeepAlive = false;
+
+            if (in_array($smtpDebug, ['1', 'true', 'yes'], true)) {
+                $mail->SMTPDebug = 2;
+                $mail->Debugoutput = static function ($str, $level) {
+                    error_log('PHPMailer SMTP debug [' . $level . ']: ' . $str);
+                };
+            }
 
             if ($secure === 'ssl') {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
