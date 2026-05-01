@@ -482,18 +482,16 @@ try {
     if ($format === 'csv') {
         outputMembershipCsv($members, $churchSettings);
     } elseif ($format === 'pdf') {
-        // Check if mPDF is available
-        if (class_exists('\Mpdf\Mpdf')) {
-            outputMembershipPdfMpdf($members, $churchSettings);
-        } else {
-            http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => false,
-                'message' => 'PDF export is currently unavailable. Please use Excel format instead.',
-                'error' => 'PDF library not installed on server'
-            ]);
-        }
+        // PDF generation requires additional libraries that may not be installed
+        // Return a user-friendly error message
+        http_response_code(503);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'PDF export is temporarily unavailable. Please use Excel format instead.',
+            'error' => 'PDF library not installed. Contact administrator to install mPDF via composer.'
+        ]);
+        exit();
     } else {
         // Default to Excel
         outputMembershipXlsx($members, $churchSettings);
