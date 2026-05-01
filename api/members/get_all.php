@@ -15,6 +15,7 @@ $db = $database->getConnection();
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $limit = isset($_GET['limit']) ? min(500, max(10, (int)$_GET['limit'])) : 100;
 $offset = ($page - 1) * $limit;
+$includeAttendance = isset($_GET['include_attendance']) ? $_GET['include_attendance'] === 'true' : false;
 
 try {
     // Get total count for pagination
@@ -77,7 +78,8 @@ try {
     $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $attendanceStats = [];
-    if (!empty($members)) {
+    // Only fetch attendance stats if requested (for performance)
+    if ($includeAttendance && !empty($members)) {
         $memberIds = array_column($members, 'id');
         $placeholders = implode(',', array_fill(0, count($memberIds), '?'));
 

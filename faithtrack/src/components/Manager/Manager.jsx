@@ -2380,7 +2380,7 @@ const Manager = () => {
   const loadAllMembers = useCallback(async () => {
     setIsLoadingMembers(true);
     try {
-      const response = await fetch(`${backendBaseUrl}/api/members/get_all.php?limit=1000`);
+      const response = await fetch(`${backendBaseUrl}/api/members/get_all.php?limit=100&include_attendance=false`);
       if (!response.ok) {
         setAllMembers([]);
         setFilteredMembers([]);

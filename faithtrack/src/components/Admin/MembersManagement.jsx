@@ -269,7 +269,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     const guestApiBase = `${backendBaseUrl}/api/guest`;
 
     Promise.all([
-      fetch(`${apiBase}/get_all.php?limit=1000`)
+      fetch(`${apiBase}/get_all.php?limit=100&include_attendance=false`)
         .then(async res => {
           if (!res.ok) {
             const errorData = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
