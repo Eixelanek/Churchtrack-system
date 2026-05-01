@@ -317,6 +317,70 @@ function outputMembershipCsv(array $members, ?array $churchSettings = null): voi
     exit;
 }
 
+function outputMembershipPdfSimple(array $members, ?array $churchSettings = null): void
+{
+    require_once __DIR__ . '/simple_pdf.php';
+    
+    $pdf = new SimplePDF();
+    
+    $churchName = $churchSettings['church_name'] ?? 'Church';
+    $totalMembers = count($members);
+    $activeMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'active'));
+    $inactiveMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'inactive'));
+    
+    $pdf->addTitle($churchName);
+    $pdf->addSubtitle('Membership Report');
+    
+    $summary = [
+        'Total Members' => $totalMembers,
+        'Active Members' => $activeMembers,
+        'Inactive Members' => $inactiveMembers
+    ];
+    $pdf->addSummaryBox($summary);
+    
+    $headers = ['#', 'Name', 'Email', 'Contact', 'Birthday', 'Gender', 'Status', 'Joined'];
+    $rows = [];
+    
+    $rowNum = 1;
+    foreach ($members as $member) {
+        $birthday = '';
+        if (!empty($member['birthday'])) {
+            try {
+                $bday = new DateTime($member['birthday']);
+                $birthday = $bday->format('M d, Y');
+            } catch (Exception $e) {
+                $birthday = $member['birthday'];
+            }
+        }
+        
+        $joinedDate = '';
+        if (!empty($member['created_at'])) {
+            try {
+                $joined = new DateTime($member['created_at']);
+                $joinedDate = $joined->format('M d, Y');
+            } catch (Exception $e) {
+                $joinedDate = $member['created_at'];
+            }
+        }
+        
+        $rows[] = [
+            $rowNum,
+            $member['name'] ?? '',
+            $member['email'] ?? '',
+            $member['contact_number'] ?? '',
+            $birthday,
+            $member['gender'] ?? '',
+            ucfirst($member['status'] ?? ''),
+            $joinedDate
+        ];
+        
+        $rowNum++;
+    }
+    
+    $pdf->addTable($headers, $rows);
+    $pdf->output('Membership_Report_' . date('Y-m-d_His') . '.pdf');
+}
+
 function outputMembershipPdfMpdf(array $members, ?array $churchSettings = null): void
 {
     while (ob_get_level()) {
@@ -482,16 +546,8 @@ try {
     if ($format === 'csv') {
         outputMembershipCsv($members, $churchSettings);
     } elseif ($format === 'pdf') {
-        // PDF generation requires additional libraries that may not be installed
-        // Return a user-friendly error message
-        http_response_code(503);
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'PDF export is temporarily unavailable. Please use Excel format instead.',
-            'error' => 'PDF library not installed. Contact administrator to install mPDF via composer.'
-        ]);
-        exit();
+        // Use simple PDF generator that doesn't require external libraries
+        outputMembershipPdfSimple($members, $churchSettings);
     } else {
         // Default to Excel
         outputMembershipXlsx($members, $churchSettings);

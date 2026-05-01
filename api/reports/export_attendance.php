@@ -354,6 +354,51 @@ function outputAttendanceCsv(array $reportData, ?array $churchSettings = null): 
     exit;
 }
 
+function outputAttendancePdfSimple(array $reportData, ?array $churchSettings = null): void
+{
+    require_once __DIR__ . '/simple_pdf.php';
+    
+    $pdf = new SimplePDF();
+    
+    $churchName = $churchSettings['church_name'] ?? 'Church';
+    $start = $reportData['dateRange']['start'] ?? '';
+    $end = $reportData['dateRange']['end'] ?? '';
+    
+    $pdf->addTitle($churchName);
+    $pdf->addSubtitle('Attendance Report');
+    $pdf->addText("Period: {$start} to {$end}", 'center');
+    
+    $summary = [
+        'Total Events' => $reportData['totalEvents'] ?? 0,
+        'Total Attendance' => $reportData['totalAttendance'] ?? 0,
+        'Member Check-ins' => $reportData['totalMemberCheckins'] ?? 0,
+        'Guest Check-ins' => $reportData['totalGuestCheckins'] ?? 0,
+        'Average per Event' => $reportData['averagePerEvent'] ?? 0
+    ];
+    $pdf->addSummaryBox($summary);
+    
+    $headers = ['Date', 'Event', 'Type', 'Total', 'Members', 'Guests', 'Last Check-in'];
+    $rows = [];
+    
+    foreach ($reportData['records'] as $record) {
+        $date = !empty($record['date']) ? (new DateTime($record['date']))->format('M d, Y') : '';
+        $lastCheckin = formatExcelLastCheckinLabel($record);
+        
+        $rows[] = [
+            $date,
+            $record['title'] ?? '',
+            $record['type'] ?? '',
+            $record['totalCheckins'] ?? 0,
+            $record['memberCheckins'] ?? 0,
+            $record['guestCheckins'] ?? 0,
+            $lastCheckin
+        ];
+    }
+    
+    $pdf->addTable($headers, $rows);
+    $pdf->output('Attendance_Report_' . date('Y-m-d_His') . '.pdf');
+}
+
 function outputAttendancePdfMpdf(array $reportData, ?array $churchSettings = null): void
 {
     while (ob_get_level()) {
@@ -747,15 +792,8 @@ try {
     }
     
     if ($format === 'pdf') {
-        // PDF generation requires additional libraries that may not be installed
-        // Return a user-friendly error message
-        http_response_code(503);
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'PDF export is temporarily unavailable. Please use Excel format instead.',
-            'error' => 'PDF library not installed. Contact administrator to install mPDF via composer.'
-        ]);
+        // Use simple PDF generator that doesn't require external libraries
+        outputAttendancePdfSimple($reportData, $churchSettings);
         exit();
     }
 
