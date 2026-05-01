@@ -1174,6 +1174,8 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     try {
       const payload = {
         member_id: editMemberId,
+        admin_id: parseInt(localStorage.getItem('userId') || '0', 10),
+        session_id: localStorage.getItem('sessionId') || '',
         first_name: fn,
         middle_name: editForm.middleName.trim() || null,
         surname: sur,
@@ -1205,6 +1207,9 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) {
+        if (res.status === 401) {
+          throw new Error('Your admin session expired. Please log in again.');
+        }
         throw new Error(data.message || 'Update failed');
       }
       setShowEditMemberModal(false);

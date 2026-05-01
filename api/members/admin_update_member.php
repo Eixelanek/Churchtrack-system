@@ -34,6 +34,28 @@ try {
     $db = $database->getConnection();
     ensureEmailVerificationInfrastructure($db);
 
+    // Require an active admin session before allowing profile/status edits.
+    $adminId = isset($data->admin_id) ? (int)$data->admin_id : 0;
+    $sessionId = isset($data->session_id) ? trim((string)$data->session_id) : '';
+    if ($adminId <= 0 || $sessionId === '') {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Admin session is required.']);
+        exit();
+    }
+
+    $adminSessionStmt = $db->prepare(
+        "SELECT is_active FROM admin_sessions WHERE session_id = :session_id AND admin_id = :admin_id LIMIT 1"
+    );
+    $adminSessionStmt->bindValue(':session_id', $sessionId);
+    $adminSessionStmt->bindValue(':admin_id', $adminId, PDO::PARAM_INT);
+    $adminSessionStmt->execute();
+    $sessionRow = $adminSessionStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$sessionRow || (int)$sessionRow['is_active'] !== 1) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Admin session is not active. Please log in again.']);
+        exit();
+    }
+
     $fetch = $db->prepare('SELECT * FROM members WHERE id = :mid LIMIT 1');
     $fetch->bindValue(':mid', $memberId, PDO::PARAM_INT);
     $fetch->execute();
