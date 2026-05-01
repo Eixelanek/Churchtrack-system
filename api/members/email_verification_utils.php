@@ -3,6 +3,8 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
+require_once __DIR__ . '/resend_transport.php';
+
 if (!function_exists('ensureEmailVerificationInfrastructure')) {
     function ensureEmailVerificationInfrastructure(PDO $db): void
     {
@@ -49,11 +51,32 @@ if (!function_exists('getFrontendBaseUrl')) {
 if (!function_exists('sendEmailVerificationLink')) {
     function sendEmailVerificationLink(string $recipientEmail, string $recipientName, string $token): array
     {
+        $verificationUrl = getFrontendBaseUrl() . '/verify-email?token=' . urlencode($token);
+        $displayName = trim($recipientName) !== '' ? $recipientName : $recipientEmail;
+        $subject = 'Verify your email address';
+
+        $htmlBody = sprintf(
+            '<p>Hello %s,</p><p>Thanks for registering. Please verify your email by clicking the button below:</p><p><a href="%s" style="display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Verify Email</a></p><p>If the button does not work, copy and paste this link into your browser:<br>%s</p><p>This verification link expires in 24 hours.</p>',
+            htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8')
+        );
+        $textBody = "Hello {$displayName},\n\nPlease verify your email by opening this link:\n{$verificationUrl}\n\nThis verification link expires in 24 hours.";
+
+        $resendKey = trim((string)(getenv('RESEND_API_KEY') ?: ''));
+        $resendResult = null;
+        if ($resendKey !== '') {
+            $resendResult = sendEmailViaResendApi($recipientEmail, $displayName, $subject, $htmlBody, $textBody);
+            if ($resendResult['success']) {
+                return $resendResult;
+            }
+            error_log('Resend verification failed: ' . ($resendResult['message'] ?? 'unknown'));
+        }
+
         require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
         require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
         require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
 
-        $verificationUrl = getFrontendBaseUrl() . '/verify-email?token=' . urlencode($token);
         $mail = new PHPMailer(true);
 
         try {
@@ -68,7 +91,16 @@ if (!function_exists('sendEmailVerificationLink')) {
             $frontendUrl = getFrontendBaseUrl();
 
             if ($smtpHost === '' || $smtpUsername === '' || $smtpPassword === '' || $fromEmail === '') {
-                return ['success' => false, 'message' => 'Email service is not configured. Please set SMTP env variables.'];
+                if ($resendResult !== null) {
+                    return [
+                        'success' => false,
+                        'message' => 'Verification email failed. Resend error: ' . ($resendResult['message'] ?? 'unknown'),
+                    ];
+                }
+                return [
+                    'success' => false,
+                    'message' => 'Email not configured: add RESEND_API_KEY on Render (recommended) or SMTP_* variables.',
+                ];
             }
 
             error_log(sprintf(
@@ -104,27 +136,26 @@ if (!function_exists('sendEmailVerificationLink')) {
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
 
-            $displayName = trim($recipientName) !== '' ? $recipientName : $recipientEmail;
-
             $mail->CharSet = 'UTF-8';
             $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($recipientEmail, $displayName);
             $mail->isHTML(true);
-            $mail->Subject = 'Verify your email address';
-            $mail->Body = sprintf(
-                '<p>Hello %s,</p><p>Thanks for registering. Please verify your email by clicking the button below:</p><p><a href="%s" style="display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Verify Email</a></p><p>If the button does not work, copy and paste this link into your browser:<br>%s</p><p>This verification link expires in 24 hours.</p>',
-                htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($verificationUrl, ENT_QUOTES, 'UTF-8')
-            );
-            $mail->AltBody = "Hello {$displayName},\n\nPlease verify your email by opening this link:\n{$verificationUrl}\n\nThis verification link expires in 24 hours.";
+            $mail->Subject = $subject;
+            $mail->Body = $htmlBody;
+            $mail->AltBody = $textBody;
             $mail->send();
 
             return ['success' => true, 'message' => 'Verification email sent.'];
         } catch (PHPMailerException $e) {
             error_log('Email verification send failed: ' . $e->getMessage());
+            $smtpMsg = 'SMTP failed: ' . $e->getMessage();
+            if ($resendResult !== null && empty($resendResult['success'])) {
+                return [
+                    'success' => false,
+                    'message' => $smtpMsg . ' | Resend: ' . ($resendResult['message'] ?? 'unknown'),
+                ];
+            }
             return ['success' => false, 'message' => 'Unable to send verification email right now.'];
         }
     }
 }
-
