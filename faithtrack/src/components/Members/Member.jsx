@@ -89,6 +89,36 @@ const Member = () => {
   const passwordRequirements = 'Password must be at least 8 characters long.';
   const navigate = useNavigate();
 
+  /** After forced password change (or on load), detect admin-created + unverified from API — not only login JSON flag. */
+  const refreshAdminEmailVerificationGate = useCallback(async (newPasswordForSession) => {
+    const memberId = localStorage.getItem('userId');
+    if (!memberId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/members/get.php?id=${encodeURIComponent(memberId)}`);
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.member) return;
+      const m = data.member;
+      const via = (m.member_created_via != null ? String(m.member_created_via) : '').trim();
+      const hasEmail = m.email != null && String(m.email).trim() !== '';
+      const verified = m.email_verified_at != null && String(m.email_verified_at).trim() !== '';
+      if (via === 'admin' && hasEmail && !verified) {
+        localStorage.setItem('requiresEmailVerification', 'true');
+        if (newPasswordForSession && typeof window !== 'undefined') {
+          window.sessionStorage.setItem('memberLastLoginPassword', newPasswordForSession);
+        }
+        setShowEmailVerificationGate(true);
+      } else {
+        localStorage.removeItem('requiresEmailVerification');
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.removeItem('memberLastLoginPassword');
+        }
+        setShowEmailVerificationGate(false);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   // Get member info from localStorage
   const [user, setUser] = useState({});
   useEffect(() => {
@@ -123,7 +153,10 @@ const Member = () => {
     } else if (needsEmail) {
       setShowEmailVerificationGate(true);
     }
-  }, []);
+    if (!mustChange) {
+      void refreshAdminEmailVerificationGate();
+    }
+  }, [refreshAdminEmailVerificationGate]);
 
   const handleForcePasswordChange = (field, value) => {
     setForcePasswordForm((prev) => ({ ...prev, [field]: value }));
@@ -176,19 +209,11 @@ const Member = () => {
 
       localStorage.removeItem('mustChangePassword');
       localStorage.removeItem('tempPasswordExpiresAt');
-      if (typeof window !== 'undefined' && localStorage.getItem('requiresEmailVerification') !== 'true') {
-        window.sessionStorage.removeItem('memberLastLoginPassword');
-      }
 
       setShowForcePasswordModal(false);
       setForcePasswordForm({ newPassword: '', confirmPassword: '' });
       triggerToast('Password updated successfully. You can continue.', 'success');
-      if (localStorage.getItem('requiresEmailVerification') === 'true') {
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.setItem('memberLastLoginPassword', trimmedNew);
-        }
-        setShowEmailVerificationGate(true);
-      }
+      await refreshAdminEmailVerificationGate(trimmedNew);
     } catch (error) {
 
       setForcePasswordError(error.message || 'Unable to update password.');
