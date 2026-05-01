@@ -39,13 +39,12 @@ try {
             $emailTrimmed = $email !== null ? trim((string)$email) : '';
             $hasEmail = $emailTrimmed !== '';
             $emailVerified = $emailVerifiedAt !== null && trim((string)$emailVerifiedAt) !== '';
+            // Unverified email + email on file: cannot log in (public, guest_conversion, and admin if email was set at creation).
+            // Admin with no email yet may log in to complete email in-app.
             $needsEmailVerify = $hasEmail && !$emailVerified;
-            // Admin-created: block in-app until email is on file and verified (email optional at admin add; collected after login).
-            $requiresEmailVerification = ($createdVia === 'admin' && (!$hasEmail || !$emailVerified));
 
             if(password_verify($data->password, $hashed_password)) {
-                // Public / guest_conversion: must verify email before any login (unchanged behaviour).
-                if ($needsEmailVerify && $createdVia !== 'admin') {
+                if ($needsEmailVerify) {
                     http_response_code(403);
                     echo json_encode(array(
                         "message" => "Please verify your email before logging in. Check your inbox for the verification link.",
@@ -79,6 +78,8 @@ try {
                         }
                     }
                 }
+
+                $requiresEmailVerification = ($createdVia === 'admin' && !$hasEmail);
 
                 http_response_code(200);
                 echo json_encode(array(
