@@ -235,90 +235,6 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     exit;
 }
 
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-
-    // Get filter parameters
-    $status = isset($_GET['status']) ? $_GET['status'] : 'all'; // 'all', 'active', 'inactive'
-    $includeInactive = isset($_GET['include_inactive']) ? $_GET['include_inactive'] === 'true' : true;
-
-    // Build query based on filters
-    $whereConditions = [];
-    if ($status === 'active') {
-        $whereConditions[] = "m.status = 'active'";
-    } elseif ($status === 'inactive') {
-        $whereConditions[] = "m.status = 'inactive'";
-    } else {
-        // All members (active and inactive)
-        $whereConditions[] = "m.status IN ('active', 'inactive')";
-    }
-
-    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
-
-    // Fetch members
-    $query = "SELECT 
-                m.id,
-                CONCAT(m.first_name, ' ', 
-                       COALESCE(CONCAT(m.middle_name, ' '), ''), 
-                       m.surname,
-                       CASE WHEN m.suffix != 'None' THEN CONCAT(' ', m.suffix) ELSE '' END) as name,
-                m.email,
-                m.contact_number,
-                m.birthday,
-                m.gender,
-                m.status,
-                m.created_at
-              FROM members m
-              {$whereClause}
-              ORDER BY m.created_at DESC";
-
-    $stmt = $db->prepare($query);
-    $stmt->execute();
-    $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Get church settings
-    $churchSettings = null;
-    try {
-        $settingsQuery = "SELECT church_name, church_logo FROM church_settings LIMIT 1";
-        $settingsStmt = $db->prepare($settingsQuery);
-        $settingsStmt->execute();
-        $churchSettings = $settingsStmt->fetch(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        // Church settings table might not exist
-    }
-
-    // Get format parameter
-    $format = isset($_GET['format']) ? strtolower($_GET['format']) : 'xlsx';
-
-    // Generate report in requested format
-    if ($format === 'csv') {
-        outputMembershipCsv($members, $churchSettings);
-    } elseif ($format === 'pdf') {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'PDF export is currently unavailable. Please use Excel or CSV format instead.',
-            'error' => 'PDF generation not yet implemented for membership reports'
-        ]);
-    } else {
-        // Default to Excel
-        outputMembershipXlsx($members, $churchSettings);
-    }
-
-} catch (Exception $e) {
-    error_log('Membership export error: ' . $e->getMessage());
-    http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => false,
-        'message' => 'Failed to generate membership report: ' . $e->getMessage()
-    ]);
-}
-?>
-
-
 function outputMembershipCsv(array $members, ?array $churchSettings = null): void
 {
     if (ob_get_length()) {
@@ -399,4 +315,86 @@ function outputMembershipCsv(array $members, ?array $churchSettings = null): voi
     
     fclose($output);
     exit;
+}
+
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+
+    // Get filter parameters
+    $status = isset($_GET['status']) ? $_GET['status'] : 'all'; // 'all', 'active', 'inactive'
+    $includeInactive = isset($_GET['include_inactive']) ? $_GET['include_inactive'] === 'true' : true;
+
+    // Build query based on filters
+    $whereConditions = [];
+    if ($status === 'active') {
+        $whereConditions[] = "m.status = 'active'";
+    } elseif ($status === 'inactive') {
+        $whereConditions[] = "m.status = 'inactive'";
+    } else {
+        // All members (active and inactive)
+        $whereConditions[] = "m.status IN ('active', 'inactive')";
+    }
+
+    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+    // Fetch members
+    $query = "SELECT 
+                m.id,
+                CONCAT(m.first_name, ' ', 
+                       COALESCE(CONCAT(m.middle_name, ' '), ''), 
+                       m.surname,
+                       CASE WHEN m.suffix != 'None' THEN CONCAT(' ', m.suffix) ELSE '' END) as name,
+                m.email,
+                m.contact_number,
+                m.birthday,
+                m.gender,
+                m.status,
+                m.created_at
+              FROM members m
+              {$whereClause}
+              ORDER BY m.created_at DESC";
+
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Get church settings
+    $churchSettings = null;
+    try {
+        $settingsQuery = "SELECT church_name, church_logo FROM church_settings LIMIT 1";
+        $settingsStmt = $db->prepare($settingsQuery);
+        $settingsStmt->execute();
+        $churchSettings = $settingsStmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        // Church settings table might not exist
+    }
+
+    // Get format parameter
+    $format = isset($_GET['format']) ? strtolower($_GET['format']) : 'xlsx';
+
+    // Generate report in requested format
+    if ($format === 'csv') {
+        outputMembershipCsv($members, $churchSettings);
+    } elseif ($format === 'pdf') {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'PDF export is currently unavailable. Please use Excel or CSV format instead.',
+            'error' => 'PDF generation not yet implemented for membership reports'
+        ]);
+    } else {
+        // Default to Excel
+        outputMembershipXlsx($members, $churchSettings);
+    }
+
+} catch (Exception $e) {
+    error_log('Membership export error: ' . $e->getMessage());
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to generate membership report: ' . $e->getMessage()
+    ]);
 }
