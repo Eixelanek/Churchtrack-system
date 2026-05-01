@@ -289,6 +289,71 @@ function formatExcelLastCheckinLabel(array $record): string
     return $timestampLabel ?: '—';
 }
 
+function outputAttendanceCsv(array $reportData, ?array $churchSettings = null): void
+{
+    if (ob_get_length()) {
+        ob_end_clean();
+    }
+
+    $filename = 'Attendance_Report_' . date('Y-m-d_His') . '.csv';
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+    header('Pragma: public');
+
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for Excel UTF-8 support
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Church header
+    if ($churchSettings) {
+        fputcsv($output, [$churchSettings['church_name'] ?? 'Church']);
+    }
+    fputcsv($output, ['Attendance Report']);
+    
+    $start = $reportData['dateRange']['start'] ?? '';
+    $end = $reportData['dateRange']['end'] ?? '';
+    fputcsv($output, ['Period: ' . $start . ' to ' . $end]);
+    
+    $generatedAt = !empty($reportData['generatedAt'])
+        ? (new DateTime($reportData['generatedAt']))->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A')
+        : (new DateTime())->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A');
+    fputcsv($output, ['Generated: ' . $generatedAt]);
+    
+    // Summary
+    fputcsv($output, []);
+    fputcsv($output, ['Total Events', $reportData['totalEvents'] ?? 0]);
+    fputcsv($output, ['Total Attendance', $reportData['totalAttendance'] ?? 0]);
+    fputcsv($output, ['Member Check-ins', $reportData['totalMemberCheckins'] ?? 0]);
+    fputcsv($output, ['Guest Check-ins', $reportData['totalGuestCheckins'] ?? 0]);
+    fputcsv($output, ['Average per Event', $reportData['averagePerEvent'] ?? 0]);
+    
+    // Table header
+    fputcsv($output, []);
+    fputcsv($output, ['Date', 'Event', 'Type', 'Total', 'Members', 'Guests', 'Last Check-in']);
+    
+    // Data rows
+    foreach ($reportData['records'] as $record) {
+        $date = !empty($record['date']) ? (new DateTime($record['date']))->format('M d, Y') : '';
+        $lastCheckin = formatExcelLastCheckinLabel($record);
+        
+        fputcsv($output, [
+            $date,
+            $record['title'] ?? '',
+            $record['type'] ?? '',
+            $record['totalCheckins'] ?? 0,
+            $record['memberCheckins'] ?? 0,
+            $record['guestCheckins'] ?? 0,
+            $lastCheckin
+        ]);
+    }
+    
+    fclose($output);
+    exit;
+}
+
 function outputAttendancePdf(array $reportData, ?array $churchSettings = null): void
 {
     // Clean all output buffers
@@ -591,7 +656,23 @@ try {
         exit();
     }
     
+    if ($format === 'csv') {
+        outputAttendanceCsv($reportData, $churchSettings);
+        exit();
+    }
+    
     if ($format === 'pdf') {
+        // Check if TCPDF is available
+        if (!class_exists('TCPDF')) {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'PDF export is currently unavailable. Please use Excel format instead.',
+                'error' => 'TCPDF library not installed on server'
+            ]);
+            exit();
+        }
         outputAttendancePdf($reportData, $churchSettings);
         exit();
     }

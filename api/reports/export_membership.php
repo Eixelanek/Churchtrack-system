@@ -288,8 +288,24 @@ try {
         // Church settings table might not exist
     }
 
-    // Generate Excel file
-    outputMembershipXlsx($members, $churchSettings);
+    // Get format parameter
+    $format = isset($_GET['format']) ? strtolower($_GET['format']) : 'xlsx';
+
+    // Generate report in requested format
+    if ($format === 'csv') {
+        outputMembershipCsv($members, $churchSettings);
+    } elseif ($format === 'pdf') {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'PDF export is currently unavailable. Please use Excel or CSV format instead.',
+            'error' => 'PDF generation not yet implemented for membership reports'
+        ]);
+    } else {
+        // Default to Excel
+        outputMembershipXlsx($members, $churchSettings);
+    }
 
 } catch (Exception $e) {
     error_log('Membership export error: ' . $e->getMessage());
@@ -301,3 +317,86 @@ try {
     ]);
 }
 ?>
+
+
+function outputMembershipCsv(array $members, ?array $churchSettings = null): void
+{
+    if (ob_get_length()) {
+        ob_end_clean();
+    }
+
+    $filename = 'Membership_Report_' . date('Y-m-d_His') . '.csv';
+    
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+    header('Pragma: public');
+
+    $output = fopen('php://output', 'w');
+    
+    // Add BOM for Excel UTF-8 support
+    fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+    
+    // Church header
+    if ($churchSettings) {
+        fputcsv($output, [$churchSettings['church_name'] ?? 'Church']);
+    }
+    fputcsv($output, ['Membership Report']);
+    
+    $generatedAt = (new DateTime())->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A');
+    fputcsv($output, ['Generated: ' . $generatedAt]);
+    
+    // Summary
+    $totalMembers = count($members);
+    $activeMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'active'));
+    $inactiveMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'inactive'));
+    
+    fputcsv($output, []);
+    fputcsv($output, ['Total Members', $totalMembers]);
+    fputcsv($output, ['Active Members', $activeMembers]);
+    fputcsv($output, ['Inactive Members', $inactiveMembers]);
+    
+    // Table header
+    fputcsv($output, []);
+    fputcsv($output, ['#', 'Name', 'Email', 'Contact', 'Birthday', 'Gender', 'Status', 'Joined Date']);
+    
+    // Data rows
+    $rowNum = 1;
+    foreach ($members as $member) {
+        $birthday = '';
+        if (!empty($member['birthday'])) {
+            try {
+                $bday = new DateTime($member['birthday']);
+                $birthday = $bday->format('M d, Y');
+            } catch (Exception $e) {
+                $birthday = $member['birthday'];
+            }
+        }
+        
+        $joinedDate = '';
+        if (!empty($member['created_at'])) {
+            try {
+                $joined = new DateTime($member['created_at']);
+                $joinedDate = $joined->format('M d, Y');
+            } catch (Exception $e) {
+                $joinedDate = $member['created_at'];
+            }
+        }
+        
+        fputcsv($output, [
+            $rowNum,
+            $member['name'] ?? '',
+            $member['email'] ?? '',
+            $member['contact_number'] ?? '',
+            $birthday,
+            $member['gender'] ?? '',
+            ucfirst($member['status'] ?? ''),
+            $joinedDate
+        ]);
+        
+        $rowNum++;
+    }
+    
+    fclose($output);
+    exit;
+}

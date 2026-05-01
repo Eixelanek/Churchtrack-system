@@ -471,6 +471,48 @@
   stroke: white;
 }
 
+/* Export Dropdown Menu */
+.export-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  min-width: 180px;
+  z-index: 1000;
+  border: 1px solid #e5e7eb;
+}
+
+.export-dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.export-dropdown-menu button:hover {
+  background: #f3f4f6;
+  color: #10b981;
+}
+
+.export-dropdown-menu button svg {
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
 /* New Stat Cards */
 .members-new-stat-cards {
   display: grid;
