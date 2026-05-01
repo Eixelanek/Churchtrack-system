@@ -1395,17 +1395,34 @@ ChurchTrack System`;
           <h1>Members Directory</h1>
           <p className="directory-subtitle">View members and their family connections</p>
         </div>
-        {allowMemberMutations && (
-          <button className="add-member-btn" onClick={() => setShowAddUserModal(true)}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            className="export-report-btn" 
+            onClick={() => {
+              const status = activeTab === 'all_members' ? 'all' : activeTab === 'inactive' ? 'inactive' : 'active';
+              window.open(`${backendBaseUrl}/api/reports/export_membership.php?status=${status}`, '_blank');
+            }}
+            title="Export Membership Report"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            Add Member
+            Export Report
           </button>
-        )}
+          {allowMemberMutations && (
+            <button className="add-member-btn" onClick={() => setShowAddUserModal(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+              Add Member
+            </button>
+          )}
+        </div>
       </div>
 
       {/* New Stat Cards Row */}
