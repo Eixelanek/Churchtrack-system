@@ -589,16 +589,28 @@
   }
 
 .resend-verification-box {
-  margin: -8px 0 16px;
+  margin: -10px 0 18px;
   text-align: left;
+  padding: 12px 14px;
+  border: 1px solid rgba(16, 149, 210, 0.2);
+  border-radius: 12px;
+  background: rgba(16, 149, 210, 0.04);
+}
+
+.resend-verification-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b6b93;
+  margin-bottom: 8px;
 }
 
 .resend-verification-btn {
+  width: 100%;
   border: 1px solid rgba(16, 149, 210, 0.35);
-  background: rgba(16, 149, 210, 0.08);
+  background: #ffffff;
   color: #0b6b93;
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -606,7 +618,8 @@
 }
 
 .resend-verification-btn:hover:not(:disabled) {
-  background: rgba(16, 149, 210, 0.16);
+  background: #f0f9ff;
+  border-color: rgba(16, 149, 210, 0.55);
 }
 
 .resend-verification-btn:disabled {
@@ -618,7 +631,7 @@
   margin-top: 8px;
   font-size: 12px;
   color: #0f766e;
-  line-height: 1.4;
+  line-height: 1.45;
 }
   
   .loading-spinner {

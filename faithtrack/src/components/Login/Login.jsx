@@ -264,13 +264,16 @@ const Login = () => {
         )}
         {showResendVerification && (
           <div className="resend-verification-box">
+            <div className="resend-verification-label">
+              Need a new link?
+            </div>
             <button
               type="button"
               className="resend-verification-btn"
               onClick={handleResendVerification}
               disabled={resendLoading || isLoading}
             >
-              {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+              {resendLoading ? 'Sending new link...' : 'Resend verification email'}
             </button>
             {resendMessage && <div className="resend-verification-message">{resendMessage}</div>}
           </div>
