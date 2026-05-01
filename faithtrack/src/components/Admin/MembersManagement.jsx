@@ -181,9 +181,21 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   // Mark relevant notifications as read based on active tab
   const markTabNotificationsAsRead = async (tab) => {
     try {
+      const adminId = localStorage.getItem('userId');
+      if (!adminId) {
+        return; // No admin ID, skip marking notifications
+      }
+      
       // Fetch all notifications
       const res = await fetch(`${API_BASE_URL}/api/admin/notifications.php`);
+      if (!res.ok) {
+        return; // Failed to fetch notifications, skip
+      }
+      
       const notifications = await res.json();
+      if (!Array.isArray(notifications)) {
+        return; // Invalid response format
+      }
       
       // Determine which notification types to mark based on tab
       let notificationTypes = [];
@@ -201,16 +213,22 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         notificationTypes.includes(n.type) && !n.is_read
       );
       
-      // Mark each as read
+      // Mark each as read with proper payload
       for (const notification of unreadNotifications) {
         await fetch(`${API_BASE_URL}/api/admin/mark_notification_read.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notification_id: notification.id })
+          body: JSON.stringify({ 
+            notification_id: notification.id,
+            user_id: parseInt(adminId, 10),
+            user_type: 'admin'
+          })
+        }).catch(() => {
+          // Silently ignore errors to prevent console spam
         });
       }
     } catch (error) {
-
+      // Silently ignore errors to prevent console spam
     }
   };
 
@@ -317,7 +335,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     let isMounted = true;
     const safeFetch = () => isMounted && fetchData();
     safeFetch(); // Initial fetch
-    const interval = setInterval(safeFetch, 2000); // Poll every 2 seconds
+    const interval = setInterval(safeFetch, 10000); // Poll every 10 seconds (reduced from 2s)
     return () => {
       isMounted = false;
       clearInterval(interval);
