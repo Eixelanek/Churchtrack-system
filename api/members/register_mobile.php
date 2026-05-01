@@ -138,7 +138,7 @@ try {
         $familyLinks = isset($data['familyLinks']) ? $data['familyLinks'] : null;
         link_family_after_registration($db, $newMemberId, $familyLinks, $age);
         $displayName = trim(($data['firstName'] ?? '') . ' ' . ($data['surname'] ?? ''));
-        $emailSendResult = sendEmailVerificationLink($data['email'], $displayName, $verificationToken);
+        $emailSendResult = sendEmailVerificationLink($db, $data['email'], $displayName, $verificationToken);
 
         http_response_code(201);
         echo json_encode([

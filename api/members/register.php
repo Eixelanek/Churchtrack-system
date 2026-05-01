@@ -215,7 +215,7 @@ if (
         require_once __DIR__ . '/../family/link_at_registration.php';
         link_family_after_registration($db, $newMemberId, $data->familyLinks ?? null, $age);
         $displayName = trim($first_name . ' ' . $surname);
-        $emailSendResult = sendEmailVerificationLink($email, $displayName, $verificationToken);
+        $emailSendResult = sendEmailVerificationLink($db, $email, $displayName, $verificationToken);
 
         http_response_code(201);
         echo json_encode([

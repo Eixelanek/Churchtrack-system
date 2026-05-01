@@ -11,7 +11,8 @@ if (!function_exists('sendEmailViaResendApi')) {
         string $recipientDisplayName,
         string $subject,
         string $htmlBody,
-        string $textBody
+        string $textBody,
+        ?string $replyTo = null
     ): array {
         $apiKey = trim((string)(getenv('RESEND_API_KEY') ?: ''));
         if ($apiKey === '') {
@@ -33,6 +34,11 @@ if (!function_exists('sendEmailViaResendApi')) {
             'html' => $htmlBody,
             'text' => $textBody,
         ];
+
+        $replyTrim = $replyTo !== null ? trim($replyTo) : '';
+        if ($replyTrim !== '' && filter_var($replyTrim, FILTER_VALIDATE_EMAIL)) {
+            $payload['reply_to'] = $replyTrim;
+        }
 
         $body = json_encode($payload);
         if ($body === false) {
