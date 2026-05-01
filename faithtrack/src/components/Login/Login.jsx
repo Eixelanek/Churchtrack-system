@@ -11,6 +11,9 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isEntering, setIsEntering] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
@@ -55,6 +58,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setShowResendVerification(false);
+    setResendMessage('');
     setIsLoading(true);
 
     try {
@@ -178,6 +183,9 @@ const Login = () => {
 
         navigate('/member', { replace: true });
       } else {
+        if (memberData?.code === 'EMAIL_NOT_VERIFIED') {
+          setShowResendVerification(true);
+        }
         setError(memberData.message || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
@@ -194,6 +202,32 @@ const Login = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
+  };
+
+  const handleResendVerification = async () => {
+    setResendMessage('');
+    setResendLoading(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/members/resend_verification_email.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Unable to resend verification email.');
+      }
+      setResendMessage(data.message || 'Verification email sent. Check your inbox and spam folder.');
+    } catch (err) {
+      setResendMessage(err.message || 'Unable to resend verification email.');
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   return (
@@ -226,6 +260,19 @@ const Login = () => {
           <div className="error-message">
             <div className="error-icon">⚠️</div>
             <div className="error-text">{error}</div>
+          </div>
+        )}
+        {showResendVerification && (
+          <div className="resend-verification-box">
+            <button
+              type="button"
+              className="resend-verification-btn"
+              onClick={handleResendVerification}
+              disabled={resendLoading || isLoading}
+            >
+              {resendLoading ? 'Sending...' : 'Resend Verification Email'}
+            </button>
+            {resendMessage && <div className="resend-verification-message">{resendMessage}</div>}
           </div>
         )}
 
