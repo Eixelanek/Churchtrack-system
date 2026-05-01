@@ -139,7 +139,11 @@ const Login = () => {
         localStorage.setItem('userId', memberData.id);
         localStorage.setItem('username', memberData.username);
         localStorage.setItem('memberName', memberData.name);
-        localStorage.setItem('memberEmail', memberData.email);
+        if (memberData.email != null && String(memberData.email).trim() !== '') {
+          localStorage.setItem('memberEmail', memberData.email);
+        } else {
+          localStorage.removeItem('memberEmail');
+        }
         localStorage.setItem('memberBirthday', memberData.birthday);
 
         if (memberData.must_change_password) {

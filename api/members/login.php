@@ -40,6 +40,8 @@ try {
             $hasEmail = $emailTrimmed !== '';
             $emailVerified = $emailVerifiedAt !== null && trim((string)$emailVerifiedAt) !== '';
             $needsEmailVerify = $hasEmail && !$emailVerified;
+            // Admin-created: block in-app until email is on file and verified (email optional at admin add; collected after login).
+            $requiresEmailVerification = ($createdVia === 'admin' && (!$hasEmail || !$emailVerified));
 
             if(password_verify($data->password, $hashed_password)) {
                 // Public / guest_conversion: must verify email before any login (unchanged behaviour).
@@ -77,8 +79,6 @@ try {
                         }
                     }
                 }
-
-                $requiresEmailVerification = ($needsEmailVerify && $createdVia === 'admin');
 
                 http_response_code(200);
                 echo json_encode(array(
