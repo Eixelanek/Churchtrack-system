@@ -264,10 +264,12 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
 
   const loadEvents = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/events/get_all.php`);
+      const response = await fetch(`${API_BASE_URL}/api/events/get_all.php?limit=100&include_attendees=true`);
       if (response.ok) {
         const data = await response.json();
-        setEvents(data || []); // Default to empty array if no data
+        // Handle both old format (array) and new format (object with events array)
+        const eventsData = Array.isArray(data) ? data : (data.events || []);
+        setEvents(eventsData); // Default to empty array if no data
       } else {
 
         setEvents([]); // Set empty array instead of error

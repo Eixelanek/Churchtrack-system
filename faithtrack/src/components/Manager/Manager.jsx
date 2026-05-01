@@ -2380,7 +2380,7 @@ const Manager = () => {
   const loadAllMembers = useCallback(async () => {
     setIsLoadingMembers(true);
     try {
-      const response = await fetch(`${backendBaseUrl}/api/members/get_all.php`);
+      const response = await fetch(`${backendBaseUrl}/api/members/get_all.php?limit=1000`);
       if (!response.ok) {
         setAllMembers([]);
         setFilteredMembers([]);
@@ -2389,10 +2389,13 @@ const Manager = () => {
       }
 
       const result = await response.json();
+      
+      // Handle both old format (array) and new format (object with members array)
+      const membersData = Array.isArray(result) ? result : (result.members || []);
 
-      if (Array.isArray(result) && result.length > 0) {
+      if (Array.isArray(membersData) && membersData.length > 0) {
         // Sort members alphabetically by name
-        const sorted = result.sort((a, b) => {
+        const sorted = membersData.sort((a, b) => {
           const nameA = (a.name || '').toLowerCase();
           const nameB = (b.name || '').toLowerCase();
           return nameA.localeCompare(nameB);

@@ -12,6 +12,12 @@ include_once '../config/database.php';
 try {
     $database = new Database();
     $db = $database->getConnection();
+    
+    // Pagination parameters
+    $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? min(100, max(10, (int)$_GET['limit'])) : 50;
+    $offset = ($page - 1) * $limit;
+    $includeAttendees = isset($_GET['include_attendees']) ? $_GET['include_attendees'] === 'true' : true;
 
     // Auto-complete events based on their duration
     // Prayer Meeting: 2 hours, Sunday Service & Custom: 4 hours
@@ -28,8 +34,14 @@ try {
                                END, 
                                CONCAT(date, ' ', start_time)) <= NOW()";
     $db->exec($auto_complete_query);
+    
+    // Get total count for pagination
+    $countQuery = "SELECT COUNT(*) as total FROM events";
+    $countStmt = $db->prepare($countQuery);
+    $countStmt->execute();
+    $totalEvents = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-    // Get all events with attendance data
+    // Get all events with attendance data (with pagination)
     $query = "SELECT 
                 e.id,
                 e.title,
@@ -46,9 +58,12 @@ try {
               FROM events e
               LEFT JOIN attendance a ON e.id = a.event_id
               GROUP BY e.id
-              ORDER BY e.date DESC, e.start_time DESC";
+              ORDER BY e.date DESC, e.start_time DESC
+              LIMIT :limit OFFSET :offset";
 
     $stmt = $db->prepare($query);
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
 
     $events = [];
@@ -69,6 +84,26 @@ try {
         // Get detailed attendance for this event
         $attendees = [];
         $guestAttendees = [];
+        
+        // Only fetch attendee details if requested (for performance)
+        if (!$includeAttendees) {
+            // Skip attendee fetching for list view
+            $events[] = [
+                'id' => $row['id'],
+                'title' => $row['title'],
+                'date' => $row['date'],
+                'time' => date('g:i A', strtotime($row['start_time'])),
+                'endTime' => date('g:i A', strtotime($row['end_time'])),
+                'location' => $row['location'],
+                'status' => $row['status'],
+                'totalAttendees' => (int)$row['attendee_count'],
+                'autoEnded' => (bool)$row['auto_ended'],
+                'manuallyEnded' => (bool)$row['manually_ended'],
+                'created_at' => $row['created_at'],
+                'updated_at' => $row['updated_at']
+            ];
+            continue;
+        }
 
         if ($row['status'] === 'completed') {
             // For completed events, show all attendance records (including deleted members for historical accuracy)
@@ -297,7 +332,15 @@ try {
     }
 
     http_response_code(200);
-    echo json_encode($events);
+    echo json_encode([
+        'events' => $events,
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => (int)$totalEvents,
+            'totalPages' => ceil($totalEvents / $limit)
+        ]
+    ]);
 
 } catch (Exception $e) {
     http_response_code(500);

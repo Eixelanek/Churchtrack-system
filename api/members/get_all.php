@@ -11,8 +11,20 @@ include_once '../config/database.php';
 $database = new Database();
 $db = $database->getConnection();
 
+// Pagination parameters
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = isset($_GET['limit']) ? min(500, max(10, (int)$_GET['limit'])) : 100;
+$offset = ($page - 1) * $limit;
+
 try {
+    // Get total count for pagination
+    $countQuery = "SELECT COUNT(*) as total FROM members WHERE status IN ('active', 'inactive')";
+    $countStmt = $db->prepare($countQuery);
+    $countStmt->execute();
+    $totalMembers = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
     // Get all active members with basic info including referral information
+    // Optimized: Use LEFT JOINs to get family and referral counts in single query
     $query = "SELECT 
                 m.id, 
                 CONCAT(m.first_name, ' ', 
@@ -45,11 +57,22 @@ try {
                 m.referrer_id,
                 m.referrer_name,
                 m.relationship_to_referrer,
-                m.profile_picture
+                m.profile_picture,
+                COALESCE(ref_count.referral_count, 0) as referral_count
               FROM members m
-              WHERE m.status IN ('active', 'inactive')";
+              LEFT JOIN (
+                  SELECT referrer_id, COUNT(*) as referral_count
+                  FROM members
+                  WHERE status IN ('active', 'pending')
+                  GROUP BY referrer_id
+              ) ref_count ON ref_count.referrer_id = m.id
+              WHERE m.status IN ('active', 'inactive')
+              ORDER BY m.created_at DESC
+              LIMIT :limit OFFSET :offset";
     
     $stmt = $db->prepare($query);
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -152,6 +175,31 @@ try {
     }
 
     // For each member, add default values for attendance (since table doesn't exist yet)
+    // Optimized: Get family counts in bulk query instead of per-member
+    $familyCounts = [];
+    if (!empty($members)) {
+        try {
+            $tableCheck = $db->query("SHOW TABLES LIKE 'family_members'");
+            if ($tableCheck && $tableCheck->rowCount() > 0) {
+                $memberIds = array_column($members, 'id');
+                $placeholders = implode(',', array_fill(0, count($memberIds), '?'));
+                
+                $familyQuery = "SELECT primary_member_id, COUNT(*) as family_count 
+                               FROM family_members 
+                               WHERE primary_member_id IN ($placeholders)
+                               GROUP BY primary_member_id";
+                $familyStmt = $db->prepare($familyQuery);
+                $familyStmt->execute($memberIds);
+                
+                while ($row = $familyStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $familyCounts[(int)$row['primary_member_id']] = (int)$row['family_count'];
+                }
+            }
+        } catch (Exception $e) {
+            // Table doesn't exist or error, continue with empty counts
+        }
+    }
+    
     foreach ($members as &$member) {
         $memberId = (int)$member['id'];
 
@@ -209,30 +257,11 @@ try {
             $member['is_minor'] = false;
         }
 
-        // Get family member count (check if table exists first)
-        $member['family_count'] = 0;
-        try {
-            $tableCheck = $db->query("SHOW TABLES LIKE 'family_members'");
-            if ($tableCheck && $tableCheck->rowCount() > 0) {
-                $familyQuery = "SELECT COUNT(*) as family_count FROM family_members WHERE primary_member_id = :member_id";
-                $familyStmt = $db->prepare($familyQuery);
-                $familyStmt->bindParam(':member_id', $memberId);
-                $familyStmt->execute();
-                $familyResult = $familyStmt->fetch(PDO::FETCH_ASSOC);
-                $member['family_count'] = (int)$familyResult['family_count'];
-            }
-        } catch (Exception $e) {
-            // Table doesn't exist or error, set to 0
-            $member['family_count'] = 0;
-        }
+        // Get family member count (optimized - use pre-fetched data)
+        $member['family_count'] = $familyCounts[$memberId] ?? 0;
         
-        // Get referral count (how many members this member referred)
-        $referralQuery = "SELECT COUNT(*) as referral_count FROM members WHERE referrer_id = :member_id AND status IN ('active', 'pending')";
-        $referralStmt = $db->prepare($referralQuery);
-        $referralStmt->bindParam(':member_id', $memberId);
-        $referralStmt->execute();
-        $referralResult = $referralStmt->fetch(PDO::FETCH_ASSOC);
-        $member['referral_count'] = (int)$referralResult['referral_count'];
+        // Get referral count (optimized - already fetched in main query)
+        $member['referral_count'] = (int)($member['referral_count'] ?? 0);
         
         // Clean up referral fields
         $member['referrer_id'] = $member['referrer_id'] ? (int)$member['referrer_id'] : null;
@@ -242,7 +271,15 @@ try {
         $member['is_referred'] = !empty($member['referrer_id']) || !empty($member['referrer_name']);
     }
     
-    echo json_encode($members);
+    echo json_encode([
+        'members' => $members,
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => (int)$totalMembers,
+            'totalPages' => ceil($totalMembers / $limit)
+        ]
+    ]);
     
 } catch (Exception $e) {
     http_response_code(500);

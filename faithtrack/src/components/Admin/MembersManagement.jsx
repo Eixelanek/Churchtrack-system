@@ -251,7 +251,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     const guestApiBase = `${backendBaseUrl}/api/guest`;
 
     Promise.all([
-      fetch(`${apiBase}/get_all.php`)
+      fetch(`${apiBase}/get_all.php?limit=1000`)
         .then(async res => {
           if (!res.ok) {
             const errorData = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
@@ -259,7 +259,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
           }
           return res.json();
         })
-        .then(data => ({ status: 'fulfilled', value: data }))
+        .then(data => {
+          // Handle both old format (array) and new format (object with members array)
+          const membersData = Array.isArray(data) ? data : (data.members || []);
+          return { status: 'fulfilled', value: membersData };
+        })
         .catch((error) => {
 
           return { status: 'rejected', reason: error };
