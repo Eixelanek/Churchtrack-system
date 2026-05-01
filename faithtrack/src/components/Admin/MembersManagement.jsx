@@ -89,6 +89,33 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [familyErrors, setFamilyErrors] = useState({});
   const [expandedGuestId, setExpandedGuestId] = useState(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  const [showEditMemberModal, setShowEditMemberModal] = useState(false);
+  const [editMemberId, setEditMemberId] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    middleName: '',
+    surname: '',
+    suffix: 'None',
+    username: '',
+    email: '',
+    birthday: '',
+    contactNumber: '',
+    gender: '',
+    street: '',
+    barangay: '',
+    city: '',
+    province: '',
+    zipCode: '',
+    status: 'active',
+    rejectionReason: '',
+    guardianFirstName: '',
+    guardianMiddleName: '',
+    guardianSurname: '',
+    guardianSuffix: 'None',
+    relationshipToGuardian: ''
+  });
   const [managerModeration, setManagerModeration] = useState(() => loadManagerReviewMap());
 
   const updateManagerModeration = (updater) => {
@@ -1080,8 +1107,133 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       setRejectReasonError('');
       setConfirmAction(null);
       setUserToAction(null);
+      setShowEditMemberModal(false);
+      setEditMemberId(null);
+      setEditError('');
+      setEditSaving(false);
     }
   };
+
+  const openEditMember = (member) => {
+    if (!member?.id) return;
+    const bday = member.birthday ? String(member.birthday).split('T')[0] : '';
+    setEditMemberId(member.id);
+    setEditForm({
+      firstName: member.first_name ?? '',
+      middleName: member.middle_name ?? '',
+      surname: member.surname ?? '',
+      suffix: member.suffix && member.suffix !== '' ? member.suffix : 'None',
+      username: member.username ?? '',
+      email: member.email ?? '',
+      birthday: bday,
+      contactNumber: member.contact_number ?? '',
+      gender: member.gender ?? '',
+      street: member.street ?? '',
+      barangay: member.barangay ?? '',
+      city: member.city ?? '',
+      province: member.province ?? '',
+      zipCode: member.zip_code ?? '',
+      status: member.status ?? 'active',
+      rejectionReason: member.rejection_reason ?? '',
+      guardianFirstName: member.guardian_first_name ?? '',
+      guardianMiddleName: member.guardian_middle_name ?? '',
+      guardianSurname: member.guardian_surname ?? '',
+      guardianSuffix: member.guardian_suffix && member.guardian_suffix !== 'None' ? member.guardian_suffix : 'None',
+      relationshipToGuardian: member.relationship_to_guardian ?? ''
+    });
+    setEditError('');
+    setShowEditMemberModal(true);
+  };
+
+  const handleEditFieldChange = (field, value) => {
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+    setEditError('');
+  };
+
+  const handleSaveEditMember = async (e) => {
+    e.preventDefault();
+    if (!editMemberId) return;
+    const fn = editForm.firstName.trim();
+    const sur = editForm.surname.trim();
+    const un = editForm.username.trim();
+    if (!fn || !sur || !un) {
+      setEditError('First name, surname, and username are required.');
+      return;
+    }
+    if (editForm.status === 'rejected' && !editForm.rejectionReason.trim()) {
+      setEditError('Rejection reason is required when status is Rejected.');
+      return;
+    }
+    const em = editForm.email.trim();
+    if (em !== '' && !/^\S+@\S+\.\S+$/.test(em)) {
+      setEditError('Please enter a valid email or leave it blank.');
+      return;
+    }
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const payload = {
+        member_id: editMemberId,
+        first_name: fn,
+        middle_name: editForm.middleName.trim() || null,
+        surname: sur,
+        suffix: editForm.suffix || 'None',
+        username: un,
+        email: em === '' ? '' : em,
+        birthday: editForm.birthday.trim() || null,
+        contact_number: editForm.contactNumber.trim() || null,
+        gender: editForm.gender.trim() || null,
+        street: editForm.street.trim() || null,
+        barangay: editForm.barangay.trim() || null,
+        city: editForm.city.trim() || null,
+        province: editForm.province.trim() || null,
+        zip_code: editForm.zipCode.trim() || null,
+        status: editForm.status,
+        guardian_first_name: editForm.guardianFirstName.trim() || null,
+        guardian_middle_name: editForm.guardianMiddleName.trim() || null,
+        guardian_surname: editForm.guardianSurname.trim() || null,
+        guardian_suffix: editForm.guardianSuffix || 'None',
+        relationship_to_guardian: editForm.relationshipToGuardian.trim() || null
+      };
+      if (editForm.status === 'rejected') {
+        payload.rejection_reason = editForm.rejectionReason.trim();
+      }
+      const res = await fetch(`${backendBaseUrl}/api/members/admin_update_member.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Update failed');
+      }
+      setShowEditMemberModal(false);
+      setEditMemberId(null);
+      fetchData();
+      const okMsg = data.email_send_ok === false && data.message
+        ? data.message
+        : 'Member updated successfully.';
+      setSuccessMessage(okMsg);
+      setShowConfirmActionSuccess(true);
+      setTimeout(() => setShowConfirmActionSuccess(false), 4000);
+    } catch (err) {
+      setEditError(err.message || 'Could not save changes.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const editMemberAge = useMemo(() => {
+    if (!editForm.birthday) return null;
+    const bd = new Date(editForm.birthday);
+    if (Number.isNaN(bd.getTime())) return null;
+    const t = new Date();
+    let age = t.getFullYear() - bd.getFullYear();
+    const md = t.getMonth() - bd.getMonth();
+    if (md < 0 || (md === 0 && t.getDate() < bd.getDate())) age--;
+    return age;
+  }, [editForm.birthday]);
+  const showEditGuardian = editMemberAge !== null && editMemberAge <= 17;
 
   const handleCopyCredentials = () => {
     if (!newUserCredentials) return;
@@ -1437,21 +1589,37 @@ ChurchTrack System`;
                       </span>
                     )}
                     {allowMemberMutations && (
-                      <button 
-                        className="delete-member-btn" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteUser(member);
-                        }}
-                        title="Delete Member"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          className="edit-member-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditMember(member);
+                          }}
+                          title="Edit member"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                        <button 
+                          className="delete-member-btn" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteUser(member);
+                          }}
+                          title="Delete Member"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1878,6 +2046,22 @@ ChurchTrack System`;
                             </svg>
                             {familyCount} Family
                           </span>
+                        )}
+                        {allowMemberMutations && (
+                          <button
+                            type="button"
+                            className="edit-member-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditMember(member);
+                            }}
+                            title="Edit member"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -2370,6 +2554,215 @@ ChurchTrack System`;
               </>
             );
           })()}
+        </div>
+      )}
+
+      {showEditMemberModal && (
+        <div className="modal-overlay-new" onClick={handleModalClose}>
+          <div className="modal-content-new" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px', maxHeight: '92vh', overflowY: 'auto' }}>
+            <div className="modal-header-new">
+              <h2>Edit Member</h2>
+              <button
+                type="button"
+                className="modal-close-btn-new"
+                onClick={() => {
+                  setShowEditMemberModal(false);
+                  setEditMemberId(null);
+                  setEditError('');
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            {editError && (
+              <div className="add-user-message-new error" style={{ margin: '0 1.5rem' }}>
+                {editError}
+              </div>
+            )}
+            <form className="add-member-form" onSubmit={handleSaveEditMember}>
+              <div className="form-section">
+                <h3 className="section-title">Account</h3>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Status</label>
+                    <select value={editForm.status} onChange={(e) => handleEditFieldChange('status', e.target.value)}>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="pending">Pending</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                  <div className="form-group-new">
+                    <label>Username <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      value={editForm.username}
+                      onChange={(e) => handleEditFieldChange('username', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                {editForm.status === 'rejected' && (
+                  <div className="form-group-new">
+                    <label>Rejection reason <span className="required">*</span></label>
+                    <textarea
+                      rows={3}
+                      value={editForm.rejectionReason}
+                      onChange={(e) => handleEditFieldChange('rejectionReason', e.target.value)}
+                      placeholder="Required when status is Rejected"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Personal</h3>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Surname <span className="required">*</span></label>
+                    <input type="text" value={editForm.surname} onChange={(e) => handleEditFieldChange('surname', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>First name <span className="required">*</span></label>
+                    <input type="text" value={editForm.firstName} onChange={(e) => handleEditFieldChange('firstName', e.target.value)} required />
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Middle name</label>
+                    <input type="text" value={editForm.middleName} onChange={(e) => handleEditFieldChange('middleName', e.target.value)} />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Suffix</label>
+                    <select value={editForm.suffix} onChange={(e) => handleEditFieldChange('suffix', e.target.value)}>
+                      <option value="None">None</option>
+                      <option value="Jr.">Jr.</option>
+                      <option value="Sr.">Sr.</option>
+                      <option value="II">II</option>
+                      <option value="III">III</option>
+                      <option value="IV">IV</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Birthday</label>
+                    <input
+                      type="date"
+                      min={minAllowedBirthday.toISOString().split('T')[0]}
+                      max={maxAllowedBirthday.toISOString().split('T')[0]}
+                      value={editForm.birthday}
+                      onChange={(e) => handleEditFieldChange('birthday', e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Gender</label>
+                    <select value={editForm.gender} onChange={(e) => handleEditFieldChange('gender', e.target.value)}>
+                      <option value="">—</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Contact</h3>
+                <div className="form-group-new">
+                  <label>Email</label>
+                  <input type="email" value={editForm.email} onChange={(e) => handleEditFieldChange('email', e.target.value)} placeholder="Optional" />
+                  <small className="field-hint">Changing email sends a new verification link and un-verifies until they confirm.</small>
+                </div>
+                <div className="form-group-new">
+                  <label>Phone</label>
+                  <input type="text" value={editForm.contactNumber} onChange={(e) => handleEditFieldChange('contactNumber', e.target.value)} />
+                </div>
+                <div className="form-group-new">
+                  <label>Street</label>
+                  <input type="text" value={editForm.street} onChange={(e) => handleEditFieldChange('street', e.target.value)} />
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Barangay</label>
+                    <input type="text" value={editForm.barangay} onChange={(e) => handleEditFieldChange('barangay', e.target.value)} />
+                  </div>
+                  <div className="form-group-new">
+                    <label>City</label>
+                    <input type="text" value={editForm.city} onChange={(e) => handleEditFieldChange('city', e.target.value)} />
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Province</label>
+                    <input type="text" value={editForm.province} onChange={(e) => handleEditFieldChange('province', e.target.value)} />
+                  </div>
+                  <div className="form-group-new">
+                    <label>ZIP</label>
+                    <input type="text" value={editForm.zipCode} onChange={(e) => handleEditFieldChange('zipCode', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              {showEditGuardian && (
+                <div className="form-section">
+                  <h3 className="section-title">Guardian (minor)</h3>
+                  <div className="form-row-two">
+                    <div className="form-group-new">
+                      <label>Guardian surname</label>
+                      <input type="text" value={editForm.guardianSurname} onChange={(e) => handleEditFieldChange('guardianSurname', e.target.value)} />
+                    </div>
+                    <div className="form-group-new">
+                      <label>Guardian first name</label>
+                      <input type="text" value={editForm.guardianFirstName} onChange={(e) => handleEditFieldChange('guardianFirstName', e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="form-row-two">
+                    <div className="form-group-new">
+                      <label>Guardian middle name</label>
+                      <input type="text" value={editForm.guardianMiddleName} onChange={(e) => handleEditFieldChange('guardianMiddleName', e.target.value)} />
+                    </div>
+                    <div className="form-group-new">
+                      <label>Guardian suffix</label>
+                      <select value={editForm.guardianSuffix} onChange={(e) => handleEditFieldChange('guardianSuffix', e.target.value)}>
+                        <option value="None">None</option>
+                        <option value="Jr.">Jr.</option>
+                        <option value="Sr.">Sr.</option>
+                        <option value="II">II</option>
+                        <option value="III">III</option>
+                        <option value="IV">IV</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-group-new">
+                    <label>Relationship to guardian</label>
+                    <input type="text" value={editForm.relationshipToGuardian} onChange={(e) => handleEditFieldChange('relationshipToGuardian', e.target.value)} />
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-actions-new">
+                <button
+                  type="button"
+                  className="btn-cancel-new"
+                  onClick={() => {
+                    setShowEditMemberModal(false);
+                    setEditMemberId(null);
+                    setEditError('');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit-new" disabled={editSaving}>
+                  {editSaving ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

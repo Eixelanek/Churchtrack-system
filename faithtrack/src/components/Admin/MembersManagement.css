@@ -1042,6 +1042,30 @@
   font-size: 0.875rem;
 }
 
+.edit-member-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-member-btn:hover {
+  background: #2563EB;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.edit-member-btn svg {
+  stroke: currentColor;
+}
+
 .delete-member-btn {
   display: flex;
   align-items: center;
