@@ -927,6 +927,8 @@ const Admin = () => {
   const [reportData, setReportData] = useState(null);
   const [reportStartDate, setReportStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reportType, setReportType] = useState('attendance'); // 'attendance' or 'membership'
+  const [membershipStatus, setMembershipStatus] = useState('all'); // 'all', 'active', 'inactive'
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -1038,6 +1040,22 @@ const Admin = () => {
       }
     } catch (error) {
 
+    }
+  };
+
+  const exportMembershipXlsx = async () => {
+    try {
+      window.open(`${API_BASE_URL}/api/reports/export_membership.php?status=${membershipStatus}&format=xlsx`, '_blank');
+    } catch (error) {
+      console.error('Error exporting membership report:', error);
+    }
+  };
+
+  const exportMembershipPdf = async () => {
+    try {
+      window.open(`${API_BASE_URL}/api/reports/export_membership.php?status=${membershipStatus}&format=pdf`, '_blank');
+    } catch (error) {
+      console.error('Error exporting membership PDF:', error);
     }
   };
 
@@ -4212,10 +4230,47 @@ const Admin = () => {
         <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
           <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📊 Attendance Report</h2>
+              <h2>📊 Reports</h2>
               <button className="modal-close" onClick={() => setShowReportModal(false)}>×</button>
             </div>
             <div className="modal-body">
+              {/* Report Type Tabs */}
+              <div className="report-tabs" style={{ marginBottom: '20px', borderBottom: '2px solid #e5e7eb' }}>
+                <button 
+                  className={`report-tab ${reportType === 'attendance' ? 'active' : ''}`}
+                  onClick={() => setReportType('attendance')}
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    background: reportType === 'attendance' ? '#4F46E5' : 'transparent',
+                    color: reportType === 'attendance' ? 'white' : '#666',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    borderRadius: '8px 8px 0 0',
+                    marginRight: '5px'
+                  }}
+                >
+                  📅 Attendance Report
+                </button>
+                <button 
+                  className={`report-tab ${reportType === 'membership' ? 'active' : ''}`}
+                  onClick={() => setReportType('membership')}
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    background: reportType === 'membership' ? '#4F46E5' : 'transparent',
+                    color: reportType === 'membership' ? 'white' : '#666',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    borderRadius: '8px 8px 0 0'
+                  }}
+                >
+                  👥 Membership Report
+                </button>
+              </div>
+
+              {reportType === 'attendance' && (
+              <>
               {/* Date Range Picker */}
               <div className="date-range-picker">
                 <div className="date-input-group">
@@ -4295,13 +4350,46 @@ const Admin = () => {
               
                   <div className="report-actions">
                     <button className="btn-primary" onClick={exportReportXlsx}>
-                      📥 Download XLSX
+                      📥 Download Excel
                     </button>
                     <button className="btn-primary" onClick={exportReportPdf} style={{ marginLeft: '10px' }}>
                       📄 Download PDF
                     </button>
                   </div>
                 </>
+              )}
+              </>
+              )}
+
+              {reportType === 'membership' && (
+                <div className="membership-report-section">
+                  <div className="report-info" style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '20px' }}>
+                    <h3 style={{ marginTop: 0 }}>Membership Report</h3>
+                    <p style={{ color: '#666', marginBottom: 0 }}>Export a complete list of all members with their details including contact information, status, and join dates.</p>
+                  </div>
+                  
+                  <div className="membership-filter" style={{ marginBottom: '20px' }}>
+                    <label style={{ fontWeight: '600', marginRight: '10px' }}>Filter by Status:</label>
+                    <select 
+                      value={membershipStatus}
+                      onChange={(e) => setMembershipStatus(e.target.value)}
+                      style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                    >
+                      <option value="all">All Members</option>
+                      <option value="active">Active Only</option>
+                      <option value="inactive">Inactive Only</option>
+                    </select>
+                  </div>
+
+                  <div className="report-actions">
+                    <button className="btn-primary" onClick={exportMembershipXlsx}>
+                      📥 Download Excel
+                    </button>
+                    <button className="btn-primary" onClick={exportMembershipPdf} style={{ marginLeft: '10px' }}>
+                      📄 Download PDF
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>

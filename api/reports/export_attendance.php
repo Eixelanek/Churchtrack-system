@@ -354,6 +354,91 @@ function outputAttendanceCsv(array $reportData, ?array $churchSettings = null): 
     exit;
 }
 
+function outputAttendancePdfMpdf(array $reportData, ?array $churchSettings = null): void
+{
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
+    require_once __DIR__ . '/../../vendor/autoload.php';
+    
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_left' => 15,
+        'margin_right' => 15,
+        'margin_top' => 15,
+        'margin_bottom' => 15
+    ]);
+
+    $churchName = $churchSettings['church_name'] ?? 'Church';
+    $start = $reportData['dateRange']['start'] ?? '';
+    $end = $reportData['dateRange']['end'] ?? '';
+    
+    $generatedAt = !empty($reportData['generatedAt'])
+        ? (new DateTime($reportData['generatedAt']))->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A')
+        : (new DateTime())->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A');
+
+    // Build HTML
+    $html = '<html><head><style>
+        body { font-family: Arial, sans-serif; }
+        h1 { text-align: center; color: #333; margin-bottom: 5px; }
+        h2 { text-align: center; color: #666; font-size: 18px; margin-top: 0; }
+        .period { text-align: center; color: #888; margin-bottom: 20px; }
+        .summary { background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .summary-item { display: inline-block; margin-right: 30px; }
+        .summary-label { font-weight: bold; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #4F46E5; color: white; padding: 10px; text-align: left; font-size: 12px; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; font-size: 11px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .numeric { text-align: center; }
+        .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #888; }
+    </style></head><body>';
+    
+    $html .= '<h1>' . htmlspecialchars($churchName) . '</h1>';
+    $html .= '<h2>Attendance Report</h2>';
+    $html .= '<div class="period">Period: ' . htmlspecialchars($start) . ' to ' . htmlspecialchars($end) . '</div>';
+    
+    $html .= '<div class="summary">';
+    $html .= '<div class="summary-item"><span class="summary-label">Total Events:</span> ' . ($reportData['totalEvents'] ?? 0) . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Total Attendance:</span> ' . ($reportData['totalAttendance'] ?? 0) . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Member Check-ins:</span> ' . ($reportData['totalMemberCheckins'] ?? 0) . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Guest Check-ins:</span> ' . ($reportData['totalGuestCheckins'] ?? 0) . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Average per Event:</span> ' . ($reportData['averagePerEvent'] ?? 0) . '</div>';
+    $html .= '</div>';
+    
+    $html .= '<table>';
+    $html .= '<thead><tr>';
+    $html .= '<th>Date</th><th>Event</th><th>Type</th><th class="numeric">Total</th><th class="numeric">Members</th><th class="numeric">Guests</th><th>Last Check-in</th>';
+    $html .= '</tr></thead><tbody>';
+    
+    foreach ($reportData['records'] as $record) {
+        $date = !empty($record['date']) ? (new DateTime($record['date']))->format('M d, Y') : '';
+        $lastCheckin = formatExcelLastCheckinLabel($record);
+        
+        $html .= '<tr>';
+        $html .= '<td>' . htmlspecialchars($date) . '</td>';
+        $html .= '<td>' . htmlspecialchars($record['title'] ?? '') . '</td>';
+        $html .= '<td>' . htmlspecialchars($record['type'] ?? '') . '</td>';
+        $html .= '<td class="numeric">' . ($record['totalCheckins'] ?? 0) . '</td>';
+        $html .= '<td class="numeric">' . ($record['memberCheckins'] ?? 0) . '</td>';
+        $html .= '<td class="numeric">' . ($record['guestCheckins'] ?? 0) . '</td>';
+        $html .= '<td>' . htmlspecialchars($lastCheckin) . '</td>';
+        $html .= '</tr>';
+    }
+    
+    $html .= '</tbody></table>';
+    $html .= '<div class="footer">Generated: ' . $generatedAt . '</div>';
+    $html .= '</body></html>';
+
+    $mpdf->WriteHTML($html);
+    
+    $filename = 'Attendance_Report_' . date('Y-m-d_His') . '.pdf';
+    $mpdf->Output($filename, 'D');
+    exit;
+}
+
 function outputAttendancePdf(array $reportData, ?array $churchSettings = null): void
 {
     // Clean all output buffers
@@ -662,18 +747,20 @@ try {
     }
     
     if ($format === 'pdf') {
-        // Check if TCPDF is available
-        if (!class_exists('TCPDF')) {
+        // Check if mPDF is available, fallback to TCPDF
+        if (class_exists('\Mpdf\Mpdf')) {
+            outputAttendancePdfMpdf($reportData, $churchSettings);
+        } elseif (class_exists('TCPDF')) {
+            outputAttendancePdf($reportData, $churchSettings);
+        } else {
             http_response_code(500);
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
                 'message' => 'PDF export is currently unavailable. Please use Excel format instead.',
-                'error' => 'TCPDF library not installed on server'
+                'error' => 'PDF library not installed on server'
             ]);
-            exit();
         }
-        outputAttendancePdf($reportData, $churchSettings);
         exit();
     }
 

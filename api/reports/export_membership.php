@@ -317,6 +317,111 @@ function outputMembershipCsv(array $members, ?array $churchSettings = null): voi
     exit;
 }
 
+function outputMembershipPdfMpdf(array $members, ?array $churchSettings = null): void
+{
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
+    require_once __DIR__ . '/../../vendor/autoload.php';
+    
+    $mpdf = new \Mpdf\Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_left' => 15,
+        'margin_right' => 15,
+        'margin_top' => 15,
+        'margin_bottom' => 15
+    ]);
+
+    $churchName = $churchSettings['church_name'] ?? 'Church';
+    $generatedAt = (new DateTime())->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A');
+    
+    $totalMembers = count($members);
+    $activeMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'active'));
+    $inactiveMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'inactive'));
+
+    // Build HTML
+    $html = '<html><head><style>
+        body { font-family: Arial, sans-serif; }
+        h1 { text-align: center; color: #333; margin-bottom: 5px; }
+        h2 { text-align: center; color: #666; font-size: 18px; margin-top: 0; }
+        .summary { background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .summary-item { display: inline-block; margin-right: 30px; }
+        .summary-label { font-weight: bold; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px; }
+        th { background: #4F46E5; color: white; padding: 8px; text-align: left; }
+        td { padding: 6px; border-bottom: 1px solid #ddd; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .status-active { color: #22C55E; font-weight: bold; }
+        .status-inactive { color: #F59E0B; font-weight: bold; }
+        .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #888; }
+    </style></head><body>';
+    
+    $html .= '<h1>' . htmlspecialchars($churchName) . '</h1>';
+    $html .= '<h2>Membership Report</h2>';
+    
+    $html .= '<div class="summary">';
+    $html .= '<div class="summary-item"><span class="summary-label">Total Members:</span> ' . $totalMembers . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Active:</span> ' . $activeMembers . '</div>';
+    $html .= '<div class="summary-item"><span class="summary-label">Inactive:</span> ' . $inactiveMembers . '</div>';
+    $html .= '</div>';
+    
+    $html .= '<table>';
+    $html .= '<thead><tr>';
+    $html .= '<th>#</th><th>Name</th><th>Email</th><th>Contact</th><th>Birthday</th><th>Gender</th><th>Status</th><th>Joined</th>';
+    $html .= '</tr></thead><tbody>';
+    
+    $rowNum = 1;
+    foreach ($members as $member) {
+        $birthday = '';
+        if (!empty($member['birthday'])) {
+            try {
+                $bday = new DateTime($member['birthday']);
+                $birthday = $bday->format('M d, Y');
+            } catch (Exception $e) {
+                $birthday = $member['birthday'];
+            }
+        }
+        
+        $joinedDate = '';
+        if (!empty($member['created_at'])) {
+            try {
+                $joined = new DateTime($member['created_at']);
+                $joinedDate = $joined->format('M d, Y');
+            } catch (Exception $e) {
+                $joinedDate = $member['created_at'];
+            }
+        }
+        
+        $status = ucfirst($member['status'] ?? '');
+        $statusClass = strtolower($member['status']) === 'active' ? 'status-active' : 'status-inactive';
+        
+        $html .= '<tr>';
+        $html .= '<td>' . $rowNum . '</td>';
+        $html .= '<td>' . htmlspecialchars($member['name'] ?? '') . '</td>';
+        $html .= '<td>' . htmlspecialchars($member['email'] ?? '') . '</td>';
+        $html .= '<td>' . htmlspecialchars($member['contact_number'] ?? '') . '</td>';
+        $html .= '<td>' . htmlspecialchars($birthday) . '</td>';
+        $html .= '<td>' . htmlspecialchars($member['gender'] ?? '') . '</td>';
+        $html .= '<td class="' . $statusClass . '">' . htmlspecialchars($status) . '</td>';
+        $html .= '<td>' . htmlspecialchars($joinedDate) . '</td>';
+        $html .= '</tr>';
+        
+        $rowNum++;
+    }
+    
+    $html .= '</tbody></table>';
+    $html .= '<div class="footer">Generated: ' . $generatedAt . '</div>';
+    $html .= '</body></html>';
+
+    $mpdf->WriteHTML($html);
+    
+    $filename = 'Membership_Report_' . date('Y-m-d_His') . '.pdf';
+    $mpdf->Output($filename, 'D');
+    exit;
+}
+
 try {
     $database = new Database();
     $db = $database->getConnection();
@@ -377,13 +482,18 @@ try {
     if ($format === 'csv') {
         outputMembershipCsv($members, $churchSettings);
     } elseif ($format === 'pdf') {
-        http_response_code(500);
-        header('Content-Type: application/json');
-        echo json_encode([
-            'success' => false,
-            'message' => 'PDF export is currently unavailable. Please use Excel or CSV format instead.',
-            'error' => 'PDF generation not yet implemented for membership reports'
-        ]);
+        // Check if mPDF is available
+        if (class_exists('\Mpdf\Mpdf')) {
+            outputMembershipPdfMpdf($members, $churchSettings);
+        } else {
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'PDF export is currently unavailable. Please use Excel format instead.',
+                'error' => 'PDF library not installed on server'
+            ]);
+        }
     } else {
         // Default to Excel
         outputMembershipXlsx($members, $churchSettings);
