@@ -53,7 +53,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [pendingRequests, setPendingRequests] = useState([]);
   const [rejectedRequests, setRejectedRequests] = useState([]);
   const [guests, setGuests] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with true to show loading initially
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
   const [addUserMessage, setAddUserMessage] = useState('');
@@ -1420,7 +1420,7 @@ ChurchTrack System`;
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-number">{totalMembersCount}</div>
+            <div className="stat-number">{loading ? '...' : totalMembersCount}</div>
             <div className="stat-text">Total Members</div>
           </div>
         </div>
@@ -1434,7 +1434,7 @@ ChurchTrack System`;
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-number">{activeMembersCount}</div>
+            <div className="stat-number">{loading ? '...' : activeMembersCount}</div>
             <div className="stat-text">Active</div>
           </div>
         </div>
@@ -1447,7 +1447,7 @@ ChurchTrack System`;
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-number">{inactiveMembersCount}</div>
+            <div className="stat-number">{loading ? '...' : inactiveMembersCount}</div>
             <div className="stat-text">Inactive</div>
           </div>
         </div>
@@ -1462,7 +1462,7 @@ ChurchTrack System`;
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-number">{pendingRequests.length}</div>
+            <div className="stat-number">{loading ? '...' : pendingRequests.length}</div>
             <div className="stat-text">Pending Requests</div>
           </div>
         </div>
