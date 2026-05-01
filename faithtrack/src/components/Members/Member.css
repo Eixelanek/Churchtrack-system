@@ -130,6 +130,44 @@
   box-shadow: 0 16px 32px rgba(37, 99, 235, 0.25);
 }
 
+.email-gate-secondary-btn {
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  background: #ffffff;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.email-gate-secondary-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.email-gate-secondary-btn:not(:disabled):hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.email-gate-logout-btn {
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+  align-self: center;
+}
+
+.email-gate-logout-btn:hover {
+  color: #334155;
+}
+
 @media (max-width: 480px) {
   .forced-password-body {
     padding: 1.25rem 1.4rem;

@@ -48,6 +48,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     ensureEmailVerificationInfrastructure($db);
+    ensureMemberCreatedViaColumn($db);
     
     // Check if username exists
     $check_query = "SELECT id FROM members WHERE username = :username AND status != 'rejected'";

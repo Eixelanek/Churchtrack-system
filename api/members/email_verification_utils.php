@@ -24,6 +24,21 @@ if (!function_exists('ensureEmailVerificationInfrastructure')) {
     }
 }
 
+if (!function_exists('ensureMemberCreatedViaColumn')) {
+    /**
+     * How the member row was created. Only `admin` uses in-app email verification modal; others match public rules at login.
+     */
+    function ensureMemberCreatedViaColumn(PDO $db): void
+    {
+        $checkStmt = $db->query("SHOW COLUMNS FROM members LIKE 'member_created_via'");
+        if ($checkStmt && $checkStmt->rowCount() === 0) {
+            $db->exec(
+                "ALTER TABLE members ADD COLUMN member_created_via ENUM('registration','admin','guest_conversion') NOT NULL DEFAULT 'registration' AFTER status"
+            );
+        }
+    }
+}
+
 if (!function_exists('generateEmailVerificationToken')) {
     function generateEmailVerificationToken(): string
     {

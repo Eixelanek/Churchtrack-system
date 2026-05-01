@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once '../config/database.php';
+require_once __DIR__ . '/../members/email_verification_utils.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -19,6 +20,8 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    ensureEmailVerificationInfrastructure($db);
+    ensureMemberCreatedViaColumn($db);
     
     $data = json_decode(file_get_contents("php://input"));
     
@@ -173,18 +176,21 @@ try {
             }
         }
         $relationship_to_referrer = !empty($guest['invited_by_text']) ? htmlspecialchars(strip_tags($guest['invited_by_text'])) : null;
+
+        $verificationToken = generateEmailVerificationToken();
+        $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
         
         // Insert member record with status 'active' (they've already attended 4 times)
         $memberQuery = "INSERT INTO members 
-            (surname, first_name, middle_name, suffix, gender, birthday, email, contact_number,
+            (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
              guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
              street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer,
-             username, password, status, created_at) 
+             username, password, status, member_created_via, created_at) 
             VALUES 
-            (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :contact_number,
+            (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
              :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
              :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer,
-             :username, :password, 'active', NOW())";
+             :username, :password, 'active', 'guest_conversion', NOW())";
         
         $memberStmt = $db->prepare($memberQuery);
         $memberStmt->bindParam(':surname', $surname);
@@ -194,6 +200,9 @@ try {
         $memberStmt->bindParam(':gender', $gender);
         $memberStmt->bindParam(':birthday', $birthday);
         $memberStmt->bindParam(':email', $email);
+        $memberStmt->bindValue(':email_verified_at', null, PDO::PARAM_NULL);
+        $memberStmt->bindParam(':email_verification_token', $verificationToken);
+        $memberStmt->bindParam(':email_verification_expires_at', $verificationExpiresAt);
         if ($contact_number !== null) {
             $memberStmt->bindParam(':contact_number', $contact_number);
         } else {
@@ -225,6 +234,9 @@ try {
         $updateGuestStmt->execute();
         
         $db->commit();
+
+        $displayName = trim($first_name . ' ' . $surname);
+        sendEmailVerificationLink($db, $email, $displayName !== '' ? $displayName : $email, $verificationToken);
         
         http_response_code(200);
         echo json_encode([

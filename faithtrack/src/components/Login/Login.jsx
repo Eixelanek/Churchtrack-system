@@ -160,6 +160,18 @@ const Login = () => {
           }
         }
 
+        if (memberData.requires_email_verification) {
+          localStorage.setItem('requiresEmailVerification', 'true');
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.setItem('memberLastLoginPassword', password);
+          }
+        } else {
+          localStorage.removeItem('requiresEmailVerification');
+          if (!memberData.must_change_password && typeof window !== 'undefined') {
+            window.sessionStorage.removeItem('memberLastLoginPassword');
+          }
+        }
+
         navigate('/member', { replace: true });
       } else {
         setError(memberData.message || 'Login failed. Please check your credentials.');

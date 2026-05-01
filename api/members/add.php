@@ -8,9 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include_once '../config/database.php';
+require_once __DIR__ . '/email_verification_utils.php';
 
 $database = new Database();
 $db = $database->getConnection();
+ensureEmailVerificationInfrastructure($db);
+ensureMemberCreatedViaColumn($db);
 
 $data = json_decode(file_get_contents("php://input"));
 
@@ -82,14 +85,21 @@ if (!empty($data->surname) && !empty($data->firstName) && !empty($data->username
         }
     }
 
+    $verificationToken = null;
+    $verificationExpiresAt = null;
+    if ($email !== null && trim($email) !== '') {
+        $verificationToken = generateEmailVerificationToken();
+        $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+    }
+
     $query = "INSERT INTO members 
-              (surname, first_name, middle_name, suffix, gender, birthday, email, contact_number,
+              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
-               street, barangay, city, province, zip_code, username, password, status, must_change_password) 
+               street, barangay, city, province, zip_code, username, password, status, must_change_password, member_created_via) 
               VALUES 
-              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :contact_number,
+              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
-               :street, :barangay, :city, :province, :zip_code, :username, :password, 'active', 1)";
+               :street, :barangay, :city, :province, :zip_code, :username, :password, 'active', 1, 'admin')";
                
     $stmt = $db->prepare($query);
     $stmt->bindParam(":surname", $surname);
@@ -98,8 +108,24 @@ if (!empty($data->surname) && !empty($data->firstName) && !empty($data->username
     $stmt->bindParam(":suffix", $suffix);
     $stmt->bindParam(":gender", $gender);
     $stmt->bindParam(":birthday", $birthday);
-    $stmt->bindParam(":email", $email);
-    $stmt->bindParam(":contact_number", $contact_number);
+    if ($email !== null) {
+        $stmt->bindParam(":email", $email);
+    } else {
+        $stmt->bindValue(":email", null, PDO::PARAM_NULL);
+    }
+    $stmt->bindValue(":email_verified_at", null, PDO::PARAM_NULL);
+    if ($verificationToken !== null) {
+        $stmt->bindParam(":email_verification_token", $verificationToken);
+        $stmt->bindParam(":email_verification_expires_at", $verificationExpiresAt);
+    } else {
+        $stmt->bindValue(":email_verification_token", null, PDO::PARAM_NULL);
+        $stmt->bindValue(":email_verification_expires_at", null, PDO::PARAM_NULL);
+    }
+    if ($contact_number !== null) {
+        $stmt->bindParam(":contact_number", $contact_number);
+    } else {
+        $stmt->bindValue(":contact_number", null, PDO::PARAM_NULL);
+    }
     $stmt->bindParam(":guardian_surname", $guardian_surname);
     $stmt->bindParam(":guardian_first_name", $guardian_first_name);
     $stmt->bindParam(":guardian_middle_name", $guardian_middle_name);
@@ -114,11 +140,26 @@ if (!empty($data->surname) && !empty($data->firstName) && !empty($data->username
     $stmt->bindParam(":password", $hashed_password);
 
     if ($stmt->execute()) {
+        $newId = (int)$db->lastInsertId();
+        $emailSendNote = null;
+        if ($email !== null && trim($email) !== '' && $verificationToken !== null) {
+            $displayName = trim($first_name . ' ' . $surname);
+            $send = sendEmailVerificationLink($db, $email, $displayName, $verificationToken);
+            $emailSendNote = [
+                'email_verification_sent' => $send['success'],
+                'email_verification_message' => $send['message'] ?? ''
+            ];
+        }
+
         http_response_code(201);
-        echo json_encode([
+        $out = [
             "message" => "Member added successfully.",
             "status" => "active"
-        ]);
+        ];
+        if ($emailSendNote !== null) {
+            $out = array_merge($out, $emailSendNote);
+        }
+        echo json_encode($out);
     } else {
         http_response_code(503);
         echo json_encode(["message" => "Unable to add member."]);
@@ -127,4 +168,4 @@ if (!empty($data->surname) && !empty($data->firstName) && !empty($data->username
     http_response_code(400);
     echo json_encode(["message" => "Incomplete data. Surname, first name, username, and password are required."]);
 }
-?> 
+?>

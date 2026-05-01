@@ -25,8 +25,9 @@ if (!$memberId) {
 }
 
 try {
-    // First check if profile_picture column exists
     $hasProfilePicture = false;
+    $hasEmailVerifiedAt = false;
+    $hasMemberCreatedVia = false;
     try {
         $checkColumnQuery = "SHOW COLUMNS FROM members LIKE 'profile_picture'";
         $checkStmt = $db->query($checkColumnQuery);
@@ -34,7 +35,22 @@ try {
     } catch (Exception $e) {
         error_log("Column check error: " . $e->getMessage());
     }
-    
+    try {
+        $checkEv = $db->query("SHOW COLUMNS FROM members LIKE 'email_verified_at'");
+        $hasEmailVerifiedAt = $checkEv && $checkEv->rowCount() > 0;
+    } catch (Exception $e) {
+        error_log("Column check error: " . $e->getMessage());
+    }
+    try {
+        $checkVia = $db->query("SHOW COLUMNS FROM members LIKE 'member_created_via'");
+        $hasMemberCreatedVia = $checkVia && $checkVia->rowCount() > 0;
+    } catch (Exception $e) {
+        error_log("Column check error: " . $e->getMessage());
+    }
+
+    $emailVerifiedSelect = $hasEmailVerifiedAt ? 'email_verified_at' : 'NULL AS email_verified_at';
+    $createdViaSelect = $hasMemberCreatedVia ? 'member_created_via' : "NULL AS member_created_via";
+
     // Build query based on column existence
     if ($hasProfilePicture) {
         $query = "SELECT 
@@ -44,6 +60,8 @@ try {
                     surname,
                     suffix,
                     email,
+                    $emailVerifiedSelect,
+                    $createdViaSelect,
                     username,
                     birthday,
                     contact_number,
@@ -72,6 +90,8 @@ try {
                     surname,
                     suffix,
                     email,
+                    $emailVerifiedSelect,
+                    $createdViaSelect,
                     username,
                     birthday,
                     contact_number,

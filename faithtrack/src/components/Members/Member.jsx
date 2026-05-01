@@ -82,6 +82,10 @@ const Member = () => {
   const [forcePasswordError, setForcePasswordError] = useState('');
   const [forcePasswordLoading, setForcePasswordLoading] = useState(false);
   const [forcePasswordForm, setForcePasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [showEmailVerificationGate, setShowEmailVerificationGate] = useState(false);
+  const [emailGateError, setEmailGateError] = useState('');
+  const [emailGateBusyKey, setEmailGateBusyKey] = useState(null);
+  const [emailGateResendPassword, setEmailGateResendPassword] = useState('');
   const passwordRequirements = 'Password must be at least 8 characters long.';
   const navigate = useNavigate();
 
@@ -113,8 +117,11 @@ const Member = () => {
 
   useEffect(() => {
     const mustChange = localStorage.getItem('mustChangePassword') === 'true';
+    const needsEmail = localStorage.getItem('requiresEmailVerification') === 'true';
     if (mustChange) {
       setShowForcePasswordModal(true);
+    } else if (needsEmail) {
+      setShowEmailVerificationGate(true);
     }
   }, []);
 
@@ -169,13 +176,19 @@ const Member = () => {
 
       localStorage.removeItem('mustChangePassword');
       localStorage.removeItem('tempPasswordExpiresAt');
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && localStorage.getItem('requiresEmailVerification') !== 'true') {
         window.sessionStorage.removeItem('memberLastLoginPassword');
       }
 
       setShowForcePasswordModal(false);
       setForcePasswordForm({ newPassword: '', confirmPassword: '' });
       triggerToast('Password updated successfully. You can continue.', 'success');
+      if (localStorage.getItem('requiresEmailVerification') === 'true') {
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem('memberLastLoginPassword', trimmedNew);
+        }
+        setShowEmailVerificationGate(true);
+      }
     } catch (error) {
 
       setForcePasswordError(error.message || 'Unable to update password.');
@@ -928,6 +941,96 @@ const Member = () => {
     setToastVisible(false);
   }, []);
 
+  const handleEmailGateCheckVerified = useCallback(async () => {
+    setEmailGateError('');
+    const memberId = localStorage.getItem('userId');
+    if (!memberId) {
+      setEmailGateError('Session expired. Please log in again.');
+      return;
+    }
+    setEmailGateBusyKey('check');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/members/get.php?id=${encodeURIComponent(memberId)}`);
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.member) {
+        throw new Error(data.message || 'Unable to load profile.');
+      }
+      const ev = data.member.email_verified_at;
+      const verified = ev != null && String(ev).trim() !== '';
+      if (verified) {
+        localStorage.removeItem('requiresEmailVerification');
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.removeItem('memberLastLoginPassword');
+        }
+        setShowEmailVerificationGate(false);
+        setEmailGateResendPassword('');
+        triggerToast('Email verified. Thanks!', 'success');
+      } else {
+        setEmailGateError('Not verified yet. Open the link in your email, then try again.');
+      }
+    } catch (error) {
+      setEmailGateError(error.message || 'Something went wrong.');
+    } finally {
+      setEmailGateBusyKey(null);
+    }
+  }, [triggerToast]);
+
+  const handleEmailGateResend = useCallback(async () => {
+    setEmailGateError('');
+    const memberId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    let pwd = emailGateResendPassword.trim();
+    if (!pwd && typeof window !== 'undefined') {
+      pwd = window.sessionStorage.getItem('memberLastLoginPassword') || '';
+    }
+    if (!memberId || !username) {
+      setEmailGateError('Session expired. Please log in again.');
+      return;
+    }
+    if (!pwd) {
+      setEmailGateError('Enter your password to resend the verification email.');
+      return;
+    }
+    setEmailGateBusyKey('resend');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/members/resend_admin_verification_email.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          member_id: parseInt(memberId, 10),
+          username,
+          password: pwd
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Unable to resend email.');
+      }
+      triggerToast(data.message || 'Verification email sent.', 'success');
+    } catch (error) {
+      setEmailGateError(error.message || 'Unable to resend.');
+    } finally {
+      setEmailGateBusyKey(null);
+    }
+  }, [emailGateResendPassword, triggerToast]);
+
+  const handleEmailGateLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('memberName');
+    localStorage.removeItem('memberEmail');
+    localStorage.removeItem('memberBirthday');
+    localStorage.removeItem('requiresEmailVerification');
+    localStorage.removeItem('mustChangePassword');
+    localStorage.removeItem('tempPasswordExpiresAt');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('memberLastLoginPassword');
+    }
+    navigate('/login');
+  }, [navigate]);
+
   useEffect(() => () => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
@@ -1582,6 +1685,66 @@ const Member = () => {
                   {forcePasswordLoading ? 'Saving…' : 'Save New Password'}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {showEmailVerificationGate && (
+        <div
+          className="modal-overlay forced-password-modal email-verification-gate-modal"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="email-gate-title"
+        >
+          <div className="forced-password-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="forced-password-header">
+              <h2 id="email-gate-title">Verify your email</h2>
+            </div>
+            <div className="forced-password-body">
+              <div className="forced-password-description">
+                <p>
+                  Your account was created by an administrator. We sent a verification link to your email.
+                  Open that link, then tap &quot;I&apos;ve verified my email&quot; below.
+                </p>
+                <p className="forced-password-requirements">
+                  If you do not see the message within a few minutes, check your spam folder or use Resend below.
+                </p>
+              </div>
+              {emailGateError && (
+                <div className="forced-password-error">{emailGateError}</div>
+              )}
+              <div className="forced-password-form">
+                <label htmlFor="email-gate-resend-password">Password (to resend the email)</label>
+                <input
+                  id="email-gate-resend-password"
+                  type="password"
+                  value={emailGateResendPassword}
+                  onChange={(e) => setEmailGateResendPassword(e.target.value)}
+                  placeholder="Leave blank if you just logged in with this password"
+                  disabled={emailGateBusyKey !== null}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="forced-password-submit"
+                  disabled={emailGateBusyKey !== null}
+                  onClick={handleEmailGateCheckVerified}
+                >
+                  {emailGateBusyKey === 'check' ? 'Checking…' : "I've verified my email"}
+                </button>
+                <button
+                  type="button"
+                  className="email-gate-secondary-btn"
+                  disabled={emailGateBusyKey !== null}
+                  onClick={handleEmailGateResend}
+                >
+                  {emailGateBusyKey === 'resend' ? 'Sending…' : 'Resend verification email'}
+                </button>
+                <button type="button" className="email-gate-logout-btn" onClick={handleEmailGateLogout}>
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </div>

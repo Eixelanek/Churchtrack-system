@@ -25,6 +25,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     ensureEmailVerificationInfrastructure($db);
+    ensureMemberCreatedViaColumn($db);
     $cleanup_query = "DELETE FROM members WHERE status = 'rejected' AND updated_at < DATE_SUB(NOW(), INTERVAL 30 DAY)";
     $db->prepare($cleanup_query)->execute();
     // Auto-cleaning: Delete expired and used verification codes

@@ -14,11 +14,12 @@ try {
     $database = new Database();
     $db = $database->getConnection();
     ensureEmailVerificationInfrastructure($db);
+    ensureMemberCreatedViaColumn($db);
 
     $data = json_decode(file_get_contents("php://input"));
 
     if(!empty($data->username) && !empty($data->password)) {
-        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, must_change_password, password_temp_expires_at, email_verified_at FROM members WHERE username = :username LIMIT 1";
+        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, must_change_password, password_temp_expires_at, email_verified_at, member_created_via FROM members WHERE username = :username LIMIT 1";
         $stmt = $db->prepare($query);
         $stmt->bindParam(":username", $data->username);
         $stmt->execute();
@@ -32,10 +33,17 @@ try {
             $birthday = $row['birthday'];
             $status = $row['status'];
             $emailVerifiedAt = $row['email_verified_at'];
+            $createdVia = isset($row['member_created_via']) ? (string)$row['member_created_via'] : 'registration';
             $hashed_password = $row['password'];
 
+            $emailTrimmed = $email !== null ? trim((string)$email) : '';
+            $hasEmail = $emailTrimmed !== '';
+            $emailVerified = $emailVerifiedAt !== null && trim((string)$emailVerifiedAt) !== '';
+            $needsEmailVerify = $hasEmail && !$emailVerified;
+
             if(password_verify($data->password, $hashed_password)) {
-                if ($emailVerifiedAt === null || trim((string)$emailVerifiedAt) === '') {
+                // Public / guest_conversion: must verify email before any login (unchanged behaviour).
+                if ($needsEmailVerify && $createdVia !== 'admin') {
                     http_response_code(403);
                     echo json_encode(array(
                         "message" => "Please verify your email before logging in. Check your inbox for the verification link.",
@@ -70,6 +78,8 @@ try {
                     }
                 }
 
+                $requiresEmailVerification = ($needsEmailVerify && $createdVia === 'admin');
+
                 http_response_code(200);
                 echo json_encode(array(
                     "message" => "Login successful.",
@@ -81,7 +91,9 @@ try {
                     "status" => $status,
                     "warning" => $status !== 'active' ? 'Account is currently marked as ' . $status . '.' : null,
                     "must_change_password" => (int)($row['must_change_password'] ?? 0) === 1,
-                    "temp_password_expires_at" => $row['password_temp_expires_at']
+                    "temp_password_expires_at" => $row['password_temp_expires_at'],
+                    "requires_email_verification" => $requiresEmailVerification,
+                    "member_created_via" => $createdVia
                 ));
             } else {
                 http_response_code(401);
@@ -99,4 +111,4 @@ try {
     http_response_code(500);
     echo json_encode(array("message" => "Server error: " . $e->getMessage()));
 }
-?> 
+?>
