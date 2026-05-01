@@ -198,6 +198,10 @@ if (!function_exists('sendEmailVerificationLink')) {
         $htmlBody = $built['html'];
         $textBody = $built['text'];
         $replyTo = $branding['replyToEmail'] ?? null;
+        $envReply = trim((string)(getenv('RESEND_REPLY_TO') ?: ''));
+        if (($replyTo === null || $replyTo === '') && $envReply !== '' && filter_var($envReply, FILTER_VALIDATE_EMAIL)) {
+            $replyTo = $envReply;
+        }
 
         $resendKey = trim((string)(getenv('RESEND_API_KEY') ?: ''));
         $resendResult = null;
