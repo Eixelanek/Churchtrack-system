@@ -30,6 +30,13 @@ const App = () => {
   // Start auto-sync
   React.useEffect(() => {
     syncManager.startAutoSync();
+    
+    // Also trigger immediate sync if online and has pending records
+    if (navigator.onLine) {
+      setTimeout(() => {
+        syncManager.syncAttendance();
+      }, 2000); // Wait 2 seconds after app loads
+    }
   }, []);
 
   // Add outside click functionality for hamburger menu

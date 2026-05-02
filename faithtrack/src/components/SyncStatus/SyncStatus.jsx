@@ -58,10 +58,11 @@ const SyncStatus = () => {
   }
 
   return (
-    <div className="sync-status-container">
+    <div className="sync-status-container" style={{ position: 'fixed', top: '70px', right: '20px', zIndex: 9999 }}>
       <div 
         className={`sync-status-badge ${isSyncing ? 'syncing' : 'pending'}`}
         onClick={() => setShowDetails(!showDetails)}
+        style={{ cursor: 'pointer' }}
       >
         {isSyncing ? (
           <>
