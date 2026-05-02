@@ -67,14 +67,14 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
-                        // Add logo to spreadsheet - left side in column A
+                        // Add logo to spreadsheet - positioned in column C like attendance report
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('A1');
+                        $drawing->setCoordinates('C1');
                         $drawing->setHeight(60); // Logo height
-                        $drawing->setOffsetX(10); // Small offset from left edge
+                        $drawing->setOffsetX(120); // Push to the right side of column C
                         $drawing->setWorksheet($sheet);
                         
                         // Clean up temp file after adding to spreadsheet
@@ -94,11 +94,11 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
         // Set row height for logo
         $sheet->getRowDimension($currentRow)->setRowHeight(60);
         
-        // Add church name - center aligned, starting from column B to avoid logo overlap
-        $sheet->mergeCells('B1:H1');
-        $sheet->setCellValue('B1', strtoupper($churchName));
-        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle('B1')->getAlignment()
+        // Add church name - center aligned across all columns like attendance report
+        $sheet->mergeCells('A1:H1');
+        $sheet->setCellValue('A1', strtoupper($churchName));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
+        $sheet->getStyle('A1')->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_CENTER);
         
