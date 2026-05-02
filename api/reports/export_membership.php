@@ -67,14 +67,14 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
-                        // Add logo to spreadsheet - positioned at right side of column B
+                        // Add logo to spreadsheet - positioned at left side of column C
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('B1');
+                        $drawing->setCoordinates('C1');
                         $drawing->setHeight(60); // Logo height
-                        $drawing->setOffsetX(120); // Push to the right side of column B
+                        $drawing->setOffsetX(5); // Small offset from left edge of column C
                         $drawing->setOffsetY(0);
                         $drawing->setWorksheet($sheet);
                         
@@ -150,22 +150,19 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     $inactiveMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'inactive'));
     
     $currentRow++;
-    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Total Members:");
-    $sheet->setCellValue("C{$currentRow}", $totalMembers);
+    $sheet->setCellValue("B{$currentRow}", $totalMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $currentRow++;
     
-    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Active Members:");
-    $sheet->setCellValue("C{$currentRow}", $activeMembers);
+    $sheet->setCellValue("B{$currentRow}", $activeMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('22C55E');
     $currentRow++;
     
-    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Inactive Members:");
-    $sheet->setCellValue("C{$currentRow}", $inactiveMembers);
+    $sheet->setCellValue("B{$currentRow}", $inactiveMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('F59E0B');
     $currentRow++;
