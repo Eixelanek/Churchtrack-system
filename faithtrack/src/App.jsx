@@ -29,13 +29,18 @@ const App = () => {
 
   // Start auto-sync
   React.useEffect(() => {
+    console.log('App mounted, starting auto-sync...');
     syncManager.startAutoSync();
     
     // Also trigger immediate sync if online and has pending records
     if (navigator.onLine) {
+      console.log('Online detected, will sync in 2 seconds...');
       setTimeout(() => {
+        console.log('Triggering immediate sync...');
         syncManager.syncAttendance();
       }, 2000); // Wait 2 seconds after app loads
+    } else {
+      console.log('Offline detected, sync will wait for online event');
     }
   }, []);
 

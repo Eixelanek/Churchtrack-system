@@ -24,6 +24,8 @@ class SyncManager {
 
   // Sync all pending attendance records
   async syncAttendance() {
+    console.log('syncAttendance called, isSyncing:', this.isSyncing, 'isOnline:', navigator.onLine);
+    
     if (this.isSyncing) {
       console.log('Sync already in progress');
       return;
@@ -36,9 +38,11 @@ class SyncManager {
 
     this.isSyncing = true;
     this.notifyListeners('sync-start', {});
+    console.log('Starting sync...');
 
     try {
       const unsyncedRecords = await offlineStorage.getUnsyncedAttendance();
+      console.log('Unsynced records:', unsyncedRecords);
       
       if (unsyncedRecords.length === 0) {
         console.log('No records to sync');
@@ -153,6 +157,8 @@ class SyncManager {
 
   // Start auto-sync when online
   startAutoSync() {
+    console.log('startAutoSync initialized');
+    
     // Sync when coming back online
     window.addEventListener('online', () => {
       console.log('Back online - starting sync...');
@@ -162,9 +168,12 @@ class SyncManager {
     // Periodic sync every 30 seconds if online
     setInterval(() => {
       if (navigator.onLine && !this.isSyncing) {
+        console.log('Periodic sync check...');
         this.syncAttendance();
       }
     }, 30000);
+    
+    console.log('Auto-sync listeners registered');
   }
 
   // Get sync status
