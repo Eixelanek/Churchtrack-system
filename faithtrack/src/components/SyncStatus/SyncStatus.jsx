@@ -148,6 +148,29 @@ const SyncStatus = () => {
                 fontSize: '0.875rem'
               }}>
                 <strong>Error:</strong> {lastError}
+                <button 
+                  onClick={async () => {
+                    if (window.confirm('Clear all pending records? This cannot be undone.')) {
+                      await offlineStorage.clearStore('attendance');
+                      setLastError(null);
+                      loadStatus();
+                      alert('Pending records cleared');
+                    }
+                  }}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  Clear Failed Records
+                </button>
               </div>
             )}
           </div>
