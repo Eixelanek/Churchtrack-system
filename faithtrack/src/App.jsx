@@ -15,7 +15,9 @@ import CheckIn from './components/CheckIn/CheckIn';
 import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
+import SyncStatus from './components/SyncStatus/SyncStatus';
 import logoImage from './assets/logo.png';
+import { syncManager } from './utils/syncManager';
 
 const App = () => {
   React.useEffect(() => {
@@ -23,6 +25,11 @@ const App = () => {
       const newUrl = `https://${window.location.host}${window.location.pathname}${window.location.search}`;
       window.location.replace(newUrl);
     }
+  }, []);
+
+  // Start auto-sync
+  React.useEffect(() => {
+    syncManager.startAutoSync();
   }, []);
 
   // Add outside click functionality for hamburger menu
@@ -52,6 +59,7 @@ const App = () => {
   return (
     <Router>
       <OfflineIndicator />
+      <SyncStatus />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/referral-selection" element={<ReferralSelection />} />

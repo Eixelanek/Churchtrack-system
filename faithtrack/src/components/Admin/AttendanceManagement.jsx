@@ -389,7 +389,12 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           const member = members.find(m => m.id === memberId);
           if (member) {
             handleStatusChange(memberId, 'present');
-            alert(`Marked ${member.name} as present!`);
+            const isOnline = navigator.onLine;
+            if (isOnline) {
+              alert(`Marked ${member.name} as present!`);
+            } else {
+              alert(`Marked ${member.name} as present! (Offline - will sync when online)`);
+            }
           } else {
             alert('Member not found!');
           }
@@ -800,6 +805,37 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
         check_in_time: timestamp
       };
     });
+    
+    // Check if offline
+    const isOnline = navigator.onLine;
+    
+    if (!isOnline) {
+      // Save to IndexedDB for later sync
+      try {
+        await offlineStorage.saveAttendanceOffline(
+          currentEvent.id,
+          {
+            event_title: currentEvent.title,
+            event_date: currentEvent.date,
+            attendance_data: attendanceData.filter(a => a.status !== null) // Only save marked attendance
+          }
+        );
+        
+        alert('Saved offline! Attendance will sync when you\'re back online.');
+        
+        setShowMarkAttendanceModal(false);
+        setAttendanceStatus({});
+        setAttendanceTimestamps({});
+        setCurrentEvent(null);
+        setShowQRScanner(false);
+        setIsManualEntry(false);
+        setMemberSearchQuery('');
+      } catch (error) {
+        console.error('Error saving offline attendance:', error);
+        alert('Failed to save offline attendance. Please try again.');
+      }
+      return;
+    }
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/attendance/record.php`, {

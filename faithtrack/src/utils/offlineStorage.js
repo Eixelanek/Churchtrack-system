@@ -193,6 +193,36 @@ class OfflineStorage {
     }
   }
 
+  // Get attendance by event ID
+  async getAttendanceByEvent(eventId) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['attendance'], 'readonly');
+      const store = transaction.objectStore('attendance');
+      const index = store.index('eventId');
+      const request = index.getAll(eventId);
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  // Delete synced attendance records (cleanup)
+  async deleteSyncedAttendance() {
+    if (!this.db) await this.init();
+
+    const unsynced = await this.getUnsyncedAttendance();
+    const transaction = this.db.transaction(['attendance'], 'readwrite');
+    const store = transaction.objectStore('attendance');
+    
+    // Clear all and re-add unsynced
+    await store.clear();
+    for (const record of unsynced) {
+      await store.put(record);
+    }
+  }
+
   // Add pending action
   async addPendingAction(action) {
     return await this.saveData('pendingActions', {
