@@ -2,7 +2,6 @@
 let startY = 0;
 let currentY = 0;
 let pulling = false;
-let refreshing = false;
 let refreshIndicator = null;
 
 const createRefreshIndicator = () => {
@@ -43,15 +42,15 @@ export const initPullToRefresh = () => {
   refreshIndicator = createRefreshIndicator();
 
   const handleTouchStart = (e) => {
-    // Only trigger if at top of page
-    if (window.scrollY === 0) {
+    // Only trigger if at top of page and not already pulling
+    if (window.scrollY === 0 && !pulling) {
       startY = e.touches[0].pageY;
       pulling = true;
     }
   };
 
   const handleTouchMove = (e) => {
-    if (!pulling || refreshing) return;
+    if (!pulling) return;
 
     currentY = e.touches[0].pageY;
     const pullDistance = currentY - startY;
@@ -71,13 +70,12 @@ export const initPullToRefresh = () => {
   };
 
   const handleTouchEnd = () => {
-    if (!pulling || refreshing) return;
+    if (!pulling) return;
 
     const pullDistance = currentY - startY;
 
     // If pulled down more than 80px, trigger refresh
     if (pullDistance > 80) {
-      refreshing = true;
       if (refreshIndicator) {
         refreshIndicator.style.top = '10px';
       }
@@ -93,15 +91,10 @@ export const initPullToRefresh = () => {
       }
     }
 
-    // Reset state
+    // Always reset state after touch ends
     pulling = false;
     startY = 0;
     currentY = 0;
-    
-    // Reset refreshing flag after animation
-    setTimeout(() => {
-      refreshing = false;
-    }, 500);
   };
 
   document.addEventListener('touchstart', handleTouchStart, { passive: true });
