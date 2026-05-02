@@ -61,6 +61,9 @@ class SyncManager {
           // Check record type and use appropriate API endpoint
           if (record.type === 'member_checkin') {
             // Member check-in via QR scan
+            // Convert timestamp to datetime format for API
+            const checkinDatetime = new Date(record.timestamp).toISOString().slice(0, 19).replace('T', ' ');
+            
             // First, check in the primary member
             const response = await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
               method: 'POST',
@@ -71,7 +74,8 @@ class SyncManager {
                 session_token: record.data.session_token,
                 member_id: record.data.member_id,
                 member_name: record.data.member_name,
-                member_contact: record.data.member_contact
+                member_contact: record.data.member_contact,
+                checkin_datetime: checkinDatetime // Send original check-in time
               })
             });
 

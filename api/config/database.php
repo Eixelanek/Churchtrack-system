@@ -36,6 +36,8 @@ class Database {
             $this->conn = new PDO($dsn, $this->username, $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->exec("set names utf8mb4");
+            // Set timezone to Philippines
+            $this->conn->exec("SET time_zone = '+08:00'");
         } catch(PDOException $e) {
             error_log("Connection error: " . $e->getMessage());
             error_log("DSN: mysql:host={$this->host};port={$this->port};dbname={$this->db_name}");
