@@ -46,7 +46,7 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
         $churchName = $churchSettings['church_name'] ?? 'Church';
         $churchLogo = $churchSettings['church_logo'] ?? null;
         
-        // Add logo if available
+        // Add logo if available - centered
         if ($churchLogo && strpos($churchLogo, 'data:image') === 0) {
             try {
                 $logoData = explode(',', $churchLogo);
@@ -68,8 +68,9 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('A1');
-                        $drawing->setHeight(60);
+                        $drawing->setCoordinates('D1'); // Center logo in column D
+                        $drawing->setHeight(50);
+                        $drawing->setOffsetX(20); // Offset to center better
                         $drawing->setWorksheet($sheet);
                         
                         register_shutdown_function(function() use ($tempFile) {
@@ -77,6 +78,10 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                                 @unlink($tempFile);
                             }
                         });
+                        
+                        // Make room for logo
+                        $sheet->getRowDimension($currentRow)->setRowHeight(50);
+                        $currentRow++;
                     }
                 }
             } catch (Exception $e) {
@@ -84,13 +89,14 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
             }
         }
         
-        $sheet->getRowDimension($currentRow)->setRowHeight(60);
-        $sheet->mergeCells("B{$currentRow}:H{$currentRow}");
-        $sheet->setCellValue("B{$currentRow}", $churchName);
-        $sheet->getStyle("B{$currentRow}")->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Church name - centered across all columns
+        $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
+        $sheet->setCellValue("A{$currentRow}", $churchName);
+        $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true)->setSize(18);
+        $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $currentRow++;
         
+        // Report title
         $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
         $sheet->setCellValue("A{$currentRow}", "Membership Report");
         $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true)->setSize(14);
