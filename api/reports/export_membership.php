@@ -67,14 +67,14 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
-                        // Add logo to spreadsheet - positioned at left side of column C
+                        // Add logo to spreadsheet - positioned at right side of column B
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('C1');
+                        $drawing->setCoordinates('B1');
                         $drawing->setHeight(60); // Logo height
-                        $drawing->setOffsetX(5); // Small offset from left edge of column C
+                        $drawing->setOffsetX(120); // Push to the right side of column B
                         $drawing->setOffsetY(0);
                         $drawing->setWorksheet($sheet);
                         
@@ -153,18 +153,21 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     $sheet->setCellValue("A{$currentRow}", "Total Members:");
     $sheet->setCellValue("B{$currentRow}", $totalMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
+    $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $currentRow++;
     
     $sheet->setCellValue("A{$currentRow}", "Active Members:");
     $sheet->setCellValue("B{$currentRow}", $activeMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('22C55E');
+    $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $currentRow++;
     
     $sheet->setCellValue("A{$currentRow}", "Inactive Members:");
     $sheet->setCellValue("B{$currentRow}", $inactiveMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('F59E0B');
+    $sheet->getStyle("B{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
     $currentRow++;
     
     $currentRow++;
