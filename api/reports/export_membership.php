@@ -67,14 +67,15 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
-                        // Add logo to spreadsheet - positioned in column C like attendance report
+                        // Add logo to spreadsheet - positioned at left side for 8-column layout
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('C1');
+                        $drawing->setCoordinates('A1');
                         $drawing->setHeight(60); // Logo height
-                        $drawing->setOffsetX(120); // Push to the right side of column C
+                        $drawing->setOffsetX(5); // Small offset from left edge
+                        $drawing->setOffsetY(0);
                         $drawing->setWorksheet($sheet);
                         
                         // Clean up temp file after adding to spreadsheet
@@ -248,7 +249,9 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     }
 
     // Auto-size columns
-    foreach (range('A', 'H') as $col) {
+    // Set fixed width for column A to accommodate logo
+    $sheet->getColumnDimension('A')->setWidth(12);
+    foreach (range('B', 'H') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
