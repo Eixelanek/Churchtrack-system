@@ -9,12 +9,13 @@ const OfflineIndicator = () => {
     const handleOnline = () => {
       setIsOnline(true);
       setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 3000);
+      setTimeout(() => setShowNotification(false), 3000); // Hide after 3 seconds
     };
 
     const handleOffline = () => {
       setIsOnline(false);
       setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000); // Hide after 5 seconds
     };
 
     window.addEventListener('online', handleOnline);
@@ -26,7 +27,7 @@ const OfflineIndicator = () => {
     };
   }, []);
 
-  if (!showNotification && isOnline) return null;
+  if (!showNotification) return null;
 
   return (
     <div className={`offline-indicator ${isOnline ? 'online' : 'offline'}`}>
