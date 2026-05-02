@@ -2,6 +2,7 @@ const CACHE_NAME = 'faithtrack-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/checkin',
   '/static/css/main.css',
   '/static/js/main.js',
   '/manifest.json'
@@ -13,7 +14,12 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Try to cache all URLs, but don't fail if some are missing
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => console.log(`Failed to cache ${url}:`, err))
+          )
+        );
       })
   );
   self.skipWaiting();
@@ -41,7 +47,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip API calls for now - handle them separately
+  // Skip API calls - let them fail naturally so offline logic kicks in
   if (url.pathname.startsWith('/api/')) {
     return;
   }
@@ -52,6 +58,22 @@ self.addEventListener('fetch', (event) => {
         // Cache hit - return response
         if (response) {
           return response;
+        }
+
+        // For navigation requests (like /checkin?session=xxx), serve index.html
+        if (request.mode === 'navigate') {
+          return caches.match('/index.html').then(indexResponse => {
+            if (indexResponse) {
+              return indexResponse;
+            }
+            // If no cached index, try network
+            return fetch(request).catch(() => {
+              return new Response('Offline - Please connect to internet', {
+                status: 503,
+                statusText: 'Service Unavailable'
+              });
+            });
+          });
         }
 
         // Clone the request
@@ -74,7 +96,12 @@ self.addEventListener('fetch', (event) => {
           return response;
         }).catch(() => {
           // Return offline page if available
-          return caches.match('/offline.html');
+          return caches.match('/offline.html').then(offlinePage => {
+            if (offlinePage) {
+              return offlinePage;
+            }
+            return new Response('Offline', { status: 503 });
+          });
         });
       })
   );

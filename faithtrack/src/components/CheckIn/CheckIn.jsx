@@ -490,6 +490,9 @@ const CheckIn = () => {
   const fetchSessionData = async () => {
     setError('');
     setLoading(true);
+    
+    const isOnline = navigator.onLine;
+    
     try {
       const params = new URLSearchParams({ token: sessionToken });
 
@@ -502,6 +505,23 @@ const CheckIn = () => {
         params.append('member_name', storedMemberName);
       }
 
+      // Try to load from cache first if offline
+      if (!isOnline) {
+        try {
+          const cachedSession = localStorage.getItem(`session_${sessionToken}`);
+          if (cachedSession) {
+            const result = JSON.parse(cachedSession);
+            setSessionData(result);
+            setAlreadyCheckedIn(false); // Allow offline check-in even if previously checked in
+            setCheckinType(result?.checkin_type || (storedMemberId || storedMemberName ? 'member' : 'guest'));
+            setLoading(false);
+            return;
+          }
+        } catch (cacheError) {
+          console.error('Error loading cached session:', cacheError);
+        }
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/qr_sessions/get_session.php?${params.toString()}`);
       const result = await response.json();
 
@@ -510,12 +530,25 @@ const CheckIn = () => {
         setAlreadyCheckedIn(Boolean(result.data?.already_checked_in));
         // Auto-detect check-in type based on session response
         setCheckinType(result.data?.checkin_type || (storedMemberId || storedMemberName ? 'member' : 'guest'));
+        
+        // Cache session data for offline use
+        try {
+          localStorage.setItem(`session_${sessionToken}`, JSON.stringify(result.data));
+        } catch (storageError) {
+          console.error('Error caching session:', storageError);
+        }
       } else {
         setError(result.message || 'Failed to load session data');
       }
     } catch (err) {
-
-      setError('Unable to connect to server. Please try again.');
+      console.error('Fetch error:', err);
+      
+      // If offline and no cache, show helpful message
+      if (!isOnline) {
+        setError('You are offline. Please connect to the internet to load this event for the first time.');
+      } else {
+        setError('Unable to connect to server. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
