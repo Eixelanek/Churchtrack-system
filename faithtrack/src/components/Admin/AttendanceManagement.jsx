@@ -1685,6 +1685,44 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
                               </span>
                             </div>
 
+                            {/* Event Summary Stats */}
+                            {hasQrSessions && (
+                              <div className="event-summary-stats">
+                                <h3 className="summary-title">📊 Event Summary</h3>
+                                <div className="summary-stats-grid">
+                                  <div className="summary-stat-item">
+                                    <div className="summary-stat-label">Total Attendees</div>
+                                    <div className="summary-stat-value">{attendeesCount}</div>
+                                  </div>
+                                  <div className="summary-stat-item">
+                                    <div className="summary-stat-label">Members</div>
+                                    <div className="summary-stat-value">
+                                      {attendeesList.filter(a => a.memberId).length}
+                                      <span className="summary-stat-percentage">
+                                        ({attendeesCount > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / attendeesCount) * 100) : 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="summary-stat-item">
+                                    <div className="summary-stat-label">Guests</div>
+                                    <div className="summary-stat-value">
+                                      {attendeesList.filter(a => !a.memberId).length}
+                                      <span className="summary-stat-percentage">
+                                        ({attendeesCount > 0 ? Math.round((attendeesList.filter(a => !a.memberId).length / attendeesCount) * 100) : 0}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="summary-stat-item">
+                                    <div className="summary-stat-label">Attendance Rate</div>
+                                    <div className="summary-stat-value">
+                                      {members.length > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / members.length) * 100) : 0}%
+                                      <span className="summary-stat-subtext">of active members</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {hasQrSessions ? (
                               <>
                                 <div className="attendees-section">
