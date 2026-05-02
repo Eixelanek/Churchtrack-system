@@ -1430,17 +1430,6 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
     }
   };
 
-  if (loading) {
-    return (
-      <div className="attendance-management">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading attendance data...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="attendance-management">
