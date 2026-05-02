@@ -358,7 +358,13 @@ function outputAttendancePdfSimple(array $reportData, ?array $churchSettings = n
 {
     require_once __DIR__ . '/simple_pdf.php';
     
-    $pdf = new SimplePDF();
+    $churchLogo = $churchSettings['church_logo'] ?? null;
+    $pdf = new SimplePDF($churchLogo);
+    
+    // Add logo if available
+    if ($churchLogo) {
+        $pdf->addLogo();
+    }
     
     $churchName = $churchSettings['church_name'] ?? 'Church';
     $start = $reportData['dateRange']['start'] ?? '';

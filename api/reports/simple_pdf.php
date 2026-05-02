@@ -10,9 +10,19 @@ class SimplePDF {
     private $pageHeight = 842; // A4 height in points
     private $margin = 50;
     private $yPosition = 50;
+    private $churchLogo = null;
     
-    public function __construct() {
+    public function __construct($churchLogo = null) {
         $this->yPosition = $this->margin;
+        $this->churchLogo = $churchLogo;
+    }
+    
+    public function addLogo() {
+        if ($this->churchLogo && strpos($this->churchLogo, 'data:image') === 0) {
+            $this->content .= "<div style='text-align: center; margin-bottom: 20px;'>";
+            $this->content .= "<img src='" . $this->churchLogo . "' style='max-width: 120px; max-height: 120px;' />";
+            $this->content .= "</div>";
+        }
     }
     
     public function addTitle($text, $size = 20) {
@@ -67,12 +77,34 @@ class SimplePDF {
 <html>
 <head>
     <meta charset='UTF-8'>
+    <title>" . htmlspecialchars($filename) . "</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        table { page-break-inside: auto; }
-        tr { page-break-inside: avoid; page-break-after: auto; }
         @media print {
-            body { margin: 0; }
+            body { margin: 0; padding: 20px; }
+            @page { margin: 20mm; }
+            /* Hide browser UI elements */
+            body::before, body::after { display: none !important; }
+        }
+        @media screen {
+            body { margin: 40px; }
+        }
+        body { 
+            font-family: Arial, sans-serif;
+        }
+        table { 
+            page-break-inside: auto;
+            width: 100%;
+        }
+        tr { 
+            page-break-inside: avoid; 
+            page-break-after: auto;
+        }
+        thead { 
+            display: table-header-group;
+        }
+        /* Hide URL in print */
+        a[href]:after { 
+            content: none !important;
         }
     </style>
 </head>
@@ -81,42 +113,23 @@ class SimplePDF {
 <div style='text-align: center; margin-top: 30px; font-size: 12px; color: #888;'>
     Generated: " . date('F d, Y g:i A') . "
 </div>
+<script>
+    // Auto-print when page loads
+    window.onload = function() {
+        window.print();
+    };
+    
+    // Close window after printing or canceling
+    window.onafterprint = function() {
+        // Optional: close window after print
+        // window.close();
+    };
+</script>
 </body>
 </html>";
         
-        // Use DomPDF-like approach with wkhtmltopdf if available, otherwise output HTML
-        // For now, we'll use a simple HTML to PDF conversion
-        
-        // Try using wkhtmltopdf if available
-        if ($this->isCommandAvailable('wkhtmltopdf')) {
-            $tempHtml = tempnam(sys_get_temp_dir(), 'pdf_') . '.html';
-            file_put_contents($tempHtml, $html);
-            
-            $tempPdf = tempnam(sys_get_temp_dir(), 'pdf_') . '.pdf';
-            exec("wkhtmltopdf {$tempHtml} {$tempPdf} 2>&1", $output, $return);
-            
-            if ($return === 0 && file_exists($tempPdf)) {
-                header('Content-Type: application/pdf');
-                header('Content-Disposition: attachment; filename="' . $filename . '"');
-                header('Cache-Control: max-age=0');
-                readfile($tempPdf);
-                unlink($tempHtml);
-                unlink($tempPdf);
-                return;
-            }
-            
-            unlink($tempHtml);
-        }
-        
-        // Fallback: Output as HTML that can be printed to PDF
+        // Output HTML that will be printed to PDF
         header('Content-Type: text/html; charset=utf-8');
-        header('Content-Disposition: inline; filename="' . str_replace('.pdf', '.html', $filename) . '"');
         echo $html;
-        echo "<script>window.print();</script>";
-    }
-    
-    private function isCommandAvailable($command) {
-        $return = shell_exec("which {$command}");
-        return !empty($return);
     }
 }
