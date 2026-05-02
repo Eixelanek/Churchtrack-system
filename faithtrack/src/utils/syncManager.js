@@ -81,7 +81,10 @@ class SyncManager {
                       headers: {
                         'Content-Type': 'application/json',
                       },
-                      body: JSON.stringify(familyMember)
+                      body: JSON.stringify({
+                        ...familyMember,
+                        session_token: record.data.session_token // Ensure session token is included
+                      })
                     });
                   } catch (error) {
                     console.error(`Failed to sync family member:`, error);
@@ -93,9 +96,10 @@ class SyncManager {
               syncedCount++;
               console.log(`Synced member check-in ${record.id}`);
             } else {
+              const errorText = await response.text();
               failedCount++;
               failedRecords.push(record);
-              console.error(`Failed to sync member check-in ${record.id}:`, response.status);
+              console.error(`Failed to sync member check-in ${record.id}:`, response.status, errorText);
             }
           } else {
             // Admin marking attendance

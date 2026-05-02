@@ -746,6 +746,13 @@ const CheckIn = () => {
               event_id: sessionData?.event_id || null
             });
 
+            console.log('Offline check-in saved:', {
+              session_token: sessionToken,
+              member_id: memberIdPayload,
+              member_name: memberName.trim(),
+              family_count: familyMembersData.length
+            });
+
             // Show success message
             setSuccess(true);
             setMemberName('');

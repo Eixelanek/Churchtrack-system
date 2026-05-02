@@ -39,6 +39,11 @@ const SyncStatus = () => {
     try {
       const unsynced = await offlineStorage.getUnsyncedAttendance();
       setPendingCount(unsynced.length);
+      
+      // Log for debugging
+      if (unsynced.length > 0) {
+        console.log('Pending sync records:', unsynced);
+      }
     } catch (error) {
       console.error('Error loading sync status:', error);
     }
