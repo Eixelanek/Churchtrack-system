@@ -7,6 +7,7 @@ const SyncStatus = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [lastError, setLastError] = useState(null);
 
   useEffect(() => {
     // Load initial status
@@ -16,11 +17,16 @@ const SyncStatus = () => {
     const handleSyncEvent = (event, data) => {
       if (event === 'sync-start') {
         setIsSyncing(true);
+        setLastError(null);
       } else if (event === 'sync-complete') {
         setIsSyncing(false);
         loadStatus();
+        if (data.failed > 0) {
+          setLastError(`${data.failed} record(s) failed to sync`);
+        }
       } else if (event === 'sync-error') {
         setIsSyncing(false);
+        setLastError(data.error?.message || 'Sync error occurred');
       }
     };
 
@@ -50,7 +56,10 @@ const SyncStatus = () => {
   };
 
   const handleManualSync = () => {
-    syncManager.syncAttendance();
+    console.log('Manual sync triggered');
+    syncManager.syncAttendance().catch(error => {
+      alert('Sync failed: ' + error.message);
+    });
   };
 
   if (pendingCount === 0 && !isSyncing) {
@@ -126,6 +135,19 @@ const SyncStatus = () => {
                   <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
                 </svg>
                 <span>Will sync automatically when back online</span>
+              </div>
+            )}
+            {lastError && (
+              <div className="sync-error-notice" style={{
+                padding: '0.75rem',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #ef4444',
+                borderRadius: '8px',
+                marginTop: '0.5rem',
+                color: '#991b1b',
+                fontSize: '0.875rem'
+              }}>
+                <strong>Error:</strong> {lastError}
               </div>
             )}
           </div>
