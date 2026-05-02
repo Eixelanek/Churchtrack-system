@@ -1,7 +1,11 @@
-const CACHE_NAME = 'faithtrack-v4';
+const CACHE_NAME = 'faithtrack-v5';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/login',
+  '/member',
+  '/admin',
+  '/manager',
   '/checkin',
   '/manifest.json'
 ];
@@ -52,6 +56,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip chrome-extension and other non-http requests
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
   // For navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -75,21 +84,34 @@ self.addEventListener('fetch', (event) => {
       ])
       .catch(() => {
         // Network failed or timed out, serve from cache
-        console.log('Network failed, serving from cache');
+        console.log('Network failed for navigation, serving from cache:', url.pathname);
         return caches.match(request).then(cachedResponse => {
           if (cachedResponse) {
+            console.log('Found cached response for:', url.pathname);
             return cachedResponse;
           }
-          // Fallback to index.html
-          return caches.match('/index.html').then(indexResponse => {
-            if (indexResponse) {
-              return indexResponse;
+          // Try to match without query params
+          const urlWithoutQuery = url.origin + url.pathname;
+          return caches.match(urlWithoutQuery).then(response => {
+            if (response) {
+              console.log('Found cached response (without query):', urlWithoutQuery);
+              return response;
             }
-            // Last resort - return offline page
-            return new Response(
-              '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your internet connection.</p></body></html>',
-              { headers: { 'Content-Type': 'text/html' } }
-            );
+            // Fallback to index.html for SPA routing
+            console.log('Falling back to index.html');
+            return caches.match('/index.html').then(indexResponse => {
+              if (indexResponse) {
+                return indexResponse;
+              }
+              // Last resort - return offline page
+              return new Response(
+                '<!DOCTYPE html><html><head><title>Offline</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body style="font-family: sans-serif; text-align: center; padding: 50px;"><h1>You are offline</h1><p>Please check your internet connection and try again.</p><button onclick="window.location.reload()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Retry</button></body></html>',
+                { 
+                  status: 200,
+                  headers: { 'Content-Type': 'text/html' } 
+                }
+              );
+            });
           });
         });
       })
@@ -131,7 +153,8 @@ self.addEventListener('fetch', (event) => {
             }
             return response;
           })
-          .catch(() => {
+          .catch((error) => {
+            console.log('Failed to fetch resource:', url.pathname, error);
             // Return empty response for failed asset loads
             return new Response('', { status: 404 });
           });

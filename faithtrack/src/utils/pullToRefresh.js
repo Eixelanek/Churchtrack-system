@@ -21,7 +21,8 @@ const createRefreshIndicator = () => {
     align-items: center;
     justify-content: center;
     transition: top 0.3s ease;
-    z-index: 9999;
+    z-index: 99999;
+    pointer-events: none;
   `;
   indicator.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>';
   
@@ -37,6 +38,24 @@ const createRefreshIndicator = () => {
   return indicator;
 };
 
+const getScrollTop = () => {
+  // Check multiple scroll containers
+  const scrollableElements = [
+    window,
+    document.documentElement,
+    document.body,
+    ...Array.from(document.querySelectorAll('.scrollable, .content, main, [style*="overflow"]'))
+  ];
+  
+  for (const el of scrollableElements) {
+    const scrollTop = el === window ? window.scrollY : el.scrollTop;
+    if (scrollTop > 0) {
+      return scrollTop;
+    }
+  }
+  return 0;
+};
+
 export const initPullToRefresh = () => {
   // Only enable on mobile
   if (window.innerWidth > 768) return () => {};
@@ -45,10 +64,13 @@ export const initPullToRefresh = () => {
   refreshIndicator = createRefreshIndicator();
 
   const handleTouchStart = (e) => {
-    // Only trigger if at top of page and not already pulling
-    if (window.scrollY === 0 && !pulling) {
+    // Check if at top of any scrollable container
+    const scrollTop = getScrollTop();
+    
+    if (scrollTop <= 5 && !pulling) { // Allow small tolerance (5px)
       startY = e.touches[0].pageY;
       pulling = true;
+      console.log('Pull-to-refresh: Started pulling');
     }
   };
 
@@ -57,6 +79,17 @@ export const initPullToRefresh = () => {
 
     currentY = e.touches[0].pageY;
     const pullDistance = currentY - startY;
+
+    // Only handle downward pulls
+    if (pullDistance < 0) {
+      pulling = false;
+      startY = 0;
+      currentY = 0;
+      if (refreshIndicator) {
+        refreshIndicator.style.top = '-60px';
+      }
+      return;
+    }
 
     // Show indicator when pulled down
     if (pullDistance > 0 && pullDistance <= 120) {
@@ -79,6 +112,7 @@ export const initPullToRefresh = () => {
 
     // If pulled down more than 80px, trigger refresh
     if (pullDistance > 80) {
+      console.log('Pull-to-refresh: Triggering reload');
       if (refreshIndicator) {
         refreshIndicator.style.top = '10px';
       }
@@ -92,22 +126,23 @@ export const initPullToRefresh = () => {
       if (refreshIndicator) {
         refreshIndicator.style.top = '-60px';
       }
-      
-      // Reset state immediately
-      pulling = false;
-      startY = 0;
-      currentY = 0;
     }
+    
+    // Always reset state
+    pulling = false;
+    startY = 0;
+    currentY = 0;
   };
 
-  document.addEventListener('touchstart', handleTouchStart, { passive: true });
-  document.addEventListener('touchmove', handleTouchMove, { passive: false });
-  document.addEventListener('touchend', handleTouchEnd, { passive: true });
+  // Use capture phase to ensure we catch events first
+  document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
+  document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
+  document.addEventListener('touchend', handleTouchEnd, { passive: true, capture: true });
 
   return () => {
-    document.removeEventListener('touchstart', handleTouchStart);
-    document.removeEventListener('touchmove', handleTouchMove);
-    document.removeEventListener('touchend', handleTouchEnd);
+    document.removeEventListener('touchstart', handleTouchStart, { capture: true });
+    document.removeEventListener('touchmove', handleTouchMove, { capture: true });
+    document.removeEventListener('touchend', handleTouchEnd, { capture: true });
     if (refreshIndicator && refreshIndicator.parentNode) {
       refreshIndicator.parentNode.removeChild(refreshIndicator);
     }
