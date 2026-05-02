@@ -14,6 +14,7 @@ import Manager from './components/Manager/Manager';
 import CheckIn from './components/CheckIn/CheckIn';
 import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
 import logoImage from './assets/logo.png';
 
 const App = () => {
@@ -50,6 +51,7 @@ const App = () => {
 
   return (
     <Router>
+      <OfflineIndicator />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/referral-selection" element={<ReferralSelection />} />
