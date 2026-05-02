@@ -67,14 +67,14 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
-                        // Add logo to spreadsheet - positioned at left side for 8-column layout
+                        // Add logo to spreadsheet - positioned at right side of column B
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('A1');
+                        $drawing->setCoordinates('B1');
                         $drawing->setHeight(60); // Logo height
-                        $drawing->setOffsetX(5); // Small offset from left edge
+                        $drawing->setOffsetX(120); // Push to the right side of column B
                         $drawing->setOffsetY(0);
                         $drawing->setWorksheet($sheet);
                         
@@ -150,19 +150,22 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     $inactiveMembers = count(array_filter($members, fn($m) => strtolower($m['status']) === 'inactive'));
     
     $currentRow++;
+    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Total Members:");
-    $sheet->setCellValue("B{$currentRow}", $totalMembers);
+    $sheet->setCellValue("C{$currentRow}", $totalMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $currentRow++;
     
+    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Active Members:");
-    $sheet->setCellValue("B{$currentRow}", $activeMembers);
+    $sheet->setCellValue("C{$currentRow}", $activeMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('22C55E');
     $currentRow++;
     
+    $sheet->mergeCells("A{$currentRow}:B{$currentRow}");
     $sheet->setCellValue("A{$currentRow}", "Inactive Members:");
-    $sheet->setCellValue("B{$currentRow}", $inactiveMembers);
+    $sheet->setCellValue("C{$currentRow}", $inactiveMembers);
     $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true);
     $sheet->getStyle("A{$currentRow}")->getFont()->getColor()->setRGB('F59E0B');
     $currentRow++;
@@ -249,9 +252,7 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
     }
 
     // Auto-size columns
-    // Set fixed width for column A to accommodate logo
-    $sheet->getColumnDimension('A')->setWidth(12);
-    foreach (range('B', 'H') as $col) {
+    foreach (range('A', 'H') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 
