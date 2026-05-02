@@ -50,11 +50,12 @@
 
 @media (max-width: 768px) {
   .offline-indicator {
-    top: 70px;
+    top: 130px;
     left: 1rem;
     right: 1rem;
     transform: none;
     width: auto;
+    padding: 0.875rem 1.25rem;
   }
 
   .offline-indicator-content span {
