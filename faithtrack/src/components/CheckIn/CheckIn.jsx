@@ -516,9 +516,38 @@ const CheckIn = () => {
             setCheckinType(result?.checkin_type || (storedMemberId || storedMemberName ? 'member' : 'guest'));
             setLoading(false);
             return;
+          } else {
+            // No cached data, but allow offline check-in with minimal data
+            const minimalSessionData = {
+              session_token: sessionToken,
+              service_name: 'Event Check-In',
+              status: 'active',
+              event_datetime: new Date().toISOString(),
+              checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
+              offline_mode: true
+            };
+            setSessionData(minimalSessionData);
+            setAlreadyCheckedIn(false);
+            setCheckinType(minimalSessionData.checkin_type);
+            setLoading(false);
+            return;
           }
         } catch (cacheError) {
           console.error('Error loading cached session:', cacheError);
+          // Still allow offline check-in
+          const minimalSessionData = {
+            session_token: sessionToken,
+            service_name: 'Event Check-In',
+            status: 'active',
+            event_datetime: new Date().toISOString(),
+            checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
+            offline_mode: true
+          };
+          setSessionData(minimalSessionData);
+          setAlreadyCheckedIn(false);
+          setCheckinType(minimalSessionData.checkin_type);
+          setLoading(false);
+          return;
         }
       }
 
@@ -543,9 +572,22 @@ const CheckIn = () => {
     } catch (err) {
       console.error('Fetch error:', err);
       
-      // If offline and no cache, show helpful message
+      // If offline, allow check-in with minimal data
       if (!isOnline) {
-        setError('You are offline. Please connect to the internet to load this event for the first time.');
+        const storedMemberId = localStorage.getItem('userId');
+        const storedMemberName = localStorage.getItem('memberName') || localStorage.getItem('username');
+        
+        const minimalSessionData = {
+          session_token: sessionToken,
+          service_name: 'Event Check-In',
+          status: 'active',
+          event_datetime: new Date().toISOString(),
+          checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
+          offline_mode: true
+        };
+        setSessionData(minimalSessionData);
+        setAlreadyCheckedIn(false);
+        setCheckinType(minimalSessionData.checkin_type);
       } else {
         setError('Unable to connect to server. Please try again.');
       }
@@ -1300,28 +1342,51 @@ const CheckIn = () => {
         )}
         {showSessionInfo && (
           <div className="checkin-event-info">
-            <h2>{sessionData.service_name}</h2>
-            <p className="event-datetime">
-              {new Date(sessionData.event_datetime).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-              {' at '}
-              {new Date(sessionData.event_datetime).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              })}
-            </p>
-            <div className="event-stats">
-              <span className="stat-badge">{sessionData.scan_count} attendees</span>
-            </div>
-            {expiryInfo && (
-              <p className="event-expiry-note">
-                QR check-in closes at {expiryInfo.timeLabel} ({expiryInfo.dateLabel}).
-                Please complete your check-in before then; QR codes automatically expire {expiryInfo.expirationHours} {expiryInfo.expirationHours === 1 ? 'hour' : 'hours'} after the scheduled start.
+            <h2>
+              {sessionData.service_name}
+              {sessionData.offline_mode && (
+                <span style={{
+                  marginLeft: '0.5rem',
+                  fontSize: '0.8rem',
+                  padding: '0.25rem 0.75rem',
+                  backgroundColor: '#fbbf24',
+                  color: '#78350f',
+                  borderRadius: '9999px',
+                  fontWeight: '600'
+                }}>
+                  Offline Mode
+                </span>
+              )}
+            </h2>
+            {!sessionData.offline_mode ? (
+              <>
+                <p className="event-datetime">
+                  {new Date(sessionData.event_datetime).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                  {' at '}
+                  {new Date(sessionData.event_datetime).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                  })}
+                </p>
+                <div className="event-stats">
+                  <span className="stat-badge">{sessionData.scan_count} attendees</span>
+                </div>
+                {expiryInfo && (
+                  <p className="event-expiry-note">
+                    QR check-in closes at {expiryInfo.timeLabel} ({expiryInfo.dateLabel}).
+                    Please complete your check-in before then; QR codes automatically expire {expiryInfo.expirationHours} {expiryInfo.expirationHours === 1 ? 'hour' : 'hours'} after the scheduled start.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="event-datetime" style={{ color: '#78350f', fontWeight: '500' }}>
+                You are offline. Your attendance will be recorded and synced when you reconnect.
               </p>
             )}
           </div>
