@@ -73,6 +73,9 @@ class SimplePDF {
     }
     
     public function output($filename) {
+        // Set timezone to Philippines
+        date_default_timezone_set('Asia/Manila');
+        
         $html = "<!DOCTYPE html>
 <html>
 <head>
