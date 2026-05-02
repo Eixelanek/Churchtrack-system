@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faithtrack-v1';
+const CACHE_NAME = 'faithtrack-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -42,7 +42,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -52,57 +52,74 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
+  // For navigation requests (HTML pages), use network-first strategy
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cache the new version
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
           return response;
-        }
-
-        // For navigation requests (like /checkin?session=xxx), serve index.html
-        if (request.mode === 'navigate') {
-          return caches.match('/index.html').then(indexResponse => {
-            if (indexResponse) {
-              return indexResponse;
+        })
+        .catch(() => {
+          // Network failed, serve from cache
+          return caches.match(request).then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
             }
-            // If no cached index, try network
-            return fetch(request).catch(() => {
-              return new Response('Offline - Please connect to internet', {
-                status: 503,
-                statusText: 'Service Unavailable'
-              });
+            // Fallback to index.html
+            return caches.match('/index.html').then(indexResponse => {
+              return indexResponse || new Response('Offline', { status: 503 });
             });
           });
+        })
+    );
+    return;
+  }
+
+  // For other resources (JS, CSS, images), use cache-first strategy
+  event.respondWith(
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          // Return cached version immediately
+          // But also fetch and update cache in background
+          fetch(request)
+            .then((response) => {
+              if (response && response.status === 200) {
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(request, response);
+                });
+              }
+            })
+            .catch(() => {
+              // Ignore fetch errors for background updates
+            });
+          return cachedResponse;
         }
 
-        // Clone the request
-        const fetchRequest = request.clone();
+        // Not in cache, fetch from network
+        return fetch(request)
+          .then((response) => {
+            if (!response || response.status !== 200) {
+              return response;
+            }
 
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseToCache);
             });
 
-          return response;
-        }).catch(() => {
-          // Return offline page if available
-          return caches.match('/offline.html').then(offlinePage => {
-            if (offlinePage) {
-              return offlinePage;
-            }
+            return response;
+          })
+          .catch(() => {
             return new Response('Offline', { status: 503 });
           });
-        });
       })
   );
 });

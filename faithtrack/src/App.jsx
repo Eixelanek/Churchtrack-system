@@ -19,8 +19,12 @@ import SyncStatus from './components/SyncStatus/SyncStatus';
 import Toast from './components/Toast/Toast';
 import logoImage from './assets/logo.png';
 import { syncManager } from './utils/syncManager';
+import { initPullToRefresh } from './utils/pullToRefresh';
 
 const App = () => {
+  // Add state to track if app is ready
+  const [appReady, setAppReady] = React.useState(false);
+
   React.useEffect(() => {
     if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
       const newUrl = `https://${window.location.host}${window.location.pathname}${window.location.search}`;
@@ -28,10 +32,41 @@ const App = () => {
     }
   }, []);
 
+  // Ensure app is interactive after reload (fixes "preview mode" issue)
+  React.useEffect(() => {
+    // Check if localStorage is accessible
+    try {
+      const testKey = '__storage_test__';
+      localStorage.setItem(testKey, 'test');
+      localStorage.removeItem(testKey);
+      console.log('localStorage is accessible, app is ready');
+      setAppReady(true);
+    } catch (e) {
+      console.error('localStorage is not accessible:', e);
+      // Try to reload once if localStorage is not accessible
+      if (!sessionStorage.getItem('storage_reload_attempted')) {
+        console.log('Attempting reload to fix storage access...');
+        sessionStorage.setItem('storage_reload_attempted', 'true');
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      } else {
+        // If reload didn't help, still mark as ready but log warning
+        console.warn('localStorage still not accessible after reload, continuing anyway');
+        setAppReady(true);
+      }
+    }
+  }, []);
+
   // Start auto-sync
   React.useEffect(() => {
+    if (!appReady) return;
+    
     console.log('App mounted, starting auto-sync...');
     syncManager.startAutoSync();
+    
+    // Initialize pull-to-refresh
+    const cleanup = initPullToRefresh();
     
     // Also trigger immediate sync if online and has pending records
     if (navigator.onLine) {
@@ -43,7 +78,9 @@ const App = () => {
     } else {
       console.log('Offline detected, sync will wait for online event');
     }
-  }, []);
+    
+    return cleanup;
+  }, [appReady]);
 
   // Add outside click functionality for hamburger menu
   React.useEffect(() => {
