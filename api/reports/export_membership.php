@@ -46,13 +46,15 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
         $churchName = $churchSettings['church_name'] ?? 'Church';
         $churchLogo = $churchSettings['church_logo'] ?? null;
         
-        // Add logo if available - centered
+        // Add logo if available
         if ($churchLogo && strpos($churchLogo, 'data:image') === 0) {
             try {
+                // Extract base64 data
                 $logoData = explode(',', $churchLogo);
                 if (count($logoData) === 2) {
                     $imageData = base64_decode($logoData[1]);
                     
+                    // Determine image type
                     $mimeType = '';
                     if (strpos($churchLogo, 'data:image/png') === 0) {
                         $mimeType = 'png';
@@ -61,54 +63,79 @@ function outputMembershipXlsx(array $members, ?array $churchSettings = null): vo
                     }
                     
                     if ($mimeType && $imageData) {
+                        // Create temporary file for the logo
                         $tempFile = tempnam(sys_get_temp_dir(), 'church_logo_') . '.' . $mimeType;
                         file_put_contents($tempFile, $imageData);
                         
+                        // Add logo to spreadsheet - right aligned in column C
                         $drawing = new Drawing();
                         $drawing->setName('Church Logo');
                         $drawing->setDescription('Church Logo');
                         $drawing->setPath($tempFile);
-                        $drawing->setCoordinates('D1'); // Center logo in column D
-                        $drawing->setHeight(50);
-                        $drawing->setOffsetX(20); // Offset to center better
+                        $drawing->setCoordinates('C1');
+                        $drawing->setHeight(60); // Logo height
+                        $drawing->setOffsetX(120); // Push to the right side of column C
                         $drawing->setWorksheet($sheet);
                         
+                        // Clean up temp file after adding to spreadsheet
                         register_shutdown_function(function() use ($tempFile) {
                             if (file_exists($tempFile)) {
                                 @unlink($tempFile);
                             }
                         });
-                        
-                        // Make room for logo
-                        $sheet->getRowDimension($currentRow)->setRowHeight(50);
-                        $currentRow++;
                     }
                 }
             } catch (Exception $e) {
+                // If logo fails, continue without it
                 error_log('Failed to add church logo to Excel: ' . $e->getMessage());
             }
         }
         
-        // Church name - centered across all columns
-        $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
-        $sheet->setCellValue("A{$currentRow}", $churchName);
-        $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true)->setSize(18);
-        $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Set row height for logo
+        $sheet->getRowDimension($currentRow)->setRowHeight(60);
+        
+        // Add church name - center aligned across all columns
+        $sheet->mergeCells('A1:H1');
+        $sheet->setCellValue('A1', strtoupper($churchName));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
+        $sheet->getStyle('A1')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+        
         $currentRow++;
         
-        // Report title
-        $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
-        $sheet->setCellValue("A{$currentRow}", "Membership Report");
-        $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $currentRow++;
-    } else {
-        $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
-        $sheet->setCellValue("A{$currentRow}", "Membership Report");
-        $sheet->getStyle("A{$currentRow}")->getFont()->setBold(true)->setSize(16);
-        $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $currentRow++;
+        // Add church contact information (address, phone, email) - center aligned
+        $contactInfo = [];
+        if (!empty($churchSettings['church_address'])) {
+            $contactInfo[] = $churchSettings['church_address'];
+        }
+        if (!empty($churchSettings['church_phone'])) {
+            $contactInfo[] = 'Tel: ' . $churchSettings['church_phone'];
+        }
+        if (!empty($churchSettings['church_email'])) {
+            $contactInfo[] = 'Email: ' . $churchSettings['church_email'];
+        }
+        
+        if (!empty($contactInfo)) {
+            foreach ($contactInfo as $info) {
+                $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+                $sheet->setCellValue('A' . $currentRow, $info);
+                $sheet->getStyle('A' . $currentRow)->getFont()->setSize(10);
+                $sheet->getStyle('A' . $currentRow)->getAlignment()
+                    ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $currentRow++;
+            }
+        }
+        
+        $currentRow++; // Add spacing after church header
     }
+
+    // Add report title
+    $sheet->mergeCells('A' . $currentRow . ':H' . $currentRow);
+    $sheet->setCellValue('A' . $currentRow, strtoupper('Membership Report'));
+    $sheet->getStyle('A' . $currentRow)->getFont()->setBold(true)->setSize(14);
+    $sheet->getStyle('A' . $currentRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+    $currentRow++;
 
     // Generated date
     $sheet->mergeCells("A{$currentRow}:H{$currentRow}");
@@ -543,7 +570,7 @@ try {
     // Get church settings
     $churchSettings = null;
     try {
-        $settingsQuery = "SELECT church_name, church_logo FROM church_settings LIMIT 1";
+        $settingsQuery = "SELECT church_name, church_address, church_phone, church_email, church_logo FROM church_settings LIMIT 1";
         $settingsStmt = $db->prepare($settingsQuery);
         $settingsStmt->execute();
         $churchSettings = $settingsStmt->fetch(PDO::FETCH_ASSOC);
