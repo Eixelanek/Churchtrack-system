@@ -6,6 +6,7 @@ import logoImage from '../../assets/logo2.png';
 import { getHeaderLogo as loadStoredHeaderLogo } from '../../utils/churchSettings';
 import { fetchFamilyTree } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
+import { offlineStorage } from '../../utils/offlineStorage';
 
 const suffixOptions = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV'];
 
@@ -641,7 +642,57 @@ const CheckIn = () => {
           ? memberIdPayload
           : (!Number.isNaN(storedMemberIdNumber) && storedMemberIdNumber !== null ? storedMemberIdNumber : null);
 
-        // Check in primary member
+        // Check if online
+        const isOnline = navigator.onLine;
+
+        if (!isOnline) {
+          // Save offline for later sync
+          try {
+            // Prepare family members data
+            const familyIdsToCheck = selectedFamilyIds.filter((id) => !checkedInFamilyIds.includes(id));
+            const familyMembersData = familyIdsToCheck.map(familyMemberId => {
+              const familyMember = familyMembers.find(m => m.id === familyMemberId);
+              return familyMember ? {
+                member_id: familyMemberId,
+                member_name: familyMember.name,
+                member_contact: null,
+                checked_in_by: primaryCheckerId
+              } : null;
+            }).filter(Boolean);
+
+            // Save primary member check-in
+            await offlineStorage.saveMemberCheckinOffline({
+              session_token: sessionToken,
+              member_id: memberIdPayload,
+              member_name: memberName.trim(),
+              member_contact: memberContact.trim() || null,
+              checked_in_by: null,
+              family_members: familyMembersData,
+              event_id: sessionData?.event_id || null
+            });
+
+            // Show success message
+            setSuccess(true);
+            setMemberName('');
+            setMemberContact('');
+            setSelectedFamilyIds([]);
+            
+            // Show offline notification
+            setTimeout(() => {
+              alert('Checked in offline! Your attendance will sync when you\'re back online.');
+            }, 500);
+            
+            setSubmitting(false);
+            return;
+          } catch (error) {
+            console.error('Error saving offline check-in:', error);
+            setError('Failed to save offline check-in. Please try again.');
+            setSubmitting(false);
+            return;
+          }
+        }
+
+        // Online - proceed with normal API call
         const response = await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

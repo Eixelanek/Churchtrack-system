@@ -159,13 +159,32 @@ class OfflineStorage {
     });
   }
 
-  // Save attendance offline
+  // Save attendance offline (for admin marking attendance)
   async saveAttendanceOffline(eventId, attendanceData) {
     return await this.saveData('attendance', {
       eventId,
       data: attendanceData,
       timestamp: Date.now(),
-      synced: false
+      synced: false,
+      type: 'admin_marking'
+    });
+  }
+
+  // Save member check-in offline (for members scanning event QR)
+  async saveMemberCheckinOffline(checkinData) {
+    return await this.saveData('attendance', {
+      eventId: checkinData.event_id,
+      data: {
+        session_token: checkinData.session_token,
+        member_id: checkinData.member_id,
+        member_name: checkinData.member_name,
+        member_contact: checkinData.member_contact,
+        checked_in_by: checkinData.checked_in_by,
+        family_members: checkinData.family_members || []
+      },
+      timestamp: Date.now(),
+      synced: false,
+      type: 'member_checkin'
     });
   }
 
