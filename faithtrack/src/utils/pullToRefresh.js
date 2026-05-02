@@ -3,8 +3,15 @@ let startY = 0;
 let currentY = 0;
 let pulling = false;
 let refreshIndicator = null;
+let pullStartTime = 0;
 
 const createRefreshIndicator = () => {
+  // Remove existing indicator if any
+  const existing = document.getElementById('pull-refresh-indicator');
+  if (existing) {
+    existing.remove();
+  }
+
   const indicator = document.createElement('div');
   indicator.id = 'pull-refresh-indicator';
   indicator.style.cssText = `
@@ -21,7 +28,7 @@ const createRefreshIndicator = () => {
     align-items: center;
     justify-content: center;
     transition: top 0.3s ease;
-    z-index: 99999;
+    z-index: 999999;
     pointer-events: none;
   `;
   indicator.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>';
@@ -38,53 +45,47 @@ const createRefreshIndicator = () => {
   return indicator;
 };
 
-const getScrollTop = () => {
-  // Check multiple scroll containers
-  const scrollableElements = [
-    window,
-    document.documentElement,
-    document.body,
-    ...Array.from(document.querySelectorAll('.scrollable, .content, main, [style*="overflow"]'))
-  ];
-  
-  for (const el of scrollableElements) {
-    const scrollTop = el === window ? window.scrollY : el.scrollTop;
-    if (scrollTop > 0) {
-      return scrollTop;
-    }
-  }
-  return 0;
-};
-
 export const initPullToRefresh = () => {
-  // Only enable on mobile
-  if (window.innerWidth > 768) return () => {};
+  // Only enable on mobile/touch devices
+  if (!('ontouchstart' in window)) {
+    console.log('Pull-to-refresh: Not a touch device, skipping');
+    return () => {};
+  }
 
-  // Create refresh indicator
-  refreshIndicator = createRefreshIndicator();
+  console.log('Pull-to-refresh: Initializing...');
 
   const handleTouchStart = (e) => {
-    // Check if at top of any scrollable container
-    const scrollTop = getScrollTop();
+    // Reset state
+    pulling = false;
+    startY = 0;
+    currentY = 0;
     
-    if (scrollTop <= 5 && !pulling) { // Allow small tolerance (5px)
-      startY = e.touches[0].pageY;
+    // Check if we're at the top of the page
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    
+    if (scrollTop <= 10) { // 10px tolerance
+      startY = e.touches[0].clientY;
+      pullStartTime = Date.now();
       pulling = true;
-      console.log('Pull-to-refresh: Started pulling');
+      
+      // Create indicator if not exists
+      if (!refreshIndicator || !document.body.contains(refreshIndicator)) {
+        refreshIndicator = createRefreshIndicator();
+      }
+      
+      console.log('Pull-to-refresh: Ready to pull, scrollTop:', scrollTop);
     }
   };
 
   const handleTouchMove = (e) => {
     if (!pulling) return;
 
-    currentY = e.touches[0].pageY;
+    currentY = e.touches[0].clientY;
     const pullDistance = currentY - startY;
 
     // Only handle downward pulls
     if (pullDistance < 0) {
       pulling = false;
-      startY = 0;
-      currentY = 0;
       if (refreshIndicator) {
         refreshIndicator.style.top = '-60px';
       }
@@ -92,35 +93,38 @@ export const initPullToRefresh = () => {
     }
 
     // Show indicator when pulled down
-    if (pullDistance > 0 && pullDistance <= 120) {
+    if (pullDistance > 0) {
+      const progress = Math.min(pullDistance / 80, 1);
       if (refreshIndicator) {
-        const progress = Math.min(pullDistance / 80, 1);
         refreshIndicator.style.top = `${-60 + (progress * 70)}px`;
       }
-    }
-
-    // If pulled down more than 80px, prevent default scroll
-    if (pullDistance > 80) {
-      e.preventDefault();
+      
+      // Prevent default scroll if pulled enough
+      if (pullDistance > 50) {
+        e.preventDefault();
+      }
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e) => {
     if (!pulling) return;
 
     const pullDistance = currentY - startY;
+    const pullDuration = Date.now() - pullStartTime;
+
+    console.log('Pull-to-refresh: Touch end, distance:', pullDistance, 'duration:', pullDuration);
 
     // If pulled down more than 80px, trigger refresh
     if (pullDistance > 80) {
-      console.log('Pull-to-refresh: Triggering reload');
+      console.log('Pull-to-refresh: Triggering reload!');
       if (refreshIndicator) {
         refreshIndicator.style.top = '10px';
       }
       
-      // Reload after short delay to show animation
+      // Reload after short delay
       setTimeout(() => {
         window.location.reload();
-      }, 300);
+      }, 200);
     } else {
       // Reset indicator
       if (refreshIndicator) {
@@ -132,19 +136,23 @@ export const initPullToRefresh = () => {
     pulling = false;
     startY = 0;
     currentY = 0;
+    pullStartTime = 0;
   };
 
-  // Use capture phase to ensure we catch events first
-  document.addEventListener('touchstart', handleTouchStart, { passive: true, capture: true });
-  document.addEventListener('touchmove', handleTouchMove, { passive: false, capture: true });
-  document.addEventListener('touchend', handleTouchEnd, { passive: true, capture: true });
+  // Add event listeners
+  window.addEventListener('touchstart', handleTouchStart, { passive: true });
+  window.addEventListener('touchmove', handleTouchMove, { passive: false });
+  window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+  console.log('Pull-to-refresh: Event listeners attached');
 
   return () => {
-    document.removeEventListener('touchstart', handleTouchStart, { capture: true });
-    document.removeEventListener('touchmove', handleTouchMove, { capture: true });
-    document.removeEventListener('touchend', handleTouchEnd, { capture: true });
+    window.removeEventListener('touchstart', handleTouchStart);
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
     if (refreshIndicator && refreshIndicator.parentNode) {
       refreshIndicator.parentNode.removeChild(refreshIndicator);
     }
+    console.log('Pull-to-refresh: Cleaned up');
   };
 };
