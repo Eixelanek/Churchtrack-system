@@ -80,13 +80,43 @@ class SimplePDF {
     <title>" . htmlspecialchars($filename) . "</title>
     <style>
         @media print {
-            body { margin: 0; padding: 20px; }
-            @page { margin: 20mm; }
-            /* Hide browser UI elements */
-            body::before, body::after { display: none !important; }
+            body { 
+                margin: 0; 
+                padding: 20px;
+            }
+            @page { 
+                margin: 15mm;
+                size: A4;
+            }
+            .print-instructions {
+                display: none !important;
+            }
         }
         @media screen {
             body { margin: 40px; }
+            .print-instructions {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: #4F46E5;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                z-index: 9999;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            }
+            .print-instructions strong {
+                display: block;
+                font-size: 16px;
+                margin-bottom: 5px;
+            }
+            .print-instructions small {
+                font-size: 13px;
+            }
+            .content-wrapper {
+                margin-top: 100px;
+            }
         }
         body { 
             font-family: Arial, sans-serif;
@@ -102,21 +132,26 @@ class SimplePDF {
         thead { 
             display: table-header-group;
         }
-        /* Hide URL in print */
-        a[href]:after { 
-            content: none !important;
-        }
     </style>
 </head>
 <body>
+<div class='print-instructions'>
+    <strong>📄 Print Dialog Opening...</strong>
+    <small>To remove headers/footers: In print settings, disable 'Headers and footers' option</small>
+</div>
+<div class='content-wrapper'>
 {$this->content}
 <div style='text-align: center; margin-top: 30px; font-size: 12px; color: #888;'>
     Generated: " . date('F d, Y g:i A') . "
 </div>
+</div>
 <script>
     // Auto-print when page loads
     window.onload = function() {
-        window.print();
+        // Small delay to ensure page is fully loaded
+        setTimeout(function() {
+            window.print();
+        }, 500);
     };
     
     // Close window after printing or canceling
