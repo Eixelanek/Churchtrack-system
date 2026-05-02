@@ -1,5 +1,5 @@
-const CACHE_NAME = 'faithtrack-v6';
-const RUNTIME_CACHE = 'faithtrack-runtime-v6';
+const CACHE_NAME = 'faithtrack-v7';
+const RUNTIME_CACHE = 'faithtrack-runtime-v7';
 
 // Essential files to cache immediately
 const PRECACHE_URLS = [
@@ -7,6 +7,15 @@ const PRECACHE_URLS = [
   '/index.html',
   '/manifest.json'
 ];
+
+// SPA shells (any navigation path may reload offline; fallback must match precache keys)
+async function matchSpaShell() {
+  return (
+    (await caches.match('/index.html')) ||
+    (await caches.match('/')) ||
+    null
+  );
+}
 
 // Install event - cache essential files
 self.addEventListener('install', (event) => {
@@ -64,61 +73,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests (pages)
-  if (request.mode === 'navigate') {
+  // For navigation requests (full page reload, any route)
+  if (request.method === 'GET' && request.mode === 'navigate') {
     console.log('[SW] Navigation request:', url.pathname);
-    
-    event.respondWith(
-      // Try cache first for instant offline support
-      caches.match(request)
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('[SW] Serving from cache:', url.pathname);
-            
-            // Update cache in background if online
-            if (navigator.onLine) {
-              fetch(request)
-                .then((networkResponse) => {
-                  if (networkResponse && networkResponse.status === 200) {
-                    caches.open(RUNTIME_CACHE).then((cache) => {
-                      cache.put(request, networkResponse);
-                    });
-                  }
-                })
-                .catch(() => console.log('[SW] Background update failed'));
-            }
-            
-            return cachedResponse;
-          }
 
-          // Not in cache, try network with timeout
-          console.log('[SW] Not in cache, trying network:', url.pathname);
-          return Promise.race([
-            fetch(request)
-              .then((response) => {
-                if (response && response.status === 200) {
-                  const responseClone = response.clone();
-                  caches.open(RUNTIME_CACHE).then((cache) => {
-                    cache.put(request, responseClone);
-                  });
-                }
-                return response;
-              }),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Network timeout')), 3000)
-            )
-          ])
-          .catch(() => {
-            // Network failed, serve index.html for SPA routing
-            console.log('[SW] Network failed, serving index.html');
-            return caches.match('/index.html')
-              .then((indexResponse) => {
-                if (indexResponse) {
-                  return indexResponse;
-                }
-                // Last resort - basic offline page
-                return new Response(
-                  `<!DOCTYPE html>
+    event.respondWith(
+      (async () => {
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            const cache = await caches.open(RUNTIME_CACHE);
+            await cache.put(request, copy).catch(() => {});
+          }
+          return networkResponse;
+        } catch (err) {
+          console.log('[SW] Navigate network failed (offline?):', url.pathname, err?.message || err);
+          let cached = await caches.match(request);
+          if (cached) {
+            console.log('[SW] Serving navigated URL from runtime cache');
+            return cached;
+          }
+          cached = await matchSpaShell();
+          if (cached) {
+            console.log('[SW] Serving SPA shell from precache for route:', url.pathname);
+            return cached;
+          }
+          console.log('[SW] No SPA shell in cache — first visit offline');
+          return new Response(
+            `<!DOCTYPE html>
                   <html lang="en">
                   <head>
                     <meta charset="UTF-8">
@@ -153,18 +136,17 @@ self.addEventListener('fetch', (event) => {
                   </head>
                   <body>
                     <h1>You're Offline</h1>
-                    <p>Please check your internet connection and try again.</p>
+                    <p>Open this site once online so it can finish installing. Then reload works offline.</p>
                     <button onclick="window.location.reload()">Retry</button>
                   </body>
                   </html>`,
-                  {
-                    status: 200,
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
-                  }
-                );
-              });
-          });
-        })
+            {
+              status: 200,
+              headers: { 'Content-Type': 'text/html; charset=utf-8' },
+            },
+          );
+        }
+      })(),
     );
     return;
   }
@@ -175,20 +157,17 @@ self.addEventListener('fetch', (event) => {
       .then((cachedResponse) => {
         if (cachedResponse) {
           console.log('[SW] Asset from cache:', url.pathname);
-          
-          // Update in background if online
-          if (navigator.onLine) {
-            fetch(request)
-              .then((response) => {
-                if (response && response.status === 200) {
-                  caches.open(RUNTIME_CACHE).then((cache) => {
-                    cache.put(request, response);
-                  });
-                }
-              })
-              .catch(() => {});
-          }
-          
+
+          fetch(request)
+            .then((response) => {
+              if (response && response.status === 200) {
+                caches.open(RUNTIME_CACHE).then((cache) => {
+                  cache.put(request, response);
+                });
+              }
+            })
+            .catch(() => {});
+
           return cachedResponse;
         }
 

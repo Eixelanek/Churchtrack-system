@@ -1,12 +1,50 @@
-// Pull-to-refresh functionality for mobile
+// Pull-to-refresh: works when the scrollable area under the finger is at its top
+// (nested overflow containers, not just window scroll).
+
+const TOP_TOLERANCE_PX = 12;
+const TRIGGER_PULL_PX = 80;
+const OVERSCROLL_PREVENT_PX = 50;
+
 let startY = 0;
 let currentY = 0;
 let pulling = false;
 let refreshIndicator = null;
 let pullStartTime = 0;
 
+function isEditableTarget(target) {
+  if (!target || !(target instanceof Element)) return false;
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (target.isContentEditable) return true;
+  return false;
+}
+
+function isAtTopOfScrollChain(target) {
+  if (!target || !(target instanceof Element)) {
+    return false;
+  }
+  if (isEditableTarget(target)) {
+    return false;
+  }
+
+  let el = target;
+  while (el && el !== document.documentElement) {
+    const style = window.getComputedStyle(el);
+    const oy = style.overflowY;
+    const canScrollY =
+      (oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+      el.scrollHeight > el.clientHeight + 1;
+    if (canScrollY) {
+      return el.scrollTop <= TOP_TOLERANCE_PX;
+    }
+    el = el.parentElement;
+  }
+
+  const root = document.scrollingElement || document.documentElement;
+  return (root.scrollTop || 0) <= TOP_TOLERANCE_PX;
+}
+
 const createRefreshIndicator = () => {
-  // Remove existing indicator if any
   const existing = document.getElementById('pull-refresh-indicator');
   if (existing) {
     existing.remove();
@@ -31,49 +69,49 @@ const createRefreshIndicator = () => {
     z-index: 999999;
     pointer-events: none;
   `;
-  indicator.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>';
-  
-  // Add spin animation if not already added
+  indicator.innerHTML =
+    '<div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>';
+
   if (!document.getElementById('pull-refresh-spin-style')) {
     const style = document.createElement('style');
     style.id = 'pull-refresh-spin-style';
     style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
     document.head.appendChild(style);
   }
-  
+
   document.body.appendChild(indicator);
   return indicator;
 };
 
+const resetIndicatorPosition = () => {
+  if (refreshIndicator) {
+    refreshIndicator.style.top = '-60px';
+  }
+};
+
 export const initPullToRefresh = () => {
-  // Only enable on mobile/touch devices
-  if (!('ontouchstart' in window)) {
-    console.log('Pull-to-refresh: Not a touch device, skipping');
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (!hasTouch) {
     return () => {};
   }
 
-  console.log('Pull-to-refresh: Initializing...');
-
   const handleTouchStart = (e) => {
-    // Reset state
-    pulling = false;
-    startY = 0;
-    currentY = 0;
-    
-    // Check if we're at the top of the page
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    
-    if (scrollTop <= 10) { // 10px tolerance
-      startY = e.touches[0].clientY;
-      pullStartTime = Date.now();
-      pulling = true;
-      
-      // Create indicator if not exists
-      if (!refreshIndicator || !document.body.contains(refreshIndicator)) {
-        refreshIndicator = createRefreshIndicator();
-      }
-      
-      console.log('Pull-to-refresh: Ready to pull, scrollTop:', scrollTop);
+    // Avoid fighting multi-touch / second finger mid-gesture
+    if (e.touches.length !== 1) return;
+
+    const target = e.target;
+    if (!isAtTopOfScrollChain(target)) {
+      pulling = false;
+      return;
+    }
+
+    startY = e.touches[0].clientY;
+    currentY = startY;
+    pullStartTime = Date.now();
+    pulling = true;
+
+    if (!refreshIndicator || !document.body.contains(refreshIndicator)) {
+      refreshIndicator = createRefreshIndicator();
     }
   };
 
@@ -83,76 +121,71 @@ export const initPullToRefresh = () => {
     currentY = e.touches[0].clientY;
     const pullDistance = currentY - startY;
 
-    // Only handle downward pulls
     if (pullDistance < 0) {
       pulling = false;
-      if (refreshIndicator) {
-        refreshIndicator.style.top = '-60px';
-      }
+      resetIndicatorPosition();
       return;
     }
 
-    // Show indicator when pulled down
     if (pullDistance > 0) {
       const progress = Math.min(pullDistance / 80, 1);
       if (refreshIndicator) {
-        refreshIndicator.style.top = `${-60 + (progress * 70)}px`;
+        refreshIndicator.style.top = `${-60 + progress * 70}px`;
       }
-      
-      // Prevent default scroll if pulled enough
-      if (pullDistance > 50) {
+      if (pullDistance > OVERSCROLL_PREVENT_PX) {
         e.preventDefault();
       }
     }
   };
 
-  const handleTouchEnd = (e) => {
+  const finishGesture = (e) => {
     if (!pulling) return;
 
-    const pullDistance = currentY - startY;
+    const endTouch = e.changedTouches && e.changedTouches[0];
+    const endY = endTouch ? endTouch.clientY : currentY;
+    const pullDistance = endY - startY;
     const pullDuration = Date.now() - pullStartTime;
 
-    console.log('Pull-to-refresh: Touch end, distance:', pullDistance, 'duration:', pullDuration);
-
-    // If pulled down more than 80px, trigger refresh
-    if (pullDistance > 80) {
-      console.log('Pull-to-refresh: Triggering reload!');
+    if (pullDistance > TRIGGER_PULL_PX && pullDuration < 20000) {
       if (refreshIndicator) {
         refreshIndicator.style.top = '10px';
       }
-      
-      // Reload after short delay
       setTimeout(() => {
         window.location.reload();
       }, 200);
     } else {
-      // Reset indicator
-      if (refreshIndicator) {
-        refreshIndicator.style.top = '-60px';
-      }
+      resetIndicatorPosition();
     }
-    
-    // Always reset state
+
     pulling = false;
     startY = 0;
     currentY = 0;
     pullStartTime = 0;
   };
 
-  // Add event listeners
-  window.addEventListener('touchstart', handleTouchStart, { passive: true });
-  window.addEventListener('touchmove', handleTouchMove, { passive: false });
-  window.addEventListener('touchend', handleTouchEnd, { passive: true });
+  const handleTouchCancel = () => {
+    pulling = false;
+    startY = 0;
+    currentY = 0;
+    pullStartTime = 0;
+    resetIndicatorPosition();
+  };
 
-  console.log('Pull-to-refresh: Event listeners attached');
+  const opts = { passive: true };
+  const moveOpts = { passive: false };
+
+  window.addEventListener('touchstart', handleTouchStart, opts);
+  window.addEventListener('touchmove', handleTouchMove, moveOpts);
+  window.addEventListener('touchend', finishGesture, opts);
+  window.addEventListener('touchcancel', handleTouchCancel, opts);
 
   return () => {
-    window.removeEventListener('touchstart', handleTouchStart);
-    window.removeEventListener('touchmove', handleTouchMove);
-    window.removeEventListener('touchend', handleTouchEnd);
-    if (refreshIndicator && refreshIndicator.parentNode) {
+    window.removeEventListener('touchstart', handleTouchStart, opts);
+    window.removeEventListener('touchmove', handleTouchMove, moveOpts);
+    window.removeEventListener('touchend', finishGesture, opts);
+    window.removeEventListener('touchcancel', handleTouchCancel, opts);
+    if (refreshIndicator?.parentNode) {
       refreshIndicator.parentNode.removeChild(refreshIndicator);
     }
-    console.log('Pull-to-refresh: Cleaned up');
   };
 };

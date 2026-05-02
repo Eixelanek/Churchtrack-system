@@ -80,6 +80,8 @@ html, body, #root {
   height: 100%;
   overflow: auto;
   background: #ffffff;
+  /* Reduce browser-native pull-to-refresh fighting the in-app gesture */
+  overscroll-behavior-y: contain;
 }
 
 /* Hide scrollbars */
