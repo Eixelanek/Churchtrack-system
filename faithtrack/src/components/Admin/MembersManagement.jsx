@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './MembersManagement.css';
 import { fetchFamilyTree } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
+import { offlineStorage } from '../../utils/offlineStorage';
 
 const MANAGER_REVIEW_STORAGE_KEY = 'managerMemberReview';
 
@@ -257,7 +258,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   }, [activeTab]);
 
   // Fetch members from backend with polling
-  const fetchData = () => {
+  const fetchData = async () => {
     if (!backendBaseUrl) {
 
       return;
@@ -268,6 +269,23 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     const apiBase = `${backendBaseUrl}/api/members`;
     const guestApiBase = `${backendBaseUrl}/api/guest`;
 
+    // Check if online
+    const isOnline = navigator.onLine;
+
+    // If offline, load from cache
+    if (!isOnline) {
+      try {
+        const cachedMembers = await offlineStorage.getAllData('members');
+        if (cachedMembers && cachedMembers.length > 0) {
+          setMembers(cachedMembers);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error loading cached members:', error);
+      }
+    }
+
     Promise.all([
       fetch(`${apiBase}/get_all.php?limit=100&include_attendance=false`)
         .then(async res => {
@@ -277,9 +295,19 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
           }
           return res.json();
         })
-        .then(data => {
+        .then(async data => {
           // Handle both old format (array) and new format (object with members array)
           const membersData = Array.isArray(data) ? data : (data.members || []);
+          
+          // Cache members for offline use
+          if (isOnline && membersData.length > 0) {
+            try {
+              await offlineStorage.cacheMembers(membersData);
+            } catch (error) {
+              console.error('Error caching members:', error);
+            }
+          }
+          
           return { status: 'fulfilled', value: membersData };
         })
         .catch((error) => {

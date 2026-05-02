@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import './AttendanceManagement.css';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { API_BASE_URL } from '../../config/api';
+import { offlineStorage } from '../../utils/offlineStorage';
 
 const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null, isManager = false, onManualCheckInClick = null }) => {
   const [activeTab, setActiveTab] = useState('today_events');
@@ -263,12 +264,39 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
   }, [events]);
 
   const loadEvents = async () => {
+    // Check if online
+    const isOnline = navigator.onLine;
+
+    // If offline, load from cache
+    if (!isOnline) {
+      try {
+        const cachedEvents = await offlineStorage.getAllData('events');
+        if (cachedEvents && cachedEvents.length > 0) {
+          setEvents(cachedEvents);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error loading cached events:', error);
+      }
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/events/get_all.php?limit=100&include_attendees=true`);
       if (response.ok) {
         const data = await response.json();
         // Handle both old format (array) and new format (object with events array)
         const eventsData = Array.isArray(data) ? data : (data.events || []);
+        
+        // Cache events for offline use
+        if (isOnline && eventsData.length > 0) {
+          try {
+            await offlineStorage.cacheEvents(eventsData);
+          } catch (error) {
+            console.error('Error caching events:', error);
+          }
+        }
+        
         setEvents(eventsData); // Default to empty array if no data
       } else {
 
