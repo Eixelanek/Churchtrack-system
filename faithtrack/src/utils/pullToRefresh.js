@@ -82,7 +82,13 @@ export const initPullToRefresh = () => {
       
       // Reload after short delay to show animation
       setTimeout(() => {
-        window.location.reload(true); // Force reload from server
+        // If offline, use regular reload (from cache)
+        // If online, force reload from server
+        if (navigator.onLine) {
+          window.location.reload(true); // Force reload from server
+        } else {
+          window.location.reload(); // Regular reload from cache
+        }
       }, 300);
     } else {
       // Reset indicator
