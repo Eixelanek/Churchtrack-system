@@ -16,6 +16,7 @@ import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
 import SyncStatus from './components/SyncStatus/SyncStatus';
+import Toast from './components/Toast/Toast';
 import logoImage from './assets/logo.png';
 import { syncManager } from './utils/syncManager';
 
@@ -72,6 +73,7 @@ const App = () => {
     <Router>
       <OfflineIndicator />
       <SyncStatus />
+      <Toast />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/referral-selection" element={<ReferralSelection />} />

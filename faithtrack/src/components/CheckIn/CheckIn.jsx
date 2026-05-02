@@ -7,6 +7,7 @@ import { getHeaderLogo as loadStoredHeaderLogo } from '../../utils/churchSetting
 import { fetchFamilyTree } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
 import { offlineStorage } from '../../utils/offlineStorage';
+import { showToast } from '../Toast/Toast';
 
 const suffixOptions = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV'];
 
@@ -760,9 +761,7 @@ const CheckIn = () => {
             setSelectedFamilyIds([]);
             
             // Show offline notification
-            setTimeout(() => {
-              alert('Checked in offline! Your attendance will sync when you\'re back online.');
-            }, 500);
+            showToast('Checked in offline! Your attendance will sync when you\'re back online.', 'success');
             
             setSubmitting(false);
             return;
