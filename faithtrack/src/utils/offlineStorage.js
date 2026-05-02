@@ -195,10 +195,14 @@ class OfflineStorage {
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(['attendance'], 'readonly');
       const store = transaction.objectStore('attendance');
-      const index = store.index('synced');
-      const request = index.getAll(false);
+      const request = store.getAll();
 
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        // Filter for unsynced records
+        const allRecords = request.result || [];
+        const unsyncedRecords = allRecords.filter(record => record.synced === false);
+        resolve(unsyncedRecords);
+      };
       request.onerror = () => reject(request.error);
     });
   }
