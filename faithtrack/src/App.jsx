@@ -58,28 +58,9 @@ const App = () => {
       setAppReady(true);
     } catch (e) {
       console.error('localStorage is not accessible:', e);
-      
-      // Check if we've already tried to fix this
-      const reloadAttempts = parseInt(sessionStorage.getItem('storage_reload_attempts') || '0');
-      
-      if (reloadAttempts < 2) {
-        console.log(`Attempting reload ${reloadAttempts + 1}/2 to fix storage access...`);
-        sessionStorage.setItem('storage_reload_attempts', String(reloadAttempts + 1));
-        
-        // Clear service worker cache and reload
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
-        }
-        
-        setTimeout(() => {
-          window.location.reload(true);
-        }, 100);
-      } else {
-        // If reload didn't help after 2 attempts, still mark as ready but log warning
-        console.warn('localStorage still not accessible after 2 reloads, continuing anyway');
-        sessionStorage.removeItem('storage_reload_attempts');
-        setAppReady(true);
-      }
+      // Still mark as ready - app should work even without localStorage
+      console.warn('Continuing without localStorage access');
+      setAppReady(true);
     }
   }, []);
 

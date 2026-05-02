@@ -1,4 +1,4 @@
-const CACHE_NAME = 'faithtrack-v3';
+const CACHE_NAME = 'faithtrack-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -52,9 +52,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests (HTML pages), use network-first with timeout
+  // For navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
+      // Try network first with timeout
       Promise.race([
         fetch(request)
           .then((response) => {
@@ -67,20 +68,28 @@ self.addEventListener('fetch', (event) => {
             }
             return response;
           }),
-        // Timeout after 3 seconds
+        // Timeout after 2 seconds
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Network timeout')), 3000)
+          setTimeout(() => reject(new Error('Network timeout')), 2000)
         )
       ])
       .catch(() => {
         // Network failed or timed out, serve from cache
+        console.log('Network failed, serving from cache');
         return caches.match(request).then(cachedResponse => {
           if (cachedResponse) {
             return cachedResponse;
           }
           // Fallback to index.html
           return caches.match('/index.html').then(indexResponse => {
-            return indexResponse || new Response('Offline', { status: 503 });
+            if (indexResponse) {
+              return indexResponse;
+            }
+            // Last resort - return offline page
+            return new Response(
+              '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your internet connection.</p></body></html>',
+              { headers: { 'Content-Type': 'text/html' } }
+            );
           });
         });
       })
@@ -88,30 +97,45 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For other resources (JS, CSS, images), use network-first with quick timeout
+  // For other resources (JS, CSS, images) - cache first for speed
   event.respondWith(
-    Promise.race([
-      fetch(request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          // Return cached version immediately
+          // Update cache in background if online
+          if (navigator.onLine) {
+            fetch(request)
+              .then((response) => {
+                if (response && response.status === 200) {
+                  caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(request, response);
+                  });
+                }
+              })
+              .catch(() => {
+                // Ignore fetch errors for background updates
+              });
           }
-          return response;
-        }),
-      // Shorter timeout for assets (1 second)
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Network timeout')), 1000)
-      )
-    ])
-    .catch(() => {
-      // Network failed, use cache
-      return caches.match(request).then(cachedResponse => {
-        return cachedResponse || new Response('Offline', { status: 503 });
-      });
-    })
+          return cachedResponse;
+        }
+
+        // Not in cache, fetch from network
+        return fetch(request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            // Return empty response for failed asset loads
+            return new Response('', { status: 404 });
+          });
+      })
   );
 });
 

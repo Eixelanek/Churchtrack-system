@@ -25,10 +25,13 @@ const createRefreshIndicator = () => {
   `;
   indicator.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>';
   
-  // Add spin animation
-  const style = document.createElement('style');
-  style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
-  document.head.appendChild(style);
+  // Add spin animation if not already added
+  if (!document.getElementById('pull-refresh-spin-style')) {
+    const style = document.createElement('style');
+    style.id = 'pull-refresh-spin-style';
+    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+  }
   
   document.body.appendChild(indicator);
   return indicator;
@@ -36,7 +39,7 @@ const createRefreshIndicator = () => {
 
 export const initPullToRefresh = () => {
   // Only enable on mobile
-  if (window.innerWidth > 768) return;
+  if (window.innerWidth > 768) return () => {};
 
   // Create refresh indicator
   refreshIndicator = createRefreshIndicator();
@@ -82,25 +85,19 @@ export const initPullToRefresh = () => {
       
       // Reload after short delay to show animation
       setTimeout(() => {
-        // If offline, use regular reload (from cache)
-        // If online, force reload from server
-        if (navigator.onLine) {
-          window.location.reload(true); // Force reload from server
-        } else {
-          window.location.reload(); // Regular reload from cache
-        }
+        window.location.reload();
       }, 300);
     } else {
       // Reset indicator
       if (refreshIndicator) {
         refreshIndicator.style.top = '-60px';
       }
+      
+      // Reset state immediately
+      pulling = false;
+      startY = 0;
+      currentY = 0;
     }
-
-    // Always reset state after touch ends
-    pulling = false;
-    startY = 0;
-    currentY = 0;
   };
 
   document.addEventListener('touchstart', handleTouchStart, { passive: true });
