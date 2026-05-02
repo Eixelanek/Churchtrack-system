@@ -1490,7 +1490,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           </div>
           <div className="stat-content">
             <div className="stat-label-small">This Week</div>
-            <div className="stat-value-large">{attendanceStats.totalRecords}</div>
+            <div className="stat-value-large">{loading ? '...' : attendanceStats.totalRecords}</div>
             <div className="stat-sublabel">Total Records</div>
           </div>
         </div>
@@ -1506,7 +1506,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           </div>
           <div className="stat-content">
             <div className="stat-label-small">Average</div>
-            <div className="stat-value-large">{attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService}</div>
+            <div className="stat-value-large">{loading ? '...' : (attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService)}</div>
             <div className="stat-sublabel">Per Service</div>
           </div>
         </div>
@@ -1519,7 +1519,7 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           </div>
           <div className="stat-content">
             <div className="stat-label-small">Rate</div>
-            <div className="stat-value-large">{attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate}%</div>
+            <div className="stat-value-large">{loading ? '...' : (attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate)}%</div>
             <div className="stat-sublabel">Attendance</div>
           </div>
         </div>
