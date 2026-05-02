@@ -34,25 +34,50 @@ const App = () => {
 
   // Ensure app is interactive after reload (fixes "preview mode" issue)
   React.useEffect(() => {
+    // Force service worker to update
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.update();
+        });
+      });
+    }
+
     // Check if localStorage is accessible
     try {
       const testKey = '__storage_test__';
       localStorage.setItem(testKey, 'test');
+      const testValue = localStorage.getItem(testKey);
       localStorage.removeItem(testKey);
+      
+      if (testValue !== 'test') {
+        throw new Error('localStorage read/write failed');
+      }
+      
       console.log('localStorage is accessible, app is ready');
       setAppReady(true);
     } catch (e) {
       console.error('localStorage is not accessible:', e);
-      // Try to reload once if localStorage is not accessible
-      if (!sessionStorage.getItem('storage_reload_attempted')) {
-        console.log('Attempting reload to fix storage access...');
-        sessionStorage.setItem('storage_reload_attempted', 'true');
+      
+      // Check if we've already tried to fix this
+      const reloadAttempts = parseInt(sessionStorage.getItem('storage_reload_attempts') || '0');
+      
+      if (reloadAttempts < 2) {
+        console.log(`Attempting reload ${reloadAttempts + 1}/2 to fix storage access...`);
+        sessionStorage.setItem('storage_reload_attempts', String(reloadAttempts + 1));
+        
+        // Clear service worker cache and reload
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
+        }
+        
         setTimeout(() => {
-          window.location.reload();
+          window.location.reload(true);
         }, 100);
       } else {
-        // If reload didn't help, still mark as ready but log warning
-        console.warn('localStorage still not accessible after reload, continuing anyway');
+        // If reload didn't help after 2 attempts, still mark as ready but log warning
+        console.warn('localStorage still not accessible after 2 reloads, continuing anyway');
+        sessionStorage.removeItem('storage_reload_attempts');
         setAppReady(true);
       }
     }

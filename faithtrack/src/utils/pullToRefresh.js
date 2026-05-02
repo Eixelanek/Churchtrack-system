@@ -84,7 +84,7 @@ export const initPullToRefresh = () => {
       
       // Reload after short delay to show animation
       setTimeout(() => {
-        window.location.reload();
+        window.location.reload(true); // Force reload from server
       }, 300);
     } else {
       // Reset indicator
@@ -93,9 +93,15 @@ export const initPullToRefresh = () => {
       }
     }
 
+    // Reset state
     pulling = false;
     startY = 0;
     currentY = 0;
+    
+    // Reset refreshing flag after animation
+    setTimeout(() => {
+      refreshing = false;
+    }, 500);
   };
 
   document.addEventListener('touchstart', handleTouchStart, { passive: true });

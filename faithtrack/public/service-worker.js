@@ -1,10 +1,8 @@
-const CACHE_NAME = 'faithtrack-v2';
+const CACHE_NAME = 'faithtrack-v3';
 const urlsToCache = [
   '/',
   '/index.html',
   '/checkin',
-  '/static/css/main.css',
-  '/static/js/main.js',
   '/manifest.json'
 ];
 
@@ -22,6 +20,7 @@ self.addEventListener('install', (event) => {
         );
       })
   );
+  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
@@ -39,10 +38,11 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  self.clients.claim();
+  // Take control of all pages immediately
+  return self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - network first with timeout, fallback to cache
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -52,12 +52,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests (HTML pages), use network-first strategy
+  // For navigation requests (HTML pages), use network-first with timeout
   if (request.mode === 'navigate') {
     event.respondWith(
+      Promise.race([
+        fetch(request)
+          .then((response) => {
+            // Cache the new version
+            if (response && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return response;
+          }),
+        // Timeout after 3 seconds
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Network timeout')), 3000)
+        )
+      ])
+      .catch(() => {
+        // Network failed or timed out, serve from cache
+        return caches.match(request).then(cachedResponse => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Fallback to index.html
+          return caches.match('/index.html').then(indexResponse => {
+            return indexResponse || new Response('Offline', { status: 503 });
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // For other resources (JS, CSS, images), use network-first with quick timeout
+  event.respondWith(
+    Promise.race([
       fetch(request)
         .then((response) => {
-          // Cache the new version
           if (response && response.status === 200) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -65,62 +100,18 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return response;
-        })
-        .catch(() => {
-          // Network failed, serve from cache
-          return caches.match(request).then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Fallback to index.html
-            return caches.match('/index.html').then(indexResponse => {
-              return indexResponse || new Response('Offline', { status: 503 });
-            });
-          });
-        })
-    );
-    return;
-  }
-
-  // For other resources (JS, CSS, images), use cache-first strategy
-  event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached version immediately
-          // But also fetch and update cache in background
-          fetch(request)
-            .then((response) => {
-              if (response && response.status === 200) {
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(request, response);
-                });
-              }
-            })
-            .catch(() => {
-              // Ignore fetch errors for background updates
-            });
-          return cachedResponse;
-        }
-
-        // Not in cache, fetch from network
-        return fetch(request)
-          .then((response) => {
-            if (!response || response.status !== 200) {
-              return response;
-            }
-
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
-
-            return response;
-          })
-          .catch(() => {
-            return new Response('Offline', { status: 503 });
-          });
-      })
+        }),
+      // Shorter timeout for assets (1 second)
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Network timeout')), 1000)
+      )
+    ])
+    .catch(() => {
+      // Network failed, use cache
+      return caches.match(request).then(cachedResponse => {
+        return cachedResponse || new Response('Offline', { status: 503 });
+      });
+    })
   );
 });
 
@@ -128,6 +119,22 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-attendance') {
     event.waitUntil(syncAttendance());
+  }
+});
+
+// Listen for messages from the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    );
   }
 });
 
