@@ -1340,23 +1340,29 @@ ChurchTrack System`;
       .slice(0, 2);
   };
 
-  // People shown in the tree: focal member plus all relatives (avoids "2 members" when three cards render)
-  const getFamilyCount = (member) => {
+  // Accepted relatives only (excludes the directory member). Used for badges and hiding empty trees.
+  const getFamilyRelativeCount = (member) => {
     const id = member.id;
     const tree = familyTreeByMemberId[id];
     if (tree && typeof tree === 'object') {
-      const relatives =
+      return (
         (tree.parents?.length || 0) +
         (tree.couple?.length || 0) +
         (tree.siblings?.length || 0) +
         (tree.children?.length || 0) +
-        (tree.other?.length || 0);
-      return relatives + 1;
+        (tree.other?.length || 0)
+      );
     }
     if (Array.isArray(familyMembers[id])) {
-      return familyMembers[id].length + 1;
+      return familyMembers[id].length;
     }
-    return member.family_count || 0;
+    return Number(member.family_count) || 0;
+  };
+
+  // Focal member + relatives (for headings when the tree is shown). Zero when there are no relatives.
+  const getFamilyTreePeopleCount = (member) => {
+    const relatives = getFamilyRelativeCount(member);
+    return relatives > 0 ? relatives + 1 : 0;
   };
 
   const resolveFamilyProfileUrl = (storedPath) => {
@@ -1697,7 +1703,10 @@ ChurchTrack System`;
         <>
           <div className="members-cards-container">
           {sortedMembers.map(member => {
-            const familyCount = getFamilyCount(member);
+            const familyRelativeCount = getFamilyRelativeCount(member);
+            const familyPeopleCount = getFamilyTreePeopleCount(member);
+            const showFamilyTreeSection =
+              !!familyLoading[member.id] || !!familyErrors[member.id] || familyRelativeCount > 0;
             const isExpanded = expandedMemberId === member.id;
             return (
               <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
@@ -1741,12 +1750,12 @@ ChurchTrack System`;
                         {member.referral_count}
                       </span>
                     )}
-                    {familyCount > 0 && (
+                    {familyRelativeCount > 0 && (
                       <span className="family-badge">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                         </svg>
-                        {familyCount} Family
+                        {familyRelativeCount} Family
                       </span>
                     )}
                     {allowMemberMutations && (
@@ -1787,7 +1796,7 @@ ChurchTrack System`;
                 
                 {isExpanded && (
                   <div className="member-details-expanded">
-                    <div className="expanded-layout">
+                    <div className={`expanded-layout ${showFamilyTreeSection ? '' : 'expanded-layout--single'}`}>
                       {/* Left Side - Info Sections */}
                       <div className="info-sections">
                         <div className="details-section">
@@ -2008,59 +2017,52 @@ ChurchTrack System`;
                         )}
                       </div>
 
-                      {/* Right Side - Family Tree */}
-                      <div className="family-tree-section">
-                        <div className="family-circle-section">
-                          <h4 className="section-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                            </svg>
-                            Family Tree {familyCount > 0 && `(${familyCount} ${familyCount === 1 ? 'Member' : 'Members'})`}
-                          </h4>
-                          
-                          {familyLoading[member.id] ? (
-                            <div className="family-loading">
-                              <p>Loading family tree...</p>
-                            </div>
-                          ) : familyErrors[member.id] ? (
-                            <div className="family-error">
-                              <p>Error loading family tree</p>
-                            </div>
-                          ) : familyCount > 0 ? (
-                            <div className="family-tree-visual-admin">
-                              <FamilyTreeChart
-                                parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
-                                centerRow={[
-                                  {
-                                    id: `subject-${member.id}`,
-                                    name: member.name,
-                                    relation: 'Member',
-                                  },
-                                  ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
-                                ]}
-                                siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
-                                children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
-                                other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
-                                getInitials={getInitials}
-                                formatRelation={(r) => r || ''}
-                                highlightRelation="Member"
-                                theme="indigo"
-                              />
-                            </div>
-                          ) : (
-                            <div className="no-family-message">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      {/* Right Side - Family Tree (hidden until there are linked relatives, except while loading / on error) */}
+                      {showFamilyTreeSection && (
+                        <div className="family-tree-section">
+                          <div className="family-circle-section">
+                            <h4 className="section-header">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                               </svg>
-                              <p>No family members added yet</p>
-                              <span>Family members can be added later</span>
-                            </div>
-                          )}
+                              Family Tree{' '}
+                              {familyPeopleCount > 0 &&
+                                `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
+                            </h4>
+
+                            {familyLoading[member.id] ? (
+                              <div className="family-loading">
+                                <p>Loading family tree...</p>
+                              </div>
+                            ) : familyErrors[member.id] ? (
+                              <div className="family-error">
+                                <p>Error loading family tree</p>
+                              </div>
+                            ) : (
+                              <div className="family-tree-visual-admin">
+                                <FamilyTreeChart
+                                  parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
+                                  centerRow={[
+                                    {
+                                      id: `subject-${member.id}`,
+                                      name: member.name,
+                                      relation: 'Member',
+                                    },
+                                    ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
+                                  ]}
+                                  siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
+                                  children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
+                                  other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
+                                  getInitials={getInitials}
+                                  formatRelation={(r) => r || ''}
+                                  highlightRelation="Member"
+                                  theme="indigo"
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -2099,7 +2101,8 @@ ChurchTrack System`;
           ) : (
             <div className="members-cards-container">
               {sortedInactiveMembers.map(member => {
-                const familyCount = getFamilyCount(member);
+                const familyRelativeCount = getFamilyRelativeCount(member);
+                const familyPeopleCount = getFamilyTreePeopleCount(member);
                 const isExpanded = expandedMemberId === member.id;
                 return (
                   <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
@@ -2141,12 +2144,12 @@ ChurchTrack System`;
                             {member.referral_count}
                           </span>
                         )}
-                        {familyCount > 0 && (
+                        {familyRelativeCount > 0 && (
                           <span className="family-badge">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             </svg>
-                            {familyCount} Family
+                            {familyRelativeCount} Family
                           </span>
                         )}
                         {allowMemberMutations && (
@@ -2211,7 +2214,8 @@ ChurchTrack System`;
                               </div>
                             </div>
 
-                            {typeof renderFamilySection === 'function' && renderFamilySection(member, familyCount)}
+                            {typeof renderFamilySection === 'function' &&
+                              renderFamilySection(member, familyPeopleCount)}
                             {typeof renderReferredMembersSection === 'function' && renderReferredMembersSection(member)}
                           </div>
 

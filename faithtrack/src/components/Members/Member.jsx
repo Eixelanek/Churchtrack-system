@@ -1697,6 +1697,18 @@ const Member = () => {
     };
   }, [familyTreeData, displayName]);
 
+  const familyTreeRelativeCount = useMemo(() => {
+    const tree = familyTreeData?.tree;
+    if (!tree) return 0;
+    return (
+      (tree.parents?.length || 0) +
+      (tree.couple?.length || 0) +
+      (tree.siblings?.length || 0) +
+      (tree.children?.length || 0) +
+      (tree.other?.length || 0)
+    );
+  }, [familyTreeData]);
+
   const getInitials = useCallback((fullName) => {
     if (!fullName) return '';
     const parts = fullName.trim().split(/\s+/).slice(0, 2);
@@ -2084,22 +2096,24 @@ const Member = () => {
               )}
             </section>
 
-            <section className="family-tree-section">
-              <h3>Family Tree Preview</h3>
-              <div className="family-tree-visual">
-                <FamilyTreeChart
-                  parents={familyTreePreview.parents}
-                  centerRow={familyTreePreview.couple}
-                  siblings={familyTreePreview.siblings}
-                  children={familyTreePreview.children}
-                  other={familyTreePreview.other}
-                  getInitials={getInitials}
-                  formatRelation={(rel) => (rel === 'You' ? 'You' : normalizeRelationLabel(rel))}
-                  highlightRelation="You"
-                  theme="green"
-                />
-              </div>
-            </section>
+            {familyTreeRelativeCount > 0 && (
+              <section className="family-tree-section">
+                <h3>Family Tree Preview</h3>
+                <div className="family-tree-visual">
+                  <FamilyTreeChart
+                    parents={familyTreePreview.parents}
+                    centerRow={familyTreePreview.couple}
+                    siblings={familyTreePreview.siblings}
+                    children={familyTreePreview.children}
+                    other={familyTreePreview.other}
+                    getInitials={getInitials}
+                    formatRelation={(rel) => (rel === 'You' ? 'You' : normalizeRelationLabel(rel))}
+                    highlightRelation="You"
+                    theme="green"
+                  />
+                </div>
+              </section>
+            )}
 
             <section className="family-tree-section">
               <h3>Invite Family Member</h3>

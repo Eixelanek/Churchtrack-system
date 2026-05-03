@@ -1712,6 +1712,10 @@
   gap: 1.5rem;
 }
 
+.expanded-layout--single {
+  grid-template-columns: 1fr;
+}
+
 .info-sections {
   display: flex;
   flex-direction: column;
