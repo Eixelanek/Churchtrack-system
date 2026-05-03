@@ -1826,7 +1826,7 @@ const Manager = () => {
         };
       };
 
-      // Unified QR - single session for both members and guests
+      // Unified QR for member scan-to-check-in (no guest self-check-in on this link)
       const normalized = normalize(session);
       if (!normalized) return;
 
@@ -2172,13 +2172,13 @@ const Manager = () => {
               <div className="qr-modal-hero">
                 <div className="qr-modal-hero-copy">
                   <h3>QR Code Ready</h3>
-                  <p>Your QR code has been generated (works for both members and guests)</p>
+                  <p>Your QR code has been generated for members. Visitors check in with staff at registration.</p>
                 </div>
                 <button className="qr-modal-close" onClick={() => setShowQrModal(false)}>×</button>
               </div>
               <div className="qr-modal-body landscape">
                 {(() => {
-                  // Unified QR - single session for both members and guests
+                  // Unified QR — member check-in URL only
                   const activeSession = generatedQrData.unified || generatedQrData.member || generatedQrData.guest;
                   if (!activeSession) {
                     return null;
@@ -2195,7 +2195,7 @@ const Manager = () => {
                             includeMargin={true}
                           />
                         </div>
-                        <span className="qr-type-label">QR Code (Member & Guest)</span>
+                        <span className="qr-type-label">QR Code (Members)</span>
                       </div>
 
                       <div className="qr-details enhanced">
@@ -2295,7 +2295,7 @@ const Manager = () => {
         if (result.success) {
           const payload = result.data || {};
           
-          // Unified QR - single session for both members and guests
+          // Unified QR — one session URL for members at /checkin
           const unifiedSession = payload;
 
           const normalizeSession = (session) => {
