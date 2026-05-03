@@ -126,6 +126,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteType, setBulkDeleteType] = useState(null); // 'members' or 'guests'
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
@@ -1810,7 +1811,31 @@ ChurchTrack System`;
 
       {activeTab === 'all_members' && (
         <>
-          {selectedMembers.size > 0 && (
+          {allowMemberMutations && (
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  setSelectedMembers(new Set());
+                  setSelectedGuests(new Set());
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                color: multiSelectMode ? 'white' : '#374151',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '16px'
+              }}
+            >
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+            </button>
+          )}
+          {multiSelectMode && selectedMembers.size > 0 && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -1880,21 +1905,23 @@ ChurchTrack System`;
             const isExpanded = expandedMemberId === member.id;
             return (
               <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                <input 
-                  type="checkbox" 
-                  className="member-card-checkbox"
-                  checked={selectedMembers.has(member.id)}
-                  onChange={() => toggleMemberSelection(member.id)}
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: '12px',
-                    width: '20px',
-                    height: '20px',
-                    cursor: 'pointer',
-                    zIndex: 10
-                  }}
-                />
+                {multiSelectMode && allowMemberMutations && (
+                  <input 
+                    type="checkbox" 
+                    className="member-card-checkbox"
+                    checked={selectedMembers.has(member.id)}
+                    onChange={() => toggleMemberSelection(member.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      zIndex: 10
+                    }}
+                  />
+                )}
                 <div className="member-card">
                   <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                     {member.profile_picture ? (
@@ -2272,7 +2299,30 @@ ChurchTrack System`;
 
       {activeTab === 'inactive' && (
         <>
-          {selectedMembers.size > 0 && (
+          {allowMemberMutations && (
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  setSelectedMembers(new Set());
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                color: multiSelectMode ? 'white' : '#374151',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '16px'
+              }}
+            >
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+            </button>
+          )}
+          {multiSelectMode && selectedMembers.size > 0 && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -2352,21 +2402,23 @@ ChurchTrack System`;
                 const isExpanded = expandedMemberId === member.id;
                 return (
                   <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                    <input 
-                      type="checkbox" 
-                      className="member-card-checkbox"
-                      checked={selectedMembers.has(member.id)}
-                      onChange={() => toggleMemberSelection(member.id)}
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                        zIndex: 10
-                      }}
-                    />
+                    {multiSelectMode && allowMemberMutations && (
+                      <input 
+                        type="checkbox" 
+                        className="member-card-checkbox"
+                        checked={selectedMembers.has(member.id)}
+                        onChange={() => toggleMemberSelection(member.id)}
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          left: '12px',
+                          width: '20px',
+                          height: '20px',
+                          cursor: 'pointer',
+                          zIndex: 10
+                        }}
+                      />
+                    )}
                     <div className="member-card">
                       <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                         {member.profile_picture ? (
@@ -2508,7 +2560,30 @@ ChurchTrack System`;
 
       {activeTab === 'guests' && (
         <>
-          {selectedGuests.size > 0 && (
+          {canManageGuests && (
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  setSelectedGuests(new Set());
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                color: multiSelectMode ? 'white' : '#374151',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '16px'
+              }}
+            >
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+            </button>
+          )}
+          {multiSelectMode && selectedGuests.size > 0 && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -2579,21 +2654,23 @@ ChurchTrack System`;
               const isExpanded = expandedGuestId === guest.id;
               return (
                 <div key={guest.id || guest.full_name} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                  <input 
-                    type="checkbox" 
-                    className="member-card-checkbox"
-                    checked={selectedGuests.has(guest.id)}
-                    onChange={() => toggleGuestSelection(guest.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer',
-                      zIndex: 10
-                    }}
-                  />
+                  {multiSelectMode && canManageGuests && (
+                    <input 
+                      type="checkbox" 
+                      className="member-card-checkbox"
+                      checked={selectedGuests.has(guest.id)}
+                      onChange={() => toggleGuestSelection(guest.id)}
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                        zIndex: 10
+                      }}
+                    />
+                  )}
                   <div className="member-card guest-card" onClick={() => toggleGuestExpand(guest.id)}>
                     <div className="member-avatar guest">
                       {getInitials(guest.name)}

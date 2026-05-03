@@ -15,6 +15,7 @@ const AttendanceManagement = ({
   const [selectedEvents, setSelectedEvents] = useState(new Set());
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showMarkAttendanceModal, setShowMarkAttendanceModal] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -1804,6 +1805,28 @@ const AttendanceManagement = ({
         </div>
       )}
 
+      <button
+        onClick={() => {
+          setMultiSelectMode(!multiSelectMode);
+          if (multiSelectMode) {
+            setSelectedEvents(new Set());
+          }
+        }}
+        style={{
+          padding: '8px 16px',
+          border: 'none',
+          borderRadius: '4px',
+          background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+          color: multiSelectMode ? 'white' : '#374151',
+          cursor: 'pointer',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          marginBottom: '16px'
+        }}
+      >
+        {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+      </button>
+
       <div className="members-cards-container">
         {filteredAttendanceEvents.length === 0 ? (
           <div className="no-events-message">
@@ -1824,21 +1847,23 @@ const AttendanceManagement = ({
             
             return (
               <div key={event.id} className={`member-card-wrapper ${expandedServiceId === event.id ? 'expanded' : ''}`}>
-                <input 
-                  type="checkbox" 
-                  className="member-card-checkbox"
-                  checked={selectedEvents.has(event.id)}
-                  onChange={() => toggleEventSelection(event.id)}
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: '12px',
-                    width: '20px',
-                    height: '20px',
-                    cursor: 'pointer',
-                    zIndex: 10
-                  }}
-                />
+                {multiSelectMode && (
+                  <input 
+                    type="checkbox" 
+                    className="member-card-checkbox"
+                    checked={selectedEvents.has(event.id)}
+                    onChange={() => toggleEventSelection(event.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      zIndex: 10
+                    }}
+                  />
+                )}
                 <div
                   className="member-card"
                   onClick={() => {
