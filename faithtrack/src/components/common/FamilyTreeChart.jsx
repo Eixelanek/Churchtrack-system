@@ -48,9 +48,6 @@ function TreeCard({ person, getInitials, formatRelation, highlight, theme }) {
         )}
       </div>
       <div className="ft-card__body">
-        {person.relation ? (
-          <span className="ft-card__role">{formatRelation(person.relation)}</span>
-        ) : null}
         <span className="ft-card__name">{person.name}</span>
         {meta ? <span className="ft-card__meta">{String(meta)}</span> : null}
       </div>
