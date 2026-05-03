@@ -1510,6 +1510,8 @@ const Manager = () => {
     const [sessionPendingDelete, setSessionPendingDelete] = useState(null);
     const [sessionsLastUpdated, setSessionsLastUpdated] = useState(null);
     const [autoDownloadOnOpen, setAutoDownloadOnOpen] = useState(false);
+    const [multiSelectMode, setMultiSelectMode] = useState(false);
+    const [selectedSessions, setSelectedSessions] = useState(new Set());
     const frontendBaseUrl = window.location.origin;
 
     const getExpirationHoursForService = useCallback((serviceName = '') => {
@@ -1767,6 +1769,61 @@ const Manager = () => {
         setSessionPendingDelete(null);
       }
     }, [backendBaseUrl, fetchSessions, sessionPendingDelete]);
+
+    const toggleSessionSelection = useCallback((sessionId) => {
+      setSelectedSessions((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(sessionId)) {
+          newSet.delete(sessionId);
+        } else {
+          newSet.add(sessionId);
+        }
+        return newSet;
+      });
+    }, []);
+
+    const selectAllSessions = useCallback((sessions) => {
+      setSelectedSessions(new Set(sessions.map((s) => s.id)));
+    }, []);
+
+    const clearSessionSelection = useCallback(() => {
+      setSelectedSessions(new Set());
+    }, []);
+
+    const handleBulkDeleteSessions = useCallback(async () => {
+      if (selectedSessions.size === 0) return;
+
+      const sessionIds = Array.from(selectedSessions);
+      setSessionsMessage('');
+      setSessionsError('');
+
+      try {
+        for (const sessionId of sessionIds) {
+          const response = await fetch(`${backendBaseUrl}/api/qr_sessions/delete.php`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ session_id: sessionId })
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Failed to delete session');
+          }
+        }
+
+        await fetchSessions();
+        setSessionsMessage(`${sessionIds.length} QR session(s) deleted successfully.`);
+        setSessionsMessageType('success');
+        setSelectedSessions(new Set());
+        setMultiSelectMode(false);
+      } catch (error) {
+        setSessionsMessage(error.message || 'Unable to delete sessions');
+        setSessionsMessageType('error');
+      }
+    }, [backendBaseUrl, fetchSessions, selectedSessions]);
 
     useEffect(() => {
       fetchSessions();
@@ -2044,10 +2101,98 @@ const Manager = () => {
                 </div>
               )}
 
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                <button
+                  onClick={() => {
+                    setMultiSelectMode(!multiSelectMode);
+                    if (multiSelectMode) {
+                      setSelectedSessions(new Set());
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                    color: multiSelectMode ? 'white' : '#374151',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+                </button>
+              </div>
+
+              {multiSelectMode && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '12px 16px',
+                  backgroundColor: '#f0f9ff',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  border: '1px solid #bfdbfe'
+                }}>
+                  <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                    {selectedSessions.size} selected
+                  </span>
+                  <button
+                    onClick={clearSessionSelection}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '4px',
+                      background: 'white',
+                      color: '#1e40af',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => selectAllSessions(filteredSessions)}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '4px',
+                      background: 'white',
+                      color: '#1e40af',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Select All
+                  </button>
+                  {selectedSessions.size > 0 && (
+                    <div style={{ marginLeft: 'auto' }}>
+                      <button
+                        onClick={handleBulkDeleteSessions}
+                        style={{
+                          padding: '8px 16px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          background: '#ef4444',
+                          color: 'white',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Delete Selected
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="qr-table-wrapper">
                 <table className="qr-table">
                   <thead>
                     <tr>
+                      {multiSelectMode && <th style={{ width: '40px' }}></th>}
                       <th>SERVICE/EVENT</th>
                       <th>DATE & TIME</th>
                       <th>SCANS</th>
@@ -2057,13 +2202,13 @@ const Manager = () => {
                   <tbody>
                     {sessionsLoading ? (
                       <tr>
-                        <td colSpan="4" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
+                        <td colSpan={multiSelectMode ? 5 : 4} style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
                           Loading sessions...
                         </td>
                       </tr>
                     ) : filteredSessions.length === 0 ? (
                       <tr>
-                        <td colSpan="4" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
+                        <td colSpan={multiSelectMode ? 5 : 4} style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
                           {searchQuery ? 'No sessions match your search.' : 'No QR sessions generated yet.'}
                         </td>
                       </tr>
@@ -2074,6 +2219,20 @@ const Manager = () => {
 
                         return (
                           <tr key={session.id}>
+                            {multiSelectMode && (
+                              <td style={{ width: '40px', textAlign: 'center' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedSessions.has(session.id)}
+                                  onChange={() => toggleSessionSelection(session.id)}
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: 'pointer'
+                                  }}
+                                />
+                              </td>
+                            )}
                             <td className="qr-service-cell">{session.service_name}</td>
                             <td className="qr-datetime-cell">
                               <div>{dateLabel}</div>

@@ -1743,7 +1743,30 @@ const AttendanceManagement = ({
       </div>
 
       {/* Events List Cards */}
-      {selectedEvents.size > 0 && (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button
+          onClick={() => {
+            setMultiSelectMode(!multiSelectMode);
+            if (multiSelectMode) {
+              setSelectedEvents(new Set());
+            }
+          }}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            borderRadius: '4px',
+            background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+            color: multiSelectMode ? 'white' : '#374151',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500'
+          }}
+        >
+          {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+        </button>
+      </div>
+
+      {multiSelectMode && (
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -1785,47 +1808,27 @@ const AttendanceManagement = ({
           >
             Select All
           </button>
-          <div style={{ marginLeft: 'auto' }}>
-            <button
-              onClick={handleBulkDeleteEvents}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                background: '#ef4444',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500'
-              }}
-            >
-              Delete Selected
-            </button>
-          </div>
+          {selectedEvents.size > 0 && (
+            <div style={{ marginLeft: 'auto' }}>
+              <button
+                onClick={handleBulkDeleteEvents}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                Delete Selected
+              </button>
+            </div>
+          )}
         </div>
       )}
-
-      <button
-        onClick={() => {
-          setMultiSelectMode(!multiSelectMode);
-          if (multiSelectMode) {
-            setSelectedEvents(new Set());
-          }
-        }}
-        style={{
-          padding: '8px 16px',
-          border: 'none',
-          borderRadius: '4px',
-          background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-          color: multiSelectMode ? 'white' : '#374151',
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          fontWeight: '500',
-          marginBottom: '16px'
-        }}
-      >
-        {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-      </button>
 
       <div className="members-cards-container">
         {filteredAttendanceEvents.length === 0 ? (

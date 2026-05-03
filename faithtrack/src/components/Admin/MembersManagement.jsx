@@ -1811,31 +1811,31 @@ ChurchTrack System`;
 
       {activeTab === 'all_members' && (
         <>
-          {allowMemberMutations && (
-            <button
-              onClick={() => {
-                setMultiSelectMode(!multiSelectMode);
-                if (multiSelectMode) {
-                  setSelectedMembers(new Set());
-                  setSelectedGuests(new Set());
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                color: multiSelectMode ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                marginBottom: '16px'
-              }}
-            >
-              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-            </button>
-          )}
-          {multiSelectMode && selectedMembers.size > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            {allowMemberMutations && (
+              <button
+                onClick={() => {
+                  setMultiSelectMode(!multiSelectMode);
+                  if (multiSelectMode) {
+                    setSelectedMembers(new Set());
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                  color: multiSelectMode ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+              </button>
+            )}
+          </div>
+          {multiSelectMode && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -1877,23 +1877,25 @@ ChurchTrack System`;
               >
                 Select All
               </button>
-              <div style={{ marginLeft: 'auto' }}>
-                <button
-                  onClick={handleBulkDeleteMembers}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    background: '#ef4444',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  Delete Selected
-                </button>
-              </div>
+              {selectedMembers.size > 0 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleBulkDeleteMembers}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#ef4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <div className="members-cards-container">
@@ -2322,7 +2324,7 @@ ChurchTrack System`;
               {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
             </button>
           )}
-          {multiSelectMode && selectedMembers.size > 0 && (
+          {multiSelectMode && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -2364,23 +2366,25 @@ ChurchTrack System`;
               >
                 Select All
               </button>
-              <div style={{ marginLeft: 'auto' }}>
-                <button
-                  onClick={handleBulkDeleteMembers}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    background: '#ef4444',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  Delete Selected
-                </button>
-              </div>
+              {selectedMembers.size > 0 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleBulkDeleteMembers}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#ef4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {sortedInactiveMembers.length === 0 ? (
@@ -2560,30 +2564,31 @@ ChurchTrack System`;
 
       {activeTab === 'guests' && (
         <>
-          {canManageGuests && (
-            <button
-              onClick={() => {
-                setMultiSelectMode(!multiSelectMode);
-                if (multiSelectMode) {
-                  setSelectedGuests(new Set());
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                color: multiSelectMode ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                marginBottom: '16px'
-              }}
-            >
-              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-            </button>
-          )}
-          {multiSelectMode && selectedGuests.size > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            {canManageGuests && (
+              <button
+                onClick={() => {
+                  setMultiSelectMode(!multiSelectMode);
+                  if (multiSelectMode) {
+                    setSelectedGuests(new Set());
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                  color: multiSelectMode ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+              </button>
+            )}
+          </div>
+          {multiSelectMode && (
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -2625,23 +2630,25 @@ ChurchTrack System`;
               >
                 Select All
               </button>
-              <div style={{ marginLeft: 'auto' }}>
-                <button
-                  onClick={handleBulkDeleteGuests}
-                  style={{
-                    padding: '8px 16px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    background: '#ef4444',
-                    color: 'white',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  Delete Selected
-                </button>
-              </div>
+              {selectedGuests.size > 0 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleBulkDeleteGuests}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#ef4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
             </div>
           )}
         <div className="members-cards-container">
