@@ -8,6 +8,23 @@ import logoImage from '../../assets/logo2.png';
 import { loadChurchSettingsFromAPI } from '../../utils/churchSettings';
 import { API_BASE_URL } from '../../config/api';
 
+function computeAgeFromBirthYmd(birthYmd) {
+  if (!birthYmd || typeof birthYmd !== 'string') return null;
+  const parts = birthYmd.split('-');
+  if (parts.length < 3) return null;
+  const y = Number(parts[0]);
+  const mo = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (!y || !mo || !day) return null;
+  const birth = new Date(y, mo - 1, day);
+  if (Number.isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age -= 1;
+  return age;
+}
+
 const PRESET_SERVICE_CONFIG = {
   'sunday-service': { name: 'Sunday Service', displayTime: '8:00 AM', defaultTime: '08:00', expirationHours: 4 },
   'prayer-meeting': { name: 'Prayer Meeting', displayTime: '7:00 PM', defaultTime: '19:00', expirationHours: 2 }
@@ -2348,6 +2365,15 @@ const Manager = () => {
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
 
+  const [showGuestCheckIn, setShowGuestCheckIn] = useState(false);
+  const [guestCheckInPhase, setGuestCheckInPhase] = useState('pick');
+  const [selectedGuestSession, setSelectedGuestSession] = useState(null);
+  const [guestCiFirstName, setGuestCiFirstName] = useState('');
+  const [guestCiSurname, setGuestCiSurname] = useState('');
+  const [guestCiBirthDate, setGuestCiBirthDate] = useState('');
+  const [guestCiBusy, setGuestCiBusy] = useState(false);
+  const [guestCiMessage, setGuestCiMessage] = useState({ type: '', text: '' });
+
   // Fetch active QR sessions
   const fetchActiveSessions = useCallback(async () => {
     setIsLoadingSessions(true);
@@ -2516,6 +2542,83 @@ const Manager = () => {
       loadAllMembers();
     }
   }, [showManualCheckIn, fetchActiveSessions, loadAllMembers]);
+
+  useEffect(() => {
+    if (showGuestCheckIn) {
+      fetchActiveSessions();
+    }
+  }, [showGuestCheckIn, fetchActiveSessions]);
+
+  const handleCloseGuestCheckIn = () => {
+    setShowGuestCheckIn(false);
+    setGuestCheckInPhase('pick');
+    setSelectedGuestSession(null);
+    setGuestCiFirstName('');
+    setGuestCiSurname('');
+    setGuestCiBirthDate('');
+    setGuestCiBusy(false);
+    setGuestCiMessage({ type: '', text: '' });
+  };
+
+  const handleSubmitGuestCheckIn = async () => {
+    if (!selectedGuestSession?.session_token) {
+      setGuestCiMessage({ type: 'error', text: 'Choose an active event session first.' });
+      return;
+    }
+    const fn = guestCiFirstName.trim();
+    const sn = guestCiSurname.trim();
+    if (!fn || !sn) {
+      setGuestCiMessage({ type: 'error', text: 'First name and last name are required.' });
+      return;
+    }
+    if (!guestCiBirthDate) {
+      setGuestCiMessage({ type: 'error', text: 'Birth date is required.' });
+      return;
+    }
+    setGuestCiBusy(true);
+    setGuestCiMessage({ type: '', text: '' });
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/guest/checkin.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_token: selectedGuestSession.session_token,
+          first_name: fn,
+          surname: sn,
+          middle_name: '',
+          email: '',
+          contact_number: '',
+          birth_date: guestCiBirthDate,
+          source: 'manual_manager',
+          status: 'present'
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.success) {
+        let msg = data.message || 'Guest checked in successfully.';
+        if (data.data?.ready_for_membership) {
+          msg += ' This guest is eligible for membership conversion (4 preset Sunday visits).';
+        }
+        const pCount = data.data?.preset_sunday_distinct_count;
+        if (!data.data?.ready_for_membership && Number.isFinite(pCount)) {
+          msg += ` Preset Sunday Service visits recorded: ${pCount} of 4.`;
+        }
+        setGuestCiMessage({ type: 'success', text: msg });
+        setGuestCiFirstName('');
+        setGuestCiSurname('');
+        setGuestCiBirthDate('');
+        setGuestCheckInPhase('pick');
+        setSelectedGuestSession(null);
+        fetchActiveSessions();
+      } else {
+        setGuestCiMessage({ type: 'error', text: data.message || 'Guest check-in failed.' });
+      }
+    } catch {
+      setGuestCiMessage({ type: 'error', text: 'Network error. Please try again.' });
+    } finally {
+      setGuestCiBusy(false);
+    }
+  };
 
   const handleCloseManualCheckIn = () => {
     setShowManualCheckIn(false);
@@ -3046,14 +3149,288 @@ const Manager = () => {
     </div>
   );
 
+  const guestCiAge = guestCiBirthDate ? computeAgeFromBirthYmd(guestCiBirthDate) : null;
+
+  const renderGuestCheckInModal = () => (
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2015
+      }}
+      onClick={guestCiBusy ? undefined : handleCloseGuestCheckIn}
+      role="presentation"
+    >
+      <div
+        style={{
+          background: '#ffffff',
+          padding: 0,
+          borderRadius: '12px',
+          width: '95%',
+          maxWidth: '560px',
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guest-checkin-title"
+      >
+        <div
+          style={{
+            padding: '1.35rem 1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #6d28d9, #a855f7)',
+            color: 'white'
+          }}
+        >
+          <div>
+            <h2 id="guest-checkin-title" style={{ margin: 0, fontSize: '1.35rem', fontWeight: '600', color: 'white' }}>
+              Guest Check-In
+            </h2>
+            <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.92)' }}>
+              {guestCheckInPhase === 'pick' ? 'Select the active QR event for this check-in.' : 'Name and birthday (age is computed automatically).'}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={guestCiBusy}
+            onClick={handleCloseGuestCheckIn}
+            style={{
+              padding: '0.4rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.22)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: guestCiBusy ? 'not-allowed' : 'pointer',
+              fontSize: '1.4rem',
+              lineHeight: 1,
+              width: '34px',
+              height: '34px'
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ padding: '1.35rem 1.5rem 1rem', overflowY: 'auto', flex: 1 }}>
+          {guestCheckInPhase === 'pick' ? (
+            <>
+              <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem' }}>
+                Active sessions
+              </label>
+              {isLoadingSessions ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                  Loading events…
+                </div>
+              ) : activeSessions.length === 0 ? (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+                  No active QR sessions right now.
+                </div>
+              ) : (
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '340px', overflowY: 'auto', backgroundColor: '#fff' }}>
+                  {activeSessions.map((session) => {
+                    const sel = selectedGuestSession?.session_token === session.session_token;
+                    const eventDate = new Date(session.event_datetime);
+                    const dateStr = eventDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    return (
+                      <div
+                        key={session.id ?? session.session_token}
+                        onClick={() => setSelectedGuestSession(session)}
+                        style={{
+                          padding: '0.75rem 1rem',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6',
+                          backgroundColor: sel ? '#f5f3ff' : '#fff',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.65rem'
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          checked={sel}
+                          onChange={() => setSelectedGuestSession(session)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select ${session.service_name}`}
+                          style={{ width: '16px', height: '16px', marginTop: '3px', accentColor: '#7c3aed' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.875rem' }}>{session.service_name}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            {dateStr} • {timeStr}
+                            {session.event_type === 'custom' ? ' • Custom event' : ' • Preset'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', fontSize: '0.8125rem', color: '#5b21b6' }}>
+                <strong style={{ fontWeight: 700 }}>Event:</strong>{' '}
+                {selectedGuestSession?.service_name}{' — '}
+                {selectedGuestSession?.event_datetime
+                  ? `${new Date(selectedGuestSession.event_datetime).toLocaleString()}`
+                  : ''}
+              </div>
+              <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.35rem', fontSize: '0.875rem' }}>First name</label>
+              <input
+                type="text"
+                value={guestCiFirstName}
+                onChange={(e) => setGuestCiFirstName(e.target.value)}
+                autoComplete="given-name"
+                style={{ width: '100%', padding: '0.6rem 0.85rem', border: '1px solid #d1d5db', borderRadius: '8px', marginBottom: '0.85rem', fontSize: '0.9375rem' }}
+              />
+              <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.35rem', fontSize: '0.875rem' }}>Last name</label>
+              <input
+                type="text"
+                value={guestCiSurname}
+                onChange={(e) => setGuestCiSurname(e.target.value)}
+                autoComplete="family-name"
+                style={{ width: '100%', padding: '0.6rem 0.85rem', border: '1px solid #d1d5db', borderRadius: '8px', marginBottom: '0.85rem', fontSize: '0.9375rem' }}
+              />
+              <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.35rem', fontSize: '0.875rem' }}>Birthday</label>
+              <input
+                type="date"
+                value={guestCiBirthDate}
+                max={(() => new Date().toISOString().slice(0, 10))()}
+                onChange={(e) => setGuestCiBirthDate(e.target.value)}
+                style={{ width: '100%', padding: '0.55rem 0.85rem', border: '1px solid #d1d5db', borderRadius: '8px', marginBottom: '0.65rem', fontSize: '0.9375rem' }}
+              />
+              {guestCiAge !== null && guestCiAge <= 17 && (
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', color: '#b45309', background: '#fffbeb', border: '1px solid #fcd34d', padding: '0.5rem 0.65rem', borderRadius: '6px' }}>
+                  Minor (age {guestCiAge}): guardian details will be collected when they qualify for membership.
+                </p>
+              )}
+              {guestCiAge !== null && guestCiAge > 17 && (
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>Computed age: {guestCiAge}</p>
+              )}
+            </>
+          )}
+
+          {guestCiMessage.text && (
+            <div
+              style={{
+                marginTop: '1rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: '6px',
+                backgroundColor: guestCiMessage.type === 'success' ? '#d1fae5' : '#fee2e2',
+                color: guestCiMessage.type === 'success' ? '#065f46' : '#991b1b',
+                fontSize: '0.8125rem'
+              }}
+            >
+              {guestCiMessage.text}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            padding: '0.85rem 1.25rem',
+            borderTop: '1px solid #e5e7eb',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '0.6rem',
+            flexWrap: 'wrap',
+            background: '#fafafa'
+          }}
+        >
+          <button
+            type="button"
+            disabled={guestCiBusy}
+            onClick={() => {
+              if (guestCheckInPhase === 'form') {
+                setGuestCheckInPhase('pick');
+                setSelectedGuestSession(null);
+                setGuestCiMessage({ type: '', text: '' });
+              } else {
+                handleCloseGuestCheckIn();
+              }
+            }}
+            style={{
+              padding: '0.55rem 1rem',
+              backgroundColor: '#f3f4f6',
+              color: '#374151',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              fontWeight: 600,
+              cursor: guestCiBusy ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {guestCheckInPhase === 'form' ? 'Back' : 'Cancel'}
+          </button>
+          {guestCheckInPhase === 'pick' ? (
+            <button
+              type="button"
+              disabled={guestCiBusy || !selectedGuestSession}
+              onClick={() => setGuestCheckInPhase('form')}
+              style={{
+                padding: '0.55rem 1.25rem',
+                background: !selectedGuestSession || guestCiBusy ? '#cbd5e1' : 'linear-gradient(135deg,#6d28d9,#a855f7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: !selectedGuestSession || guestCiBusy ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Continue
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate}
+              onClick={handleSubmitGuestCheckIn}
+              style={{
+                padding: '0.55rem 1.25rem',
+                background: guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate
+                  ? '#cbd5e1'
+                  : 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {guestCiBusy ? 'Saving…' : 'Check in guest'}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderAttendance = () => (
     <div className="manager-attendance-module">
       <AttendanceManagement 
         dateFormat="mm/dd/yyyy" 
         isManager={true}
         onManualCheckInClick={() => setShowManualCheckIn(true)}
+        onGuestCheckInClick={() => setShowGuestCheckIn(true)}
       />
       {showManualCheckIn && renderManualCheckIn()}
+      {showGuestCheckIn && renderGuestCheckInModal()}
     </div>
   );
 

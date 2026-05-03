@@ -17,7 +17,10 @@ try {
                         ga.guest_id,
                         COUNT(*) AS total_visits,
                         MAX(ga.checkin_time) AS last_attended,
-                        SUM(CASE WHEN LOWER(TRIM(qs.service_name)) = 'sunday service' AND ga.status IN ('present','late') THEN 1 ELSE 0 END) AS sunday_visits
+                        COUNT(DISTINCT CASE WHEN LOWER(TRIM(IFNULL(qs.service_name, ''))) = 'sunday service'
+                                               AND LOWER(TRIM(IFNULL(qs.event_type, ''))) = 'preset'
+                                               AND ga.status IN ('present','late')
+                                          THEN DATE(COALESCE(qs.event_datetime, ga.checkin_time)) END) AS sunday_visits
                    FROM guest_attendance ga
                    LEFT JOIN qr_sessions qs ON qs.id = ga.session_id
                    GROUP BY ga.guest_id";

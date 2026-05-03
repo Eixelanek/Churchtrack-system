@@ -3,80 +3,24 @@
 header('Content-Type: application/json');
 
 require_once '../config/database.php';
+require_once __DIR__ . '/sunday_preset_helpers.php';
 
-if (!function_exists('labelIndicatesSunday')) {
-    function labelIndicatesSunday(?string $value): bool
+if (!function_exists('guest_compute_is_minor')) {
+    function guest_compute_is_minor(?string $birthDateYmd): int
     {
-        if ($value === null) {
-            return false;
-        }
-
-        $normalized = strtolower(trim($value));
-
-        if ($normalized === '') {
-            return false;
-        }
-
-        if ($normalized === 'sunday service') {
-            return true;
-        }
-
-        if (strpos($normalized, 'sunday service') !== false) {
-            return true;
-        }
-
-        return strpos($normalized, 'sunday') !== false;
-    }
-}
-
-if (!function_exists('dateStringIsSunday')) {
-    function dateStringIsSunday(?string $value): bool
-    {
-        if ($value === null || trim($value) === '') {
-            return false;
+        if ($birthDateYmd === null || trim($birthDateYmd) === '') {
+            return 0;
         }
 
         try {
-            $date = new DateTimeImmutable($value);
-            return $date->format('N') === '7';
+            $birth = new DateTimeImmutable($birthDateYmd);
+            $today = new DateTimeImmutable('today');
+            $age = $birth->diff($today)->y;
+
+            return $age <= 17 ? 1 : 0;
         } catch (Exception $e) {
-            return false;
+            return 0;
         }
-    }
-}
-
-if (!function_exists('tryCreateDate')) {
-    function tryCreateDate(?string $value): ?DateTimeImmutable
-    {
-        if ($value === null || trim($value) === '') {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value);
-        } catch (Exception $e) {
-            return null;
-        }
-    }
-}
-
-if (!function_exists('deriveAttendanceDate')) {
-    function deriveAttendanceDate(array $row): ?DateTimeImmutable
-    {
-        $candidates = [
-            $row['event_datetime_full'] ?? null,
-            $row['event_date'] ?? null,
-            $row['checkin_time'] ?? null
-        ];
-
-        foreach ($candidates as $candidate) {
-            $date = tryCreateDate($candidate);
-            if ($date) {
-                return $date;
-            }
-        }
-
-        return null;
     }
 }
 
@@ -110,6 +54,8 @@ try {
     $notes = trim($input['notes'] ?? '');
     $source = trim($input['source'] ?? 'qr');
     $attendanceStatus = strtolower(trim($input['status'] ?? 'present')) === 'late' ? 'late' : 'present';
+    $isManagerManual = ($source === 'manual_manager');
+    $birthDateInput = trim($input['birth_date'] ?? '');
 
     if ($sessionToken === '' || $firstName === '' || $surname === '') {
         http_response_code(400);
@@ -120,7 +66,29 @@ try {
         exit();
     }
 
-    if ($email === '') {
+    if ($isManagerManual) {
+        if ($birthDateInput === '') {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Birth date is required for guest check-in.'
+            ]);
+            exit();
+        }
+        try {
+            $birthDateImmutable = new DateTimeImmutable($birthDateInput);
+            $birthDateInput = $birthDateImmutable->format('Y-m-d');
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid birth date.'
+            ]);
+            exit();
+        }
+    }
+
+    if (!$isManagerManual && $email === '') {
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -142,7 +110,7 @@ try {
         $contactNumber = $numericContact;
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
@@ -162,10 +130,23 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
+    try {
+        $birthCol = $db->query("SHOW COLUMNS FROM guests LIKE 'birth_date'");
+        if ($birthCol && $birthCol->rowCount() === 0) {
+            $db->exec("ALTER TABLE guests ADD COLUMN birth_date DATE NULL AFTER email");
+        }
+        $minorCol = $db->query("SHOW COLUMNS FROM guests LIKE 'is_minor'");
+        if ($minorCol && $minorCol->rowCount() === 0) {
+            $db->exec("ALTER TABLE guests ADD COLUMN is_minor TINYINT(1) NOT NULL DEFAULT 0 AFTER birth_date");
+        }
+    } catch (Exception $schemaEx) {
+        // ignore; insert will fail clearly if columns missing
+    }
+
     $db->beginTransaction();
 
     // Fetch the guest session details
-    $sessionStmt = $db->prepare("SELECT id, event_id, service_name, event_datetime, status, session_type FROM qr_sessions WHERE session_token = :token LIMIT 1");
+    $sessionStmt = $db->prepare("SELECT id, event_id, service_name, event_datetime, event_type, status, session_type FROM qr_sessions WHERE session_token = :token LIMIT 1");
     $sessionStmt->bindParam(':token', $sessionToken);
     $sessionStmt->execute();
     $session = $sessionStmt->fetch(PDO::FETCH_ASSOC);
@@ -330,6 +311,12 @@ try {
     $isNewGuest = false;
     $guestId = null;
 
+    $effectiveBirthDate = $isManagerManual ? $birthDateInput : null;
+    if (!$isManagerManual && $guest && !empty($guest['birth_date'])) {
+        $effectiveBirthDate = $guest['birth_date'];
+    }
+    $effectiveIsMinor = guest_compute_is_minor($effectiveBirthDate);
+
     if ($guest) {
         $guestId = (int) $guest['id'];
 
@@ -341,7 +328,9 @@ try {
                  suffix = :suffix,
                  full_name = :full_name,
                  contact_number = :contact,
-                 email = :email,
+                 email = CASE WHEN :guest_email <> '' THEN :guest_email ELSE email END,
+                 birth_date = CASE WHEN :manual_mgr_flag = 1 THEN :birth_date_manual ELSE birth_date END,
+                 is_minor = CASE WHEN :manual_mgr_flag = 1 THEN :is_minor_manual ELSE is_minor END,
                  invited_by_member_id = NULL,
                  invited_by_text = NULL,
                  notes = CASE WHEN :notes <> '' THEN :notes ELSE notes END,
@@ -352,13 +341,18 @@ try {
              WHERE id = :guest_id"
         );
 
+        $manualMgrFlag = $isManagerManual ? 1 : 0;
+
         $updateGuest->bindValue(':first_name', $firstName);
         $updateGuest->bindValue(':middle_name', $middleName !== '' ? $middleName : null, $middleName !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $updateGuest->bindValue(':surname', $surname);
         $updateGuest->bindValue(':suffix', $suffix !== '' ? $suffix : null, $suffix !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $updateGuest->bindValue(':full_name', $fullName);
         $updateGuest->bindValue(':contact', $contactNumber !== '' ? $contactNumber : null, $contactNumber !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
-        $updateGuest->bindValue(':email', $email !== '' ? $email : null, $email !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $updateGuest->bindValue(':guest_email', $email);
+        $updateGuest->bindValue(':manual_mgr_flag', $manualMgrFlag, PDO::PARAM_INT);
+        $updateGuest->bindValue(':birth_date_manual', $effectiveBirthDate, $effectiveBirthDate !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $updateGuest->bindValue(':is_minor_manual', $effectiveIsMinor, PDO::PARAM_INT);
         $updateGuest->bindValue(':notes', $notes);
         $updateGuest->bindValue(':first_visit', $visitDate);
         $updateGuest->bindValue(':last_visit', $visitDate);
@@ -369,9 +363,9 @@ try {
 
         $insertGuest = $db->prepare(
             "INSERT INTO guests
-                (first_name, middle_name, surname, suffix, full_name, contact_number, email, notes, first_visit_date, last_visit_date, status)
+                (first_name, middle_name, surname, suffix, full_name, contact_number, email, birth_date, is_minor, notes, first_visit_date, last_visit_date, status)
              VALUES
-                (:first_name, :middle_name, :surname, :suffix, :full_name, :contact, :email, :notes, :first_visit, :last_visit, 'active')"
+                (:first_name, :middle_name, :surname, :suffix, :full_name, :contact, :email, :birth_date, :is_minor, :notes, :first_visit, :last_visit, 'active')"
         );
 
         $insertGuest->bindValue(':first_name', $firstName);
@@ -381,6 +375,8 @@ try {
         $insertGuest->bindValue(':full_name', $fullName);
         $insertGuest->bindValue(':contact', $contactNumber !== '' ? $contactNumber : null, $contactNumber !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $insertGuest->bindValue(':email', $email !== '' ? $email : null, $email !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $insertGuest->bindValue(':birth_date', $effectiveBirthDate !== null ? $effectiveBirthDate : null, $effectiveBirthDate !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $insertGuest->bindValue(':is_minor', $effectiveIsMinor, PDO::PARAM_INT);
         $insertGuest->bindValue(':notes', $notes !== '' ? $notes : null, $notes !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $insertGuest->bindValue(':first_visit', $visitDate);
         $insertGuest->bindValue(':last_visit', $visitDate);
@@ -453,7 +449,8 @@ try {
     $attendanceInsert->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
     $attendanceInsert->bindValue(':event_id', $eventId, $eventId !== null ? PDO::PARAM_INT : PDO::PARAM_NULL);
     $attendanceInsert->bindValue(':status', $attendanceStatus);
-    $attendanceInsert->bindValue(':source', $source !== '' ? $source : 'qr');
+    $attendanceDbSource = $isManagerManual ? 'manual' : (($source !== '' && strtolower($source) === 'manual') ? 'manual' : 'qr');
+    $attendanceInsert->bindValue(':source', $attendanceDbSource);
     $attendanceInsert->bindValue(':notes', $notes !== '' ? $notes : null, $notes !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
     $attendanceInsert->execute();
 
@@ -482,153 +479,101 @@ try {
         // Ignore
     }
     
-    // Get all Sunday service attendances for this guest
-    // Check both via qr_sessions and via events table
-    // Fetch all attendances first, then filter in PHP to avoid collation issues
+    // Preset "Sunday Service" QR sessions only (not custom events with the same name)
     $sundayStmt = $db->prepare(
-        "SELECT DISTINCT 
-            COALESCE(DATE(qs.event_datetime), DATE(e.date), DATE(ga.checkin_time)) AS event_date,
-            COALESCE(qs.event_datetime, CONCAT(e.date, ' ', e.start_time), ga.checkin_time) AS event_datetime_full,
+        "SELECT
+            DATE(COALESCE(qs.event_datetime, ga.checkin_time)) AS event_date,
+            COALESCE(qs.event_datetime, CONCAT(e.date, ' ', COALESCE(NULLIF(TRIM(e.start_time), ''), '00:00:00')), ga.checkin_time) AS event_datetime_full,
             qs.service_name,
-            e.title AS event_title,
-            e.event_type,
+            qs.event_type AS session_event_type,
             ga.checkin_time
          FROM guest_attendance ga
          LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
          LEFT JOIN events e ON (ga.event_id = e.id OR qs.event_id = e.id)
-         WHERE ga.guest_id = :guest_id
-         ORDER BY event_datetime_full DESC"
+         WHERE ga.guest_id = :guest_id"
     );
     $sundayStmt->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
     $sundayStmt->execute();
-    $allRows = $sundayStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Filter for Sunday services in PHP to avoid collation issues
-    $sundayRows = [];
-    foreach ($allRows as $row) {
-        if (
-            labelIndicatesSunday($row['service_name'] ?? '') ||
-            labelIndicatesSunday($row['event_title'] ?? '') ||
-            labelIndicatesSunday($row['event_type'] ?? '') ||
-            dateStringIsSunday($row['event_date'] ?? '') ||
-            dateStringIsSunday($row['event_datetime_full'] ?? '')
-        ) {
-            $sundayRows[] = $row;
-        }
-    }
-    
-    // Check if this is a Sunday service
-    $isSundayService = labelIndicatesSunday($session['service_name'] ?? '')
-        || labelIndicatesSunday($session['session_type'] ?? '')
-        || labelIndicatesSunday($session['event_type'] ?? '')
-        || dateStringIsSunday($session['event_datetime'] ?? '')
-        || dateStringIsSunday($session['event_date'] ?? '')
-        || dateStringIsSunday($session['checkin_time'] ?? '');
+    $allAttendanceRows = $sundayStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Also check if current session is linked to a Sunday service event
-    if (!$isSundayService && $eventId) {
-        $eventCheck = $db->prepare("SELECT title, event_type FROM events WHERE id = :event_id");
-        $eventCheck->bindValue(':event_id', $eventId, PDO::PARAM_INT);
-        $eventCheck->execute();
-        $eventRow = $eventCheck->fetch(PDO::FETCH_ASSOC);
-        if ($eventRow) {
-            if (labelIndicatesSunday($eventRow['title'] ?? '') || labelIndicatesSunday($eventRow['event_type'] ?? '')) {
-                $isSundayService = true;
-            }
+    $presetSundayRows = [];
+    foreach ($allAttendanceRows as $row) {
+        if (guest_attendance_row_is_preset_sunday($row)) {
+            $presetSundayRows[] = $row;
         }
     }
-    
-    // Also add current check-in if it's a Sunday service (to ensure it's counted in streak)
+
+    $isSundayService = guest_qr_session_is_preset_sunday_service(
+        $session['service_name'] ?? null,
+        $session['event_type'] ?? null
+    );
+
     if ($isSundayService && $currentSessionDate) {
         $currentDateStr = $currentSessionDate->format('Y-m-d');
         $hasCurrentDate = false;
-        foreach ($sundayRows as $row) {
+        foreach ($presetSundayRows as $row) {
             if (!empty($row['event_date']) && $row['event_date'] === $currentDateStr) {
                 $hasCurrentDate = true;
                 break;
             }
         }
-        // If current date is not in the results, add it manually to ensure it's counted
         if (!$hasCurrentDate) {
-            array_unshift($sundayRows, [
+            array_unshift($presetSundayRows, [
                 'event_date' => $currentDateStr,
                 'event_datetime_full' => $session['event_datetime'] ?? $currentSessionDate->format('Y-m-d H:i:s'),
-                'service_name' => $session['service_name'] ?? 'Sunday Service',
-                'event_title' => null,
-                'event_type' => null
+                'service_name' => $session['service_name'],
+                'session_event_type' => $session['event_type']
             ]);
         }
     }
-    
-    // Calculate consecutive Sunday streak
-    // IMPORTANT: The current check-in is already in the database (committed), so the query includes it
-    $sundayStreak = 0;
-    $uniqueDates = [];
-    $sundayDateObjects = [];
-    
-    // Collect all unique Sunday dates as DateTimeImmutable objects
-    foreach ($sundayRows as $row) {
+
+    // Distinct preset Sunday Service dates (_membership_: 4 total, not consecutive)
+    $presetSundayDistinctDates = [];
+    foreach ($presetSundayRows as $row) {
         if (empty($row['event_date'])) {
             continue;
         }
         try {
-            $dateObj = new DateTimeImmutable($row['event_date']);
-            $dateStr = $dateObj->format('Y-m-d');
-            
-            // Store unique dates only (avoid duplicates)
-            if (!in_array($dateStr, $uniqueDates, true)) {
-                $uniqueDates[] = $dateStr;
-                $sundayDateObjects[] = $dateObj;
-            }
+            $presetSundayDistinctDates[(new DateTimeImmutable($row['event_date']))->format('Y-m-d')] = true;
         } catch (Exception $e) {
             continue;
         }
     }
-    
-    // Sort dates in descending order (most recent first)
-    usort($sundayDateObjects, function($a, $b) {
-        return $b <=> $a;
-    });
-    
-    // Calculate consecutive streak starting from most recent Sunday
-    // We go backwards in time, checking if each Sunday is approximately 7 days before the previous one
+    $presetSundayDistinctCount = count($presetSundayDistinctDates);
+
+    // Consecutive streak (informational); membership uses presetSundayDistinctCount
+    $sortedSundayDatesDesc = array_keys($presetSundayDistinctDates);
+    rsort($sortedSundayDatesDesc, SORT_STRING);
+    $sundayDateObjects = array_map(static function ($d) {
+        try {
+            return new DateTimeImmutable($d);
+        } catch (Exception $e) {
+            return null;
+        }
+    }, $sortedSundayDatesDesc);
+    $sundayDateObjects = array_values(array_filter($sundayDateObjects));
+
+    $sundayStreak = 0;
     if (!empty($sundayDateObjects)) {
-        $sundayStreak = 1; // Start with the most recent Sunday (index 0)
-        
-        // Check backwards in time for consecutive Sundays
+        $sundayStreak = 1;
         for ($i = 1; $i < count($sundayDateObjects); $i++) {
-            $moreRecentDate = $sundayDateObjects[$i - 1]; // The Sunday we already counted
-            $olderDate = $sundayDateObjects[$i]; // The next Sunday to check
-            
-            // Calculate days between the two Sundays
-            // Since we're going backwards, olderDate is earlier, moreRecentDate is later
-            $diff = $moreRecentDate->diff($olderDate);
-            $diffDays = (int) $diff->days;
-            
-            // For consecutive Sundays, they should be approximately 7 days apart
-            // Allow 6-8 days for flexibility (handles edge cases around week boundaries)
+            $moreRecentDate = $sundayDateObjects[$i - 1];
+            $olderDate = $sundayDateObjects[$i];
+            $diffDays = (int) $moreRecentDate->diff($olderDate)->days;
             if ($diffDays >= 6 && $diffDays <= 8) {
-                // This Sunday is consecutive with the previous one
                 $sundayStreak++;
             } else {
-                // Gap is too large (or too small) - streak is broken
-                // Stop counting backwards
                 break;
             }
         }
     }
-    
-    // The effective streak is the calculated streak
-    // Since the query includes the current check-in, if streak = 4, this is the 4th consecutive Sunday
+
     $effectiveStreak = $sundayStreak;
-    
-    // Log for debugging
-    $debugStreakDates = array_map(function($d) {
-        return $d->format('Y-m-d');
-    }, array_slice($sundayDateObjects, 0, min(5, count($sundayDateObjects))));
-    
-    $remainingForMembership = max(0, 4 - $effectiveStreak);
-    
+
+    $debugStreakDates = array_slice($sortedSundayDatesDesc, 0, 5);
+
+    $remainingForMembership = max(0, 4 - min(4, $presetSundayDistinctCount));
+
     // Check if guest is already converted/archived
     $guestStatusCheck = $db->prepare("SELECT status FROM guests WHERE id = :guest_id");
     $guestStatusCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
@@ -667,56 +612,9 @@ try {
         }
     }
     
-    // Show membership form if:
-    // 1. This is a Sunday service check-in (must be Sunday service to trigger)
-    // 2. Guest is still active (not converted/archived)
-    // 3. Guest has 4+ total Sunday attendances (including this check-in)
-    // 4. Guest is not already a member
-    $totalSundayCount = count($uniqueDates);
-    
-    // CRITICAL: Ensure current check-in is counted if it's a Sunday service
-    // The query should include it, but double-check by adding 1 if needed
-    if ($isSundayService && $totalSundayCount < 4) {
-        // If this is a Sunday service and count is less than 4, the current check-in might not be counted
-        // Add it manually to the count
-        $totalSundayCount = max($totalSundayCount, count($sundayRows));
-    }
-    
-    // SIMPLIFIED LOGIC: If this is a Sunday service AND guest has 4+ total Sunday attendances, show form
-    // This ensures that on the 4th Sunday service check-in, the form appears immediately
-    // Use the count of sundayRows (which includes current check-in) instead of uniqueDates
-    $actualSundayCount = count($sundayRows); // This should include the current check-in
-    
-    $readyForMembership = false;
-    
-    // Check all conditions
-    if ($isSundayService) {
-        // Debug: Log the conditions
-        error_log("Membership check - isSundayService: " . ($isSundayService ? 'true' : 'false'));
-        error_log("Membership check - isGuestActive: " . ($isGuestActive ? 'true' : 'false'));
-        error_log("Membership check - isAlreadyMember: " . ($isAlreadyMember ? 'true' : 'false'));
-        error_log("Membership check - totalSundayCount: $totalSundayCount");
-        error_log("Membership check - actualSundayCount: $actualSundayCount");
-        error_log("Membership check - effectiveStreak: $effectiveStreak");
-        
-        if ($isGuestActive && !$isAlreadyMember) {
-            // PRIMARY: Show form if guest has 4+ total Sunday attendances (including this one)
-            // Use the larger of the two counts to be safe
-            $finalCount = max($totalSundayCount, $actualSundayCount);
-            
-            // Show form if count is 4+ OR streak is 4+
-            if ($finalCount >= 4 || $effectiveStreak >= 4) {
-                $readyForMembership = true;
-                error_log("Membership check - READY: finalCount=$finalCount, streak=$effectiveStreak");
-            } else {
-                error_log("Membership check - NOT READY: finalCount=$finalCount (need 4+), streak=$effectiveStreak (need 4+)");
-            }
-        } else {
-            error_log("Membership check - NOT READY: isGuestActive=" . ($isGuestActive ? 'true' : 'false') . ", isAlreadyMember=" . ($isAlreadyMember ? 'true' : 'false'));
-        }
-    } else {
-        error_log("Membership check - NOT READY (not Sunday service)");
-    }
+    $readyForMembership = $isGuestActive
+        && !$isAlreadyMember
+        && $presetSundayDistinctCount >= 4;
 
     http_response_code(201);
     echo json_encode([
@@ -735,18 +633,18 @@ try {
             'service_name' => $session['service_name'],
             'event_datetime' => $session['event_datetime'],
             'status' => $attendanceStatus,
+            'preset_sunday_distinct_count' => $presetSundayDistinctCount,
             'debug_info' => [
                 'is_sunday_service' => $isSundayService,
                 'is_guest_active' => $isGuestActive,
                 'is_already_member' => $isAlreadyMember,
+                'preset_sunday_distinct_count' => $presetSundayDistinctCount,
                 'sunday_dates_count' => count($sundayDateObjects),
                 'sunday_streak' => $sundayStreak,
                 'effective_streak' => $effectiveStreak,
-                'total_sunday_count' => $totalSundayCount,
                 'guest_status' => $guestStatus,
-                'recent_sunday_dates' => $debugStreakDates,
-                'unique_sunday_count' => count($uniqueDates),
-                'has_enough_sundays' => $totalSundayCount >= 4 || $effectiveStreak >= 4
+                'recent_preset_sunday_dates' => $debugStreakDates,
+                'has_enough_sundays' => $presetSundayDistinctCount >= 4
             ]
         ]
     ]);

@@ -4,7 +4,13 @@ import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { API_BASE_URL } from '../../config/api';
 import { offlineStorage } from '../../utils/offlineStorage';
 
-const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null, isManager = false, onManualCheckInClick = null }) => {
+const AttendanceManagement = ({
+  dateFormat = 'mm/dd/yyyy',
+  onEventsChange = null,
+  isManager = false,
+  onManualCheckInClick = null,
+  onGuestCheckInClick = null
+}) => {
   const [activeTab, setActiveTab] = useState('today_events');
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showMarkAttendanceModal, setShowMarkAttendanceModal] = useState(false);
@@ -1512,32 +1518,65 @@ const AttendanceManagement = ({ dateFormat = 'mm/dd/yyyy', onEventsChange = null
           <h1>Attendance Records</h1>
           <p className="directory-subtitle">Track and view detailed attendance history</p>
         </div>
-        {isManager && onManualCheckInClick && (
-          <button
-            onClick={onManualCheckInClick}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="14" y2="14"></line>
-              <line x1="14" y1="8" x2="20" y2="14"></line>
-            </svg>
-            Manual Check-In
-          </button>
+        {isManager && (onManualCheckInClick || onGuestCheckInClick) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+            {onManualCheckInClick && (
+              <button
+                type="button"
+                onClick={onManualCheckInClick}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <line x1="20" y1="8" x2="14" y2="14"></line>
+                  <line x1="14" y1="8" x2="20" y2="14"></line>
+                </svg>
+                Manual Check-In
+              </button>
+            )}
+            {onGuestCheckInClick && (
+              <button
+                type="button"
+                onClick={onGuestCheckInClick}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#7c3aed',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Guest Check-In
+              </button>
+            )}
+          </div>
         )}
       </div>
 
