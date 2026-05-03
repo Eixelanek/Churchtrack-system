@@ -121,6 +121,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     relationshipToGuardian: ''
   });
   const [managerModeration, setManagerModeration] = useState(() => loadManagerReviewMap());
+  const [selectedMembers, setSelectedMembers] = useState(new Set());
+  const [selectedGuests, setSelectedGuests] = useState(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteType, setBulkDeleteType] = useState(null); // 'members' or 'guests'
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
 
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
@@ -178,6 +183,110 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     setConfirmMessage(`Delete guest record for ${guest.name}? This cannot be undone.`);
     setUserToAction(guest);
     setShowConfirmModal(true);
+  };
+
+  // Multi-select handlers
+  const toggleMemberSelection = (memberId) => {
+    setSelectedMembers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId);
+      } else {
+        newSet.add(memberId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleGuestSelection = (guestId) => {
+    setSelectedGuests(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(guestId)) {
+        newSet.delete(guestId);
+      } else {
+        newSet.add(guestId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllMembers = (members) => {
+    setSelectedMembers(new Set(members.map(m => m.id)));
+  };
+
+  const selectAllGuests = (guests) => {
+    setSelectedGuests(new Set(guests.map(g => g.id)));
+  };
+
+  const clearMemberSelection = () => {
+    setSelectedMembers(new Set());
+  };
+
+  const clearGuestSelection = () => {
+    setSelectedGuests(new Set());
+  };
+
+  const handleBulkDeleteMembers = () => {
+    if (selectedMembers.size === 0) return;
+    setBulkDeleteType('members');
+    setShowBulkDeleteModal(true);
+  };
+
+  const handleBulkDeleteGuests = () => {
+    if (selectedGuests.size === 0) return;
+    setBulkDeleteType('guests');
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (bulkDeleteLoading) return;
+    setBulkDeleteLoading(true);
+
+    try {
+      const ids = bulkDeleteType === 'members' ? Array.from(selectedMembers) : Array.from(selectedGuests);
+      const endpoint = bulkDeleteType === 'members' ? '/api/members/delete.php' : '/api/guest/delete.php';
+      
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of ids) {
+        try {
+          const response = await fetch(`${backendBaseUrl}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          const data = await response.json();
+          if (response.ok && data.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          failCount++;
+        }
+      }
+
+      setShowBulkDeleteModal(false);
+      setBulkDeleteType(null);
+      if (bulkDeleteType === 'members') {
+        setSelectedMembers(new Set());
+      } else {
+        setSelectedGuests(new Set());
+      }
+      
+      fetchData();
+      
+      const message = failCount === 0 
+        ? `Successfully deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}.`
+        : `Deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}, ${failCount} failed.`;
+      
+      setSuccessMessage(message);
+      setShowConfirmActionSuccess(true);
+      setTimeout(() => setShowConfirmActionSuccess(false), 3000);
+    } finally {
+      setBulkDeleteLoading(false);
+    }
   };
 
   const overlayMouseDownTarget = useRef(null);
@@ -1701,6 +1810,67 @@ ChurchTrack System`;
 
       {activeTab === 'all_members' && (
         <>
+          {selectedMembers.size > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                {selectedMembers.size} selected
+              </span>
+              <button
+                onClick={clearMemberSelection}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => selectAllMembers(sortedMembers)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Select All
+              </button>
+              <div style={{ marginLeft: 'auto' }}>
+                <button
+                  onClick={handleBulkDeleteMembers}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    background: '#ef4444',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          )}
           <div className="members-cards-container">
           {sortedMembers.map(member => {
             const familyRelativeCount = getFamilyRelativeCount(member);
@@ -1710,6 +1880,21 @@ ChurchTrack System`;
             const isExpanded = expandedMemberId === member.id;
             return (
               <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                <input 
+                  type="checkbox" 
+                  className="member-card-checkbox"
+                  checked={selectedMembers.has(member.id)}
+                  onChange={() => toggleMemberSelection(member.id)}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    left: '12px',
+                    width: '20px',
+                    height: '20px',
+                    cursor: 'pointer',
+                    zIndex: 10
+                  }}
+                />
                 <div className="member-card">
                   <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                     {member.profile_picture ? (
@@ -2087,6 +2272,67 @@ ChurchTrack System`;
 
       {activeTab === 'inactive' && (
         <>
+          {selectedMembers.size > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                {selectedMembers.size} selected
+              </span>
+              <button
+                onClick={clearMemberSelection}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => selectAllMembers(sortedInactiveMembers)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Select All
+              </button>
+              <div style={{ marginLeft: 'auto' }}>
+                <button
+                  onClick={handleBulkDeleteMembers}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    background: '#ef4444',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          )}
           {sortedInactiveMembers.length === 0 ? (
             <div className="members-cards-container">
               <div className="empty-state">
@@ -2106,6 +2352,21 @@ ChurchTrack System`;
                 const isExpanded = expandedMemberId === member.id;
                 return (
                   <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                    <input 
+                      type="checkbox" 
+                      className="member-card-checkbox"
+                      checked={selectedMembers.has(member.id)}
+                      onChange={() => toggleMemberSelection(member.id)}
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                        zIndex: 10
+                      }}
+                    />
                     <div className="member-card">
                       <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                         {member.profile_picture ? (
@@ -2246,6 +2507,68 @@ ChurchTrack System`;
       )}
 
       {activeTab === 'guests' && (
+        <>
+          {selectedGuests.size > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                {selectedGuests.size} selected
+              </span>
+              <button
+                onClick={clearGuestSelection}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => selectAllGuests(sortedGuests)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Select All
+              </button>
+              <div style={{ marginLeft: 'auto' }}>
+                <button
+                  onClick={handleBulkDeleteGuests}
+                  style={{
+                    padding: '8px 16px',
+                    border: 'none',
+                    borderRadius: '4px',
+                    background: '#ef4444',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          )}
         <div className="members-cards-container">
           {sortedGuests.length > 0 ? (
             sortedGuests.map((guest) => {
@@ -2256,6 +2579,21 @@ ChurchTrack System`;
               const isExpanded = expandedGuestId === guest.id;
               return (
                 <div key={guest.id || guest.full_name} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                  <input 
+                    type="checkbox" 
+                    className="member-card-checkbox"
+                    checked={selectedGuests.has(guest.id)}
+                    onChange={() => toggleGuestSelection(guest.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      zIndex: 10
+                    }}
+                  />
                   <div className="member-card guest-card" onClick={() => toggleGuestExpand(guest.id)}>
                     <div className="member-avatar guest">
                       {getInitials(guest.name)}
@@ -2345,6 +2683,7 @@ ChurchTrack System`;
             </div>
           )}
         </div>
+        </>
       )}
 
       {activeTab === 'rejected' && (
@@ -3177,6 +3516,56 @@ ChurchTrack System`;
         }}>
           <div className="spinner" style={{ position: 'relative', width: '32px', height: '32px' }}>
             <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Modal */}
+      {showBulkDeleteModal && (
+        <div className="modal-overlay" onClick={() => !bulkDeleteLoading && setShowBulkDeleteModal(false)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()} style={{ minHeight: '220px', minWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1a1a1a' }}>
+              Delete {bulkDeleteType === 'members' ? 'Members' : 'Guests'}?
+            </h3>
+            <p style={{ margin: 0, color: '#666', fontSize: '0.875rem' }}>
+              Are you sure you want to delete {bulkDeleteType === 'members' ? selectedMembers.size : selectedGuests.size} {bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'} permanently? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+              <button 
+                onClick={() => setShowBulkDeleteModal(false)}
+                disabled={bulkDeleteLoading}
+                style={{
+                  padding: '10px 24px',
+                  border: '1px solid #D9D9D9',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: 'black',
+                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.875rem',
+                  minWidth: '100px',
+                  opacity: bulkDeleteLoading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmBulkDelete}
+                disabled={bulkDeleteLoading}
+                style={{
+                  padding: '10px 24px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.875rem',
+                  minWidth: '100px',
+                  opacity: bulkDeleteLoading ? 0.6 : 1
+                }}
+              >
+                {bulkDeleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}

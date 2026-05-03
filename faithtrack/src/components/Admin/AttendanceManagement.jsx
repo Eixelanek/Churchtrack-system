@@ -12,6 +12,9 @@ const AttendanceManagement = ({
   onGuestCheckInClick = null
 }) => {
   const [activeTab, setActiveTab] = useState('today_events');
+  const [selectedEvents, setSelectedEvents] = useState(new Set());
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showMarkAttendanceModal, setShowMarkAttendanceModal] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -623,6 +626,73 @@ const AttendanceManagement = ({
     setConfirmMessage('Are you sure you want to delete this event?');
     setEventToAction(eventId);
     setShowConfirmModal(true);
+  };
+
+  // Multi-select handlers
+  const toggleEventSelection = (eventId) => {
+    setSelectedEvents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllEvents = (events) => {
+    setSelectedEvents(new Set(events.map(e => e.id)));
+  };
+
+  const clearEventSelection = () => {
+    setSelectedEvents(new Set());
+  };
+
+  const handleBulkDeleteEvents = () => {
+    if (selectedEvents.size === 0) return;
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDeleteEvents = async () => {
+    if (bulkDeleteLoading) return;
+    setBulkDeleteLoading(true);
+
+    try {
+      const ids = Array.from(selectedEvents);
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of ids) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/events/delete.php`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          if (response.ok) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          failCount++;
+        }
+      }
+
+      setShowBulkDeleteModal(false);
+      setSelectedEvents(new Set());
+      
+      await loadEvents();
+      
+      const message = failCount === 0 
+        ? `Successfully deleted ${successCount} event(s).`
+        : `Deleted ${successCount} event(s), ${failCount} failed.`;
+      
+      alert(message);
+    } finally {
+      setBulkDeleteLoading(false);
+    }
   };
 
   const handleEditEvent = (event) => {
