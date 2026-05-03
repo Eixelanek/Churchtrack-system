@@ -1742,6 +1742,68 @@ const AttendanceManagement = ({
       </div>
 
       {/* Events List Cards */}
+      {selectedEvents.size > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          borderRadius: '8px',
+          marginBottom: '16px',
+          border: '1px solid #bfdbfe'
+        }}>
+          <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+            {selectedEvents.size} selected
+          </span>
+          <button
+            onClick={clearEventSelection}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #bfdbfe',
+              borderRadius: '4px',
+              background: 'white',
+              color: '#1e40af',
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => selectAllEvents(filteredAttendanceEvents)}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #bfdbfe',
+              borderRadius: '4px',
+              background: 'white',
+              color: '#1e40af',
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
+          >
+            Select All
+          </button>
+          <div style={{ marginLeft: 'auto' }}>
+            <button
+              onClick={handleBulkDeleteEvents}
+              style={{
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                background: '#ef4444',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500'
+              }}
+            >
+              Delete Selected
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="members-cards-container">
         {filteredAttendanceEvents.length === 0 ? (
           <div className="no-events-message">
@@ -1762,6 +1824,21 @@ const AttendanceManagement = ({
             
             return (
               <div key={event.id} className={`member-card-wrapper ${expandedServiceId === event.id ? 'expanded' : ''}`}>
+                <input 
+                  type="checkbox" 
+                  className="member-card-checkbox"
+                  checked={selectedEvents.has(event.id)}
+                  onChange={() => toggleEventSelection(event.id)}
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    left: '12px',
+                    width: '20px',
+                    height: '20px',
+                    cursor: 'pointer',
+                    zIndex: 10
+                  }}
+                />
                 <div
                   className="member-card"
                   onClick={() => {
@@ -3142,6 +3219,58 @@ const AttendanceManagement = ({
                   </ul>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Modal */}
+      {showBulkDeleteModal && (
+        <div className="modal-overlay" onMouseDown={handleModalMouseDown} onClick={() => !bulkDeleteLoading && setShowBulkDeleteModal(false)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()} style={{ minHeight: '220px', minWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1a1a1a' }}>
+              Delete Events?
+            </h3>
+            <p style={{
+              margin: 0, color: '#666', fontSize: '0.875rem'
+            }}>
+              Are you sure you want to delete {selectedEvents.size} event(s) permanently? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+              <button 
+                onClick={() => setShowBulkDeleteModal(false)}
+                disabled={bulkDeleteLoading}
+                style={{
+                  padding: '10px 24px',
+                  border: '1px solid #D9D9D9',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: 'black',
+                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.875rem',
+                  minWidth: '100px',
+                  opacity: bulkDeleteLoading ? 0.6 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmBulkDeleteEvents}
+                disabled={bulkDeleteLoading}
+                style={{
+                  padding: '10px 24px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: '#ef4444',
+                  color: 'white',
+                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.875rem',
+                  minWidth: '100px',
+                  opacity: bulkDeleteLoading ? 0.6 : 1
+                }}
+              >
+                {bulkDeleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
             </div>
           </div>
         </div>
