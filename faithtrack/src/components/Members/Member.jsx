@@ -11,6 +11,7 @@ import ScanQR from './ScanQR';
 import { loadChurchSettingsFromAPI, updateFavicon } from '../../utils/churchSettings';
 import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/memberAttendance';
 import { fetchFamilyTree, searchMembers, sendFamilyInvite, respondToInvite, removeFamilyRelationship } from '../../api/familyTree';
+import FamilyTreeChart from '../common/FamilyTreeChart';
 import { API_BASE_URL } from '../../config/api';
 
 /** Shrink base64 photos before POST (avoids post_max_size / memory issues on the API) */
@@ -1679,7 +1680,8 @@ const Member = () => {
         parents: [],
         couple: [{ name: displayName, relation: 'You' }],
         siblings: [],
-        children: []
+        children: [],
+        other: [],
       };
     }
     
@@ -1690,7 +1692,8 @@ const Member = () => {
         ...(familyTreeData.tree.couple || [])
       ],
       siblings: familyTreeData.tree.siblings || [],
-      children: familyTreeData.tree.children || []
+      children: familyTreeData.tree.children || [],
+      other: familyTreeData.tree.other || [],
     };
   }, [familyTreeData, displayName]);
 
@@ -2084,87 +2087,17 @@ const Member = () => {
             <section className="family-tree-section">
               <h3>Family Tree Preview</h3>
               <div className="family-tree-visual">
-                <div className="family-tree-graph">
-                  {familyTreePreview.parents.length > 0 && (
-                    <div className="tree-generation-row">
-                      <span className="tree-generation-label">Grandparents</span>
-                      <div className="tree-row">
-                        {familyTreePreview.parents.map((member) => (
-                          <div key={`${member.name}-${member.relation}`} className="family-tree-node">
-                            <div className="node-avatar">{getInitials(member.name)}</div>
-                            <div className="node-text">
-                              <span className="node-name">{member.name}</span>
-                              <div className="node-meta">
-                                {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {familyTreePreview.couple.length > 0 && (
-                    <div className="tree-generation-row">
-                      <span className="tree-generation-label">Parents</span>
-                      <div className="tree-row couple">
-                        {familyTreePreview.couple.map((member) => (
-                          <div key={`${member.name}-${member.relation}`} className={`family-tree-node ${member.relation === 'You' ? 'highlight' : ''}`}>
-                            <div className="node-avatar">{getInitials(member.name)}</div>
-                            <div className="node-text">
-                              <span className="node-name">{member.name}</span>
-                              <div className="node-meta">
-                                {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {familyTreePreview.siblings.length > 0 && (
-                    <div className="tree-generation-row">
-                      <span className="tree-generation-label">Siblings</span>
-                      <div className="tree-row">
-                        {familyTreePreview.siblings.map((member) => (
-                          <div key={`${member.name}-${member.relation}`} className="family-tree-node">
-                            <div className="node-avatar">{getInitials(member.name)}</div>
-                            <div className="node-text">
-                              <span className="node-name">{member.name}</span>
-                              <div className="node-meta">
-                                {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {familyTreePreview.children.length > 0 && (
-                    <div className="tree-generation-row">
-                      <span className="tree-generation-label">Children</span>
-                      <div className="tree-row">
-                        {familyTreePreview.children.map((member) => (
-                          <div key={`${member.name}-${member.relation}`} className="family-tree-node">
-                            <div className="node-avatar">{getInitials(member.name)}</div>
-                            <div className="node-text">
-                              <span className="node-name">{member.name}</span>
-                              <div className="node-meta">
-                                {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <FamilyTreeChart
+                  parents={familyTreePreview.parents}
+                  centerRow={familyTreePreview.couple}
+                  siblings={familyTreePreview.siblings}
+                  children={familyTreePreview.children}
+                  other={familyTreePreview.other}
+                  getInitials={getInitials}
+                  formatRelation={(rel) => (rel === 'You' ? 'You' : normalizeRelationLabel(rel))}
+                  highlightRelation="You"
+                  theme="green"
+                />
               </div>
             </section>
 

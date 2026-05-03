@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './MembersManagement.css';
 import { fetchFamilyTree } from '../../api/familyTree';
+import FamilyTreeChart from '../common/FamilyTreeChart';
 import { API_BASE_URL } from '../../config/api';
 import { offlineStorage } from '../../utils/offlineStorage';
 
@@ -86,6 +87,8 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [emailCheckMessage, setEmailCheckMessage] = useState('');
   const [expandedMemberId, setExpandedMemberId] = useState(null);
   const [familyMembers, setFamilyMembers] = useState({});
+  /** Raw tree buckets from API (parents / couple / siblings / children / other) for pedigree layout */
+  const [familyTreeByMemberId, setFamilyTreeByMemberId] = useState({});
   const [familyLoading, setFamilyLoading] = useState({});
   const [familyErrors, setFamilyErrors] = useState({});
   const [expandedGuestId, setExpandedGuestId] = useState(null);
@@ -1337,13 +1340,36 @@ ChurchTrack System`;
       .slice(0, 2);
   };
 
-  // Get family member count from backend data
+  // People shown in the tree: focal member plus all relatives (avoids "2 members" when three cards render)
   const getFamilyCount = (member) => {
-    if (Array.isArray(familyMembers[member.id])) {
-      return familyMembers[member.id].length;
+    const id = member.id;
+    const tree = familyTreeByMemberId[id];
+    if (tree && typeof tree === 'object') {
+      const relatives =
+        (tree.parents?.length || 0) +
+        (tree.couple?.length || 0) +
+        (tree.siblings?.length || 0) +
+        (tree.children?.length || 0) +
+        (tree.other?.length || 0);
+      return relatives + 1;
+    }
+    if (Array.isArray(familyMembers[id])) {
+      return familyMembers[id].length + 1;
     }
     return member.family_count || 0;
   };
+
+  const resolveFamilyProfileUrl = (storedPath) => {
+    if (!storedPath) return null;
+    if (storedPath.startsWith('http') || storedPath.startsWith('data:')) return storedPath;
+    const path = String(storedPath).replace('/uploads/profile_pictures/', '');
+    return `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${encodeURIComponent(path)}`;
+  };
+
+  const mapTreePersonForChart = (node) => ({
+    ...node,
+    profile_picture: resolveFamilyProfileUrl(node.profile_picture),
+  });
 
   // Fetch family members for a specific member using family tree API
   const fetchFamilyMembers = async (member) => {
@@ -1394,6 +1420,17 @@ ChurchTrack System`;
       appendGroup(tree.children, 'Child');
       appendGroup(tree.other, 'Family');
 
+      setFamilyTreeByMemberId((prev) => ({
+        ...prev,
+        [memberId]: {
+          parents: tree.parents || [],
+          couple: tree.couple || [],
+          siblings: tree.siblings || [],
+          children: tree.children || [],
+          other: tree.other || [],
+        },
+      }));
+
       setFamilyMembers((prev) => ({
         ...prev,
         [memberId]: transformed,
@@ -1403,6 +1440,16 @@ ChurchTrack System`;
       setFamilyErrors((prev) => ({
         ...prev,
         [memberId]: 'Unable to load family tree right now.',
+      }));
+      setFamilyTreeByMemberId((prev) => ({
+        ...prev,
+        [memberId]: {
+          parents: [],
+          couple: [],
+          siblings: [],
+          children: [],
+          other: [],
+        },
       }));
       setFamilyMembers((prev) => ({
         ...prev,
@@ -1981,83 +2028,24 @@ ChurchTrack System`;
                             </div>
                           ) : familyCount > 0 ? (
                             <div className="family-tree-visual-admin">
-                              <div className="family-tree-graph">
-                                {/* Parents Row */}
-                                {familyMembers[member.id] && familyMembers[member.id].filter(f => f.relationship_type === 'Father' || f.relationship_type === 'Mother').length > 0 && (
-                                  <div className="tree-row">
-                                    {familyMembers[member.id].filter(f => f.relationship_type === 'Father' || f.relationship_type === 'Mother').map((familyMember) => (
-                                      <div key={familyMember.id} className="family-tree-node">
-                                        <div className="node-avatar">{getInitials(familyMember.full_name)}</div>
-                                        <div className="node-text">
-                                          <span className="node-label">{familyMember.relationship_type}</span>
-                                          <span className="node-name">{familyMember.full_name}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                
-                                {/* Connector */}
-                                {familyMembers[member.id] && familyMembers[member.id].filter(f => f.relationship_type === 'Father' || f.relationship_type === 'Mother').length > 0 && (
-                                  <div className="tree-connector vertical" />
-                                )}
-                                
-                                {/* Couple Row (Member + Spouse) */}
-                                <div className="tree-row couple">
-                                  <div className="family-tree-node highlight">
-                                    <div className="node-avatar">{getInitials(member.name)}</div>
-                                    <div className="node-text">
-                                      <span className="node-label">Member</span>
-                                      <span className="node-name">{member.name}</span>
-                                    </div>
-                                  </div>
-                                  {familyMembers[member.id] && familyMembers[member.id].filter(f => f.relationship_type === 'Spouse').map((familyMember) => (
-                                    <div key={familyMember.id} className="family-tree-node">
-                                      <div className="node-avatar">{getInitials(familyMember.full_name)}</div>
-                                      <div className="node-text">
-                                        <span className="node-label">Spouse</span>
-                                        <span className="node-name">{familyMember.full_name}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                
-                                {/* Siblings Row */}
-                                {familyMembers[member.id] && familyMembers[member.id].filter(f => f.relationship_type === 'Brother' || f.relationship_type === 'Sister').length > 0 && (
-                                  <>
-                                    <div className="tree-connector vertical" />
-                                    <div className="tree-row">
-                                      {familyMembers[member.id].filter(f => f.relationship_type === 'Brother' || f.relationship_type === 'Sister').map((familyMember) => (
-                                        <div key={familyMember.id} className="family-tree-node">
-                                          <div className="node-avatar">{getInitials(familyMember.full_name)}</div>
-                                          <div className="node-text">
-                                            <span className="node-label">{familyMember.relationship_type}</span>
-                                            <span className="node-name">{familyMember.full_name}</span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </>
-                                )}
-                                
-                                {/* Children Row */}
-                                {familyMembers[member.id] && familyMembers[member.id].filter(f => f.relationship_type === 'Son' || f.relationship_type === 'Daughter').length > 0 && (
-                                  <>
-                                    <div className="tree-connector vertical" />
-                                    <div className="tree-row">
-                                      {familyMembers[member.id].filter(f => f.relationship_type === 'Son' || f.relationship_type === 'Daughter').map((familyMember) => (
-                                        <div key={familyMember.id} className="family-tree-node">
-                                          <div className="node-avatar">{getInitials(familyMember.full_name)}</div>
-                                          <div className="node-text">
-                                            <span className="node-label">{familyMember.relationship_type}</span>
-                                            <span className="node-name">{familyMember.full_name}</span>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </>
-                                )}
-                              </div>
+                              <FamilyTreeChart
+                                parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
+                                centerRow={[
+                                  {
+                                    id: `subject-${member.id}`,
+                                    name: member.name,
+                                    relation: 'Member',
+                                  },
+                                  ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
+                                ]}
+                                siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
+                                children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
+                                other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
+                                getInitials={getInitials}
+                                formatRelation={(r) => r || ''}
+                                highlightRelation="Member"
+                                theme="indigo"
+                              />
                             </div>
                           ) : (
                             <div className="no-family-message">
