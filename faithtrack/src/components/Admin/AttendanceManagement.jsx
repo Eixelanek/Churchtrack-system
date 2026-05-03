@@ -340,6 +340,23 @@ const AttendanceManagement = ({
 
   const INLINE_PREVIEW_LIMIT = 5;
 
+  /** Guests used to receive time-only strings from the API; JS Date cannot parse "HH:mm". */
+  const formatModalCheckInClock = (raw) => {
+    if (raw == null || raw === '') return '';
+    const s = String(raw).trim();
+    const parsed = new Date(s);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    const hm = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(s);
+    if (hm) {
+      const dt = new Date();
+      dt.setHours(parseInt(hm[1], 10, 10), parseInt(hm[2], 10, 10), hm[3] ? parseInt(hm[3], 10, 10) : 0, 0);
+      return dt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    return s;
+  };
+
   // Format date for display (Sep 29)
   const formatDateDisplay = (date) => {
     const options = { month: 'short', day: 'numeric' };
@@ -3043,7 +3060,9 @@ const AttendanceManagement = ({
                               {secondary && <span className="full-list-secondary">{secondary}</span>}
                             </div>
                             {selectedEventDetails.activeTab === 'attendees' && person.checkInTime && (
-                              <div className="full-list-subtext">Checked in at {new Date(person.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
+                              <div className="full-list-subtext">
+                                Checked in at {formatModalCheckInClock(person.checkInTime)}
+                              </div>
                             )}
                           </div>
                           <span className={`full-list-status ${selectedEventDetails.activeTab === 'attendees' ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>

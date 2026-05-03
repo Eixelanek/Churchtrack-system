@@ -155,10 +155,8 @@ try {
                 default => ucfirst($status)
             };
 
+            // Keep full datetime string — JS cannot parse time-only values like "15:41"
             $checkInTime = $row['checkin_time'] ?? null;
-            if (!empty($checkInTime)) {
-                $checkInTime = date('H:i', strtotime($checkInTime));
-            }
 
             return [
                 'id' => 'guest-' . ($row['guest_id'] ?? uniqid()),
