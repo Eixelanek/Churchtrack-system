@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import './Login.css';
 import '../transitions.css';
 import logoImage from '../../assets/logo.png';
 import { loadChurchSettingsFromAPI, updateFavicon } from '../../utils/churchSettings';
 import { API_BASE_URL } from '../../config/api';
+
+const safeMemberRedirectPath = (raw) => {
+  if (raw == null || typeof raw !== 'string') return null;
+  const t = raw.trim();
+  if (!t.startsWith('/') || t.startsWith('//')) return null;
+  return t;
+};
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -19,6 +26,7 @@ const Login = () => {
   const [isExiting, setIsExiting] = useState(false);
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const apiBaseUrl = API_BASE_URL;
 
   useEffect(() => {
@@ -181,7 +189,8 @@ const Login = () => {
           }
         }
 
-        navigate('/member', { replace: true });
+        const redirectAfterLogin = safeMemberRedirectPath(searchParams.get('redirect'));
+        navigate(redirectAfterLogin || '/member', { replace: true });
       } else {
         if (memberData?.code === 'EMAIL_NOT_VERIFIED') {
           setShowResendVerification(true);

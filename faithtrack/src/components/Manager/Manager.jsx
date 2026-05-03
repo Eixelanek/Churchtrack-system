@@ -2373,6 +2373,40 @@ const Manager = () => {
   const [guestCiBirthDate, setGuestCiBirthDate] = useState('');
   const [guestCiBusy, setGuestCiBusy] = useState(false);
   const [guestCiMessage, setGuestCiMessage] = useState({ type: '', text: '' });
+  const [guestCiReturningList, setGuestCiReturningList] = useState([]);
+  const [guestCiReturningLoading, setGuestCiReturningLoading] = useState(false);
+  const [guestCiReturningSearch, setGuestCiReturningSearch] = useState('');
+  const [selectedReturningGuest, setSelectedReturningGuest] = useState(null);
+
+  const filteredReturningGuests = useMemo(() => {
+    const q = guestCiReturningSearch.trim().toLowerCase();
+    if (!q) return guestCiReturningList;
+    return guestCiReturningList.filter((g) => {
+      const name = (g.full_name || '').toLowerCase();
+      const fn = (g.first_name || '').toLowerCase();
+      const sn = (g.surname || '').toLowerCase();
+      const em = (g.email || '').toLowerCase();
+      return name.includes(q) || fn.includes(q) || sn.includes(q) || em.includes(q);
+    });
+  }, [guestCiReturningList, guestCiReturningSearch]);
+
+  const fetchGuestDirectory = useCallback(async () => {
+    setGuestCiReturningLoading(true);
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/guest/list.php`);
+      const data = await res.json().catch(() => ({}));
+      if (data.success && Array.isArray(data.data)) {
+        const active = data.data.filter((g) => (g.status || 'active').toLowerCase() === 'active');
+        setGuestCiReturningList(active);
+      } else {
+        setGuestCiReturningList([]);
+      }
+    } catch {
+      setGuestCiReturningList([]);
+    } finally {
+      setGuestCiReturningLoading(false);
+    }
+  }, [backendBaseUrl]);
 
   // Fetch active QR sessions
   const fetchActiveSessions = useCallback(async () => {
@@ -2546,8 +2580,9 @@ const Manager = () => {
   useEffect(() => {
     if (showGuestCheckIn) {
       fetchActiveSessions();
+      fetchGuestDirectory();
     }
-  }, [showGuestCheckIn, fetchActiveSessions]);
+  }, [showGuestCheckIn, fetchActiveSessions, fetchGuestDirectory]);
 
   const handleCloseGuestCheckIn = () => {
     setShowGuestCheckIn(false);
@@ -2558,6 +2593,8 @@ const Manager = () => {
     setGuestCiBirthDate('');
     setGuestCiBusy(false);
     setGuestCiMessage({ type: '', text: '' });
+    setGuestCiReturningSearch('');
+    setSelectedReturningGuest(null);
   };
 
   const handleSubmitGuestCheckIn = async () => {
@@ -2565,33 +2602,52 @@ const Manager = () => {
       setGuestCiMessage({ type: 'error', text: 'Choose an active event session first.' });
       return;
     }
-    const fn = guestCiFirstName.trim();
-    const sn = guestCiSurname.trim();
-    if (!fn || !sn) {
-      setGuestCiMessage({ type: 'error', text: 'First name and last name are required.' });
+
+    let payload;
+    if (guestCheckInPhase === 'returning') {
+      if (!selectedReturningGuest?.id) {
+        setGuestCiMessage({ type: 'error', text: 'Select a guest from the list.' });
+        return;
+      }
+      payload = {
+        session_token: selectedGuestSession.session_token,
+        guest_id: selectedReturningGuest.id,
+        source: 'manual_manager',
+        status: 'present'
+      };
+    } else if (guestCheckInPhase === 'new') {
+      const fn = guestCiFirstName.trim();
+      const sn = guestCiSurname.trim();
+      if (!fn || !sn) {
+        setGuestCiMessage({ type: 'error', text: 'First name and last name are required.' });
+        return;
+      }
+      if (!guestCiBirthDate) {
+        setGuestCiMessage({ type: 'error', text: 'Birth date is required.' });
+        return;
+      }
+      payload = {
+        session_token: selectedGuestSession.session_token,
+        first_name: fn,
+        surname: sn,
+        middle_name: '',
+        email: '',
+        contact_number: '',
+        birth_date: guestCiBirthDate,
+        source: 'manual_manager',
+        status: 'present'
+      };
+    } else {
       return;
     }
-    if (!guestCiBirthDate) {
-      setGuestCiMessage({ type: 'error', text: 'Birth date is required.' });
-      return;
-    }
+
     setGuestCiBusy(true);
     setGuestCiMessage({ type: '', text: '' });
     try {
       const res = await fetch(`${backendBaseUrl}/api/guest/checkin.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_token: selectedGuestSession.session_token,
-          first_name: fn,
-          surname: sn,
-          middle_name: '',
-          email: '',
-          contact_number: '',
-          birth_date: guestCiBirthDate,
-          source: 'manual_manager',
-          status: 'present'
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json().catch(() => ({}));
       if (data.success) {
@@ -2609,7 +2665,10 @@ const Manager = () => {
         setGuestCiBirthDate('');
         setGuestCheckInPhase('pick');
         setSelectedGuestSession(null);
+        setSelectedReturningGuest(null);
+        setGuestCiReturningSearch('');
         fetchActiveSessions();
+        fetchGuestDirectory();
       } else {
         setGuestCiMessage({ type: 'error', text: data.message || 'Guest check-in failed.' });
       }
@@ -3151,6 +3210,15 @@ const Manager = () => {
 
   const guestCiAge = guestCiBirthDate ? computeAgeFromBirthYmd(guestCiBirthDate) : null;
 
+  const guestModalSubtitle =
+    guestCheckInPhase === 'pick'
+      ? 'Select the active QR event for this check-in.'
+      : guestCheckInPhase === 'kind'
+        ? 'Returning visitors can be picked from the list; first-time guests use the form.'
+        : guestCheckInPhase === 'returning'
+          ? 'Search and select the guest — no need to retype their details.'
+          : 'Enter details for a first-time guest (name + birthday).';
+
   const renderGuestCheckInModal = () => (
     <div
       className="modal-overlay"
@@ -3175,7 +3243,7 @@ const Manager = () => {
           padding: 0,
           borderRadius: '12px',
           width: '95%',
-          maxWidth: '560px',
+          maxWidth: '620px',
           maxHeight: '90vh',
           overflow: 'hidden',
           boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
@@ -3202,9 +3270,7 @@ const Manager = () => {
             <h2 id="guest-checkin-title" style={{ margin: 0, fontSize: '1.35rem', fontWeight: '600', color: 'white' }}>
               Guest Check-In
             </h2>
-            <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.92)' }}>
-              {guestCheckInPhase === 'pick' ? 'Select the active QR event for this check-in.' : 'Name and birthday (age is computed automatically).'}
-            </p>
+            <p style={{ margin: '0.3rem 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.92)' }}>{guestModalSubtitle}</p>
           </div>
           <button
             type="button"
@@ -3229,7 +3295,7 @@ const Manager = () => {
         </div>
 
         <div style={{ padding: '1.35rem 1.5rem 1rem', overflowY: 'auto', flex: 1 }}>
-          {guestCheckInPhase === 'pick' ? (
+          {guestCheckInPhase === 'pick' && (
             <>
               <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem' }}>
                 Active sessions
@@ -3284,15 +3350,123 @@ const Manager = () => {
                 </div>
               )}
             </>
-          ) : (
+          )}
+
+          {guestCheckInPhase === 'kind' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                type="button"
+                disabled={guestCiBusy}
+                onClick={() => {
+                  setGuestCheckInPhase('returning');
+                  setGuestCiMessage({ type: '', text: '' });
+                }}
+                style={{
+                  padding: '1rem 1.15rem',
+                  textAlign: 'left',
+                  borderRadius: '10px',
+                  border: '2px solid #c4b5fd',
+                  background: '#f5f3ff',
+                  cursor: guestCiBusy ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  color: '#5b21b6'
+                }}
+              >
+                Returning guest
+                <div style={{ fontWeight: 400, fontSize: '0.8rem', color: '#6b21a8', marginTop: '0.35rem' }}>
+                  Pick from guests who already have a record — no retyping.
+                </div>
+              </button>
+              <button
+                type="button"
+                disabled={guestCiBusy}
+                onClick={() => {
+                  setGuestCheckInPhase('new');
+                  setGuestCiFirstName('');
+                  setGuestCiSurname('');
+                  setGuestCiBirthDate('');
+                  setGuestCiMessage({ type: '', text: '' });
+                }}
+                style={{
+                  padding: '1rem 1.15rem',
+                  textAlign: 'left',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  background: '#fff',
+                  cursor: guestCiBusy ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  color: '#374151'
+                }}
+              >
+                New guest
+                <div style={{ fontWeight: 400, fontSize: '0.8rem', color: '#6b7280', marginTop: '0.35rem' }}>
+                  First visit — enter name and birthday only.
+                </div>
+              </button>
+            </div>
+          )}
+
+          {(guestCheckInPhase === 'returning' || guestCheckInPhase === 'new') && (
+            <div style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', fontSize: '0.8125rem', color: '#5b21b6' }}>
+              <strong style={{ fontWeight: 700 }}>Event:</strong>{' '}
+              {selectedGuestSession?.service_name}
+              {selectedGuestSession?.event_datetime
+                ? ` — ${new Date(selectedGuestSession.event_datetime).toLocaleString()}`
+                : ''}
+            </div>
+          )}
+
+          {guestCheckInPhase === 'returning' && (
             <>
-              <div style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', fontSize: '0.8125rem', color: '#5b21b6' }}>
-                <strong style={{ fontWeight: 700 }}>Event:</strong>{' '}
-                {selectedGuestSession?.service_name}{' — '}
-                {selectedGuestSession?.event_datetime
-                  ? `${new Date(selectedGuestSession.event_datetime).toLocaleString()}`
-                  : ''}
-              </div>
+              <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.4rem', fontSize: '0.875rem' }}>
+                Search guests
+              </label>
+              <input
+                type="search"
+                value={guestCiReturningSearch}
+                onChange={(e) => setGuestCiReturningSearch(e.target.value)}
+                placeholder="Name or email…"
+                style={{ width: '100%', padding: '0.55rem 0.85rem', border: '1px solid #d1d5db', borderRadius: '8px', marginBottom: '0.75rem', fontSize: '0.9rem' }}
+              />
+              {guestCiReturningLoading ? (
+                <div style={{ padding: '1.25rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem' }}>Loading guest list…</div>
+              ) : filteredReturningGuests.length === 0 ? (
+                <div style={{ padding: '1.25rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem', background: '#f9fafb', borderRadius: '8px' }}>
+                  {guestCiReturningList.length === 0 ? 'No guests on file yet — use New guest.' : 'No matches — try another search.'}
+                </div>
+              ) : (
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '280px', overflowY: 'auto', backgroundColor: '#fff' }}>
+                  {filteredReturningGuests.map((g) => {
+                    const sel = selectedReturningGuest?.id === g.id;
+                    const visits = Number.isFinite(g.total_visits) ? g.total_visits : 0;
+                    const ss = Number.isFinite(g.sunday_visit_count) ? g.sunday_visit_count : 0;
+                    return (
+                      <div
+                        key={g.id}
+                        onClick={() => setSelectedReturningGuest(g)}
+                        style={{
+                          padding: '0.65rem 0.85rem',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6',
+                          backgroundColor: sel ? '#eef2ff' : '#fff'
+                        }}
+                      >
+                        <div style={{ fontWeight: 600, color: '#1f2937', fontSize: '0.875rem' }}>{g.full_name || `${g.first_name || ''} ${g.surname || ''}`.trim()}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>
+                          Visits {visits}
+                          {ss > 0 ? ` • Preset Sunday visits ${ss}` : ''}
+                          {g.is_minor ? ' • Minor' : ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {guestCheckInPhase === 'new' && (
+            <>
               <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.35rem', fontSize: '0.875rem' }}>First name</label>
               <input
                 type="text"
@@ -3359,13 +3533,19 @@ const Manager = () => {
             type="button"
             disabled={guestCiBusy}
             onClick={() => {
-              if (guestCheckInPhase === 'form') {
-                setGuestCheckInPhase('pick');
-                setSelectedGuestSession(null);
+              if (guestCheckInPhase === 'new' || guestCheckInPhase === 'returning') {
+                setGuestCheckInPhase('kind');
                 setGuestCiMessage({ type: '', text: '' });
-              } else {
-                handleCloseGuestCheckIn();
+                setSelectedReturningGuest(null);
+                setGuestCiReturningSearch('');
+                return;
               }
+              if (guestCheckInPhase === 'kind') {
+                setGuestCheckInPhase('pick');
+                setGuestCiMessage({ type: '', text: '' });
+                return;
+              }
+              handleCloseGuestCheckIn();
             }}
             style={{
               padding: '0.55rem 1rem',
@@ -3377,13 +3557,13 @@ const Manager = () => {
               cursor: guestCiBusy ? 'not-allowed' : 'pointer'
             }}
           >
-            {guestCheckInPhase === 'form' ? 'Back' : 'Cancel'}
+            {guestCheckInPhase === 'pick' ? 'Cancel' : 'Back'}
           </button>
-          {guestCheckInPhase === 'pick' ? (
+          {guestCheckInPhase === 'pick' && (
             <button
               type="button"
               disabled={guestCiBusy || !selectedGuestSession}
-              onClick={() => setGuestCheckInPhase('form')}
+              onClick={() => setGuestCheckInPhase('kind')}
               style={{
                 padding: '0.55rem 1.25rem',
                 background: !selectedGuestSession || guestCiBusy ? '#cbd5e1' : 'linear-gradient(135deg,#6d28d9,#a855f7)',
@@ -3396,21 +3576,31 @@ const Manager = () => {
             >
               Continue
             </button>
-          ) : (
+          )}
+          {(guestCheckInPhase === 'returning' || guestCheckInPhase === 'new') && (
             <button
               type="button"
-              disabled={guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate}
+              disabled={
+                guestCiBusy ||
+                (guestCheckInPhase === 'returning' ? !selectedReturningGuest : !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate)
+              }
               onClick={handleSubmitGuestCheckIn}
               style={{
                 padding: '0.55rem 1.25rem',
-                background: guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate
-                  ? '#cbd5e1'
-                  : 'linear-gradient(135deg,#7c3aed,#a855f7)',
+                background:
+                  guestCiBusy ||
+                  (guestCheckInPhase === 'returning' ? !selectedReturningGuest : !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate)
+                    ? '#cbd5e1'
+                    : 'linear-gradient(135deg,#7c3aed,#a855f7)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 fontWeight: 600,
-                cursor: guestCiBusy || !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate ? 'not-allowed' : 'pointer'
+                cursor:
+                  guestCiBusy ||
+                  (guestCheckInPhase === 'returning' ? !selectedReturningGuest : !guestCiFirstName.trim() || !guestCiSurname.trim() || !guestCiBirthDate)
+                    ? 'not-allowed'
+                    : 'pointer'
               }}
             >
               {guestCiBusy ? 'Saving…' : 'Check in guest'}

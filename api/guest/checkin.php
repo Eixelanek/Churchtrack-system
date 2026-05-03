@@ -52,26 +52,45 @@ try {
     $invitedByMemberId = null;
     $invitedByText = '';
     $notes = trim($input['notes'] ?? '');
-    $source = trim($input['source'] ?? 'qr');
+    $source = trim($input['source'] ?? '');
     $attendanceStatus = strtolower(trim($input['status'] ?? 'present')) === 'late' ? 'late' : 'present';
     $isManagerManual = ($source === 'manual_manager');
     $birthDateInput = trim($input['birth_date'] ?? '');
+    $explicitGuestId = isset($input['guest_id']) ? (int)$input['guest_id'] : 0;
 
-    if ($sessionToken === '' || $firstName === '' || $surname === '') {
-        http_response_code(400);
+    if (!$isManagerManual) {
+        http_response_code(403);
         echo json_encode([
             'success' => false,
-            'message' => 'Session token, first name, and surname are required'
+            'message' => 'Guest check-in through QR is disabled. Please check in with church staff.'
         ]);
         exit();
     }
 
-    if ($isManagerManual) {
+    if ($sessionToken === '') {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Session token is required'
+        ]);
+        exit();
+    }
+
+    if ($explicitGuestId <= 0) {
+        if ($firstName === '' || $surname === '') {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'First name and surname are required for new guests.'
+            ]);
+            exit();
+        }
+
         if ($birthDateInput === '') {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'message' => 'Birth date is required for guest check-in.'
+                'message' => 'Birth date is required for new guests.'
             ]);
             exit();
         }
@@ -86,15 +105,6 @@ try {
             ]);
             exit();
         }
-    }
-
-    if (!$isManagerManual && $email === '') {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Please provide an email address.'
-        ]);
-        exit();
     }
 
     if ($contactNumber !== '') {
@@ -121,10 +131,6 @@ try {
 
     if ($suffix !== '' && strcasecmp($suffix, 'none') === 0) {
         $suffix = '';
-    }
-
-    if ($source === '') {
-        $source = 'qr';
     }
 
     $database = new Database();
@@ -187,6 +193,55 @@ try {
     }
     $visitDate = $eventDateTime->format('Y-m-d');
 
+    $guest = null;
+    if ($explicitGuestId > 0) {
+        $gidStmt = $db->prepare("SELECT * FROM guests WHERE id = :id AND status = 'active' LIMIT 1");
+        $gidStmt->bindValue(':id', $explicitGuestId, PDO::PARAM_INT);
+        $gidStmt->execute();
+        $guest = $gidStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$guest) {
+            $db->rollBack();
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Guest not found or no longer active.'
+            ]);
+            exit();
+        }
+
+        $firstName = trim((string)($guest['first_name'] ?? ''));
+        $middleName = trim((string)($guest['middle_name'] ?? ''));
+        $surname = trim((string)($guest['surname'] ?? ''));
+        $suffix = trim((string)($guest['suffix'] ?? ''));
+        $contactNumber = trim((string)($guest['contact_number'] ?? ''));
+        $email = trim((string)($guest['email'] ?? ''));
+
+        $birthDateInput = trim((string)($guest['birth_date'] ?? ''));
+        if ($birthDateInput === '') {
+            $db->rollBack();
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'This guest record has no birth date. Complete their profile first or use New guest.'
+            ]);
+            exit();
+        }
+
+        try {
+            $birthDateImmutable = new DateTimeImmutable($birthDateInput);
+            $birthDateInput = $birthDateImmutable->format('Y-m-d');
+        } catch (Exception $e) {
+            $db->rollBack();
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Stored birth date for this guest is invalid.'
+            ]);
+            exit();
+        }
+    }
+
     $nameParts = array_filter([$firstName, $middleName, $surname, $suffix], static function ($part) {
         return $part !== null && trim($part) !== '';
     });
@@ -238,11 +293,13 @@ try {
         }
     }
 
-    $guest = null;
+    if ($explicitGuestId <= 0) {
+        $guest = null;
+    }
 
     // Priority 1: Match by normalized first name + surname (most reliable)
     // Use BINARY comparison to avoid collation issues, or fetch and filter in PHP
-    if ($normalizedFirstName && $normalizedSurname) {
+    if (!$guest && $normalizedFirstName && $normalizedSurname) {
         // Try exact match first (case-sensitive to avoid collation)
         $nameMatchQuery = "SELECT * FROM guests WHERE BINARY first_name = :first_name AND BINARY surname = :surname LIMIT 1";
         $nameMatchStmt = $db->prepare($nameMatchQuery);

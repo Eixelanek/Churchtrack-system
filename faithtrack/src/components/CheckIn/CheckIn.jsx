@@ -1,23 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import './CheckIn.css';
-import '../GuestCheckIn/GuestCheckIn.css';
 import logoImage from '../../assets/logo2.png';
 import { getHeaderLogo as loadStoredHeaderLogo } from '../../utils/churchSettings';
 import { fetchFamilyTree } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
 import { offlineStorage } from '../../utils/offlineStorage';
 import { showToast } from '../Toast/Toast';
-
-const suffixOptions = ['None', 'Jr.', 'Sr.', 'II', 'III', 'IV'];
-
-const makeSafeSuffix = (value = '') => {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed.toLowerCase() === 'none') {
-    return '';
-  }
-  return trimmed;
-};
 
 const resolveInitialHeaderLogo = () => {
   if (typeof window === 'undefined') {
@@ -26,39 +15,6 @@ const resolveInitialHeaderLogo = () => {
   const stored = loadStoredHeaderLogo();
   return stored || logoImage;
 };
-
-const createInitialGuestFormData = () => ({
-  first_name: '',
-  middle_name: '',
-  surname: '',
-  suffix: 'None',
-  contact_number: '',
-  email: ''
-});
-
-const createInitialMemberFormData = () => ({
-  surname: '',
-  firstName: '',
-  middleName: '',
-  suffix: 'None',
-  birthday: '',
-  gender: '',
-  email: '',
-  contactNumber: '',
-  street: '',
-  barangay: '',
-  city: '',
-  province: '',
-  zipCode: '',
-  username: '',
-  password: '',
-  confirmPassword: '',
-  guardianSurname: '',
-  guardianFirstName: '',
-  guardianMiddleName: '',
-  guardianSuffix: 'None',
-  relationshipToGuardian: ''
-});
 
 const getInitials = (name = '') => {
   return name
@@ -97,188 +53,7 @@ const CheckIn = () => {
   // Form fields
   const [memberName, setMemberName] = useState('');
   const [memberContact, setMemberContact] = useState('');
-  const [checkinType, setCheckinType] = useState(null); // 'member' or 'guest'
-  // Guest form fields
-  const [guestFormData, setGuestFormData] = useState(() => createInitialGuestFormData());
-  const [guestFormErrors, setGuestFormErrors] = useState({});
-  const [guestSuccessData, setGuestSuccessData] = useState(null);
-  const [showMemberForm, setShowMemberForm] = useState(false);
-  const [memberConverted, setMemberConverted] = useState(false);
-  const [memberFormData, setMemberFormData] = useState(() => createInitialMemberFormData());
-  const [memberFormErrors, setMemberFormErrors] = useState({});
-  const [convertingMember, setConvertingMember] = useState(false);
-
-  const resetGuestForm = () => {
-    setGuestFormData(createInitialGuestFormData());
-    setGuestFormErrors({});
-  };
-
-  const resetMembershipFlow = () => {
-    setGuestSuccessData(null);
-    setShowMemberForm(false);
-    setMemberConverted(false);
-    setMemberFormData(createInitialMemberFormData());
-    setMemberFormErrors({});
-    setConvertingMember(false);
-  };
-
-  const validateGuestForm = () => {
-    const errors = {};
-    if (!guestFormData.first_name.trim()) {
-      errors.first_name = 'First name is required';
-    }
-    if (!guestFormData.surname.trim()) {
-      errors.surname = 'Surname is required';
-    }
-    const contact = guestFormData.contact_number.trim();
-    if (contact !== '') {
-      const digits = contact.replace(/\D+/g, '');
-      if (digits.length !== 11) {
-        errors.contact_number = 'Contact number must be 11 digits';
-      }
-    }
-    if (guestFormData.email.trim() === '') {
-      errors.email = 'Email address is required';
-    } else {
-      const emailRegex = /^\S+@\S+\.\S+$/;
-      if (!emailRegex.test(guestFormData.email.trim())) {
-        errors.email = 'Please enter a valid email address';
-      }
-    }
-
-    setGuestFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleGuestInputChange = (field, value) => {
-    setGuestFormData((prev) => ({ ...prev, [field]: value }));
-    setGuestFormErrors((prev) => ({ ...prev, [field]: '' }));
-    if (guestSuccessData) {
-      setGuestSuccessData(null);
-    }
-  };
-
-  const validateMemberForm = () => {
-    const errors = {};
-
-    if (!memberFormData.surname.trim()) errors.surname = 'Surname is required';
-    if (!memberFormData.firstName.trim()) errors.firstName = 'First name is required';
-    if (!memberFormData.birthday) errors.birthday = 'Birthday is required';
-    if (!memberFormData.gender) errors.gender = 'Gender is required';
-
-    const contact = memberFormData.contactNumber.trim().replace(/\D+/g, '');
-    if (contact.length > 0 && contact.length !== 11) errors.contactNumber = 'Contact number must be 11 digits';
-
-    if (!memberFormData.email.trim()) {
-      errors.email = 'Email address is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(memberFormData.email.trim())) {
-      errors.email = 'Please enter a valid email address';
-    }
-
-    if (!memberFormData.street.trim()) errors.street = 'Street is required';
-    if (!memberFormData.barangay.trim()) errors.barangay = 'Barangay is required';
-    if (!memberFormData.city.trim()) errors.city = 'City is required';
-    if (!memberFormData.province.trim()) errors.province = 'Province is required';
-    if (!/^\d{4}$/.test(memberFormData.zipCode.trim())) errors.zipCode = 'ZIP code must be 4 digits';
-
-    if (!memberFormData.username.trim()) errors.username = 'Username is required';
-    if (memberFormData.password.length < 8) errors.password = 'Password must be at least 8 characters';
-    if (memberFormData.password !== memberFormData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (memberFormData.birthday) {
-      const birthDate = new Date(memberFormData.birthday);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
-
-      if (Number.isFinite(actualAge) && actualAge <= 17) {
-        if (!memberFormData.guardianSurname.trim()) errors.guardianSurname = 'Guardian surname is required';
-        if (!memberFormData.guardianFirstName.trim()) errors.guardianFirstName = 'Guardian first name is required';
-        if (!memberFormData.relationshipToGuardian.trim()) errors.relationshipToGuardian = 'Relationship to guardian is required';
-      }
-    }
-
-    setMemberFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleMemberInputChange = (field, value) => {
-    setMemberFormData((prev) => ({ ...prev, [field]: value }));
-    setMemberFormErrors((prev) => ({ ...prev, [field]: '' }));
-  };
-
-  const handleMemberFormSubmit = async (event) => {
-    event.preventDefault();
-    if (!guestSuccessData?.guest_id) {
-      setError('Missing guest information for membership conversion.');
-      return;
-    }
-
-    if (!validateMemberForm()) {
-      return;
-    }
-
-    setConvertingMember(true);
-    setError('');
-
-    try {
-      const payload = {
-        guest_id: guestSuccessData.guest_id,
-        surname: memberFormData.surname.trim(),
-        firstName: memberFormData.firstName.trim(),
-        middleName: memberFormData.middleName.trim(),
-        suffix: memberFormData.suffix === 'None' ? '' : memberFormData.suffix,
-        birthday: memberFormData.birthday,
-        gender: memberFormData.gender,
-        email: memberFormData.email.trim(),
-        contactNumber: memberFormData.contactNumber.trim().replace(/\D+/g, ''),
-        street: memberFormData.street.trim(),
-        barangay: memberFormData.barangay.trim(),
-        city: memberFormData.city.trim(),
-        province: memberFormData.province.trim(),
-        zipCode: memberFormData.zipCode.trim(),
-        username: memberFormData.username.trim(),
-        password: memberFormData.password,
-        guardianSurname: memberFormData.guardianSurname.trim(),
-        guardianFirstName: memberFormData.guardianFirstName.trim(),
-        guardianMiddleName: memberFormData.guardianMiddleName.trim(),
-        guardianSuffix: memberFormData.guardianSuffix === 'None' ? '' : memberFormData.guardianSuffix,
-        relationshipToGuardian: memberFormData.relationshipToGuardian.trim()
-      };
-
-      const response = await fetch(`${API_BASE_URL}/api/guest/convert_to_member.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to convert to member');
-      }
-
-      setMemberConverted(true);
-      setShowMemberForm(false);
-    } catch (err) {
-
-      setError(err.message || 'Failed to convert to member');
-    } finally {
-      setConvertingMember(false);
-    }
-  };
-
-  const handleNewCheckIn = () => {
-    resetGuestForm();
-    resetMembershipFlow();
-    setError('');
-    setSuccess(false);
-    setAlreadyCheckedIn(false);
-    setCheckinType('guest');
-  };
+  const [checkinType, setCheckinType] = useState(null); // 'member' | 'members_only'
 
   useEffect(() => {
     if (!sessionToken) {
@@ -291,7 +66,8 @@ const CheckIn = () => {
     const storedMemberName = localStorage.getItem('memberName');
     const storedUsername = localStorage.getItem('username');
     const fallbackName = storedMemberName || storedUsername || '';
-    const hasMemberSession = Boolean(fallbackName);
+    const hasMemberSession =
+      localStorage.getItem('userType') === 'member' && Boolean(storedMemberId) && Boolean(fallbackName);
 
     if (hasMemberSession) {
       setMemberName(fallbackName);
@@ -491,18 +267,27 @@ const CheckIn = () => {
   const fetchSessionData = async () => {
     setError('');
     setLoading(true);
-    
+
     const isOnline = navigator.onLine;
-    
+    const storedMemberId = localStorage.getItem('userId');
+    const storedMemberName = localStorage.getItem('memberName') || localStorage.getItem('username');
+    const isLoggedInMember = localStorage.getItem('userType') === 'member' && Boolean(storedMemberId);
+
+    const fallbackCheckinType = () => (isLoggedInMember ? 'member' : 'members_only');
+
+    const normalizeCachedSession = (raw) => {
+      if (!raw || typeof raw !== 'object') return raw;
+      const next = { ...raw };
+      if (next.checkin_type === 'guest') next.checkin_type = 'members_only';
+      return next;
+    };
+
     try {
       const params = new URLSearchParams({ token: sessionToken });
 
-      const storedMemberId = localStorage.getItem('userId');
-      const storedMemberName = localStorage.getItem('memberName') || localStorage.getItem('username');
-
-      if (storedMemberId) {
+      if (isLoggedInMember && storedMemberId) {
         params.append('member_id', storedMemberId);
-      } else if (storedMemberName) {
+      } else if (isLoggedInMember && storedMemberName) {
         params.append('member_name', storedMemberName);
       }
 
@@ -511,37 +296,34 @@ const CheckIn = () => {
         try {
           const cachedSession = localStorage.getItem(`session_${sessionToken}`);
           if (cachedSession) {
-            const result = JSON.parse(cachedSession);
-            setSessionData(result);
+            const parsed = normalizeCachedSession(JSON.parse(cachedSession));
+            setSessionData(parsed);
             setAlreadyCheckedIn(false); // Allow offline check-in even if previously checked in
-            setCheckinType(result?.checkin_type || (storedMemberId || storedMemberName ? 'member' : 'guest'));
-            setLoading(false);
-            return;
-          } else {
-            // No cached data, but allow offline check-in with minimal data
-            const minimalSessionData = {
-              session_token: sessionToken,
-              service_name: 'Event Check-In',
-              status: 'active',
-              event_datetime: new Date().toISOString(),
-              checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
-              offline_mode: true
-            };
-            setSessionData(minimalSessionData);
-            setAlreadyCheckedIn(false);
-            setCheckinType(minimalSessionData.checkin_type);
+            setCheckinType(parsed?.checkin_type || fallbackCheckinType());
             setLoading(false);
             return;
           }
-        } catch (cacheError) {
-          console.error('Error loading cached session:', cacheError);
-          // Still allow offline check-in
           const minimalSessionData = {
             session_token: sessionToken,
             service_name: 'Event Check-In',
             status: 'active',
             event_datetime: new Date().toISOString(),
-            checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
+            checkin_type: fallbackCheckinType(),
+            offline_mode: true
+          };
+          setSessionData(minimalSessionData);
+          setAlreadyCheckedIn(false);
+          setCheckinType(minimalSessionData.checkin_type);
+          setLoading(false);
+          return;
+        } catch (cacheError) {
+          console.error('Error loading cached session:', cacheError);
+          const minimalSessionData = {
+            session_token: sessionToken,
+            service_name: 'Event Check-In',
+            status: 'active',
+            event_datetime: new Date().toISOString(),
+            checkin_type: fallbackCheckinType(),
             offline_mode: true
           };
           setSessionData(minimalSessionData);
@@ -556,14 +338,14 @@ const CheckIn = () => {
       const result = await response.json();
 
       if (result.success) {
-        setSessionData(result.data);
-        setAlreadyCheckedIn(Boolean(result.data?.already_checked_in));
-        // Auto-detect check-in type based on session response
-        setCheckinType(result.data?.checkin_type || (storedMemberId || storedMemberName ? 'member' : 'guest'));
+        const data = result.data?.checkin_type === 'guest' ? { ...result.data, checkin_type: 'members_only' } : result.data;
+        setSessionData(data);
+        setAlreadyCheckedIn(Boolean(data?.already_checked_in));
+        setCheckinType(data?.checkin_type || fallbackCheckinType());
         
         // Cache session data for offline use
         try {
-          localStorage.setItem(`session_${sessionToken}`, JSON.stringify(result.data));
+          localStorage.setItem(`session_${sessionToken}`, JSON.stringify(data));
         } catch (storageError) {
           console.error('Error caching session:', storageError);
         }
@@ -575,15 +357,14 @@ const CheckIn = () => {
       
       // If offline, allow check-in with minimal data
       if (!isOnline) {
-        const storedMemberId = localStorage.getItem('userId');
-        const storedMemberName = localStorage.getItem('memberName') || localStorage.getItem('username');
-        
+        const sid = localStorage.getItem('userId');
+        const isMember = localStorage.getItem('userType') === 'member' && Boolean(sid);
         const minimalSessionData = {
           session_token: sessionToken,
           service_name: 'Event Check-In',
           status: 'active',
           event_datetime: new Date().toISOString(),
-          checkin_type: storedMemberId || storedMemberName ? 'member' : 'guest',
+          checkin_type: isMember ? 'member' : 'members_only',
           offline_mode: true
         };
         setSessionData(minimalSessionData);
@@ -701,8 +482,6 @@ const CheckIn = () => {
           setSubmitting(false);
           return;
         }
-
-        resetMembershipFlow();
 
         let memberIdPayload = null;
         if (detectedMember?.id && detectedMember.id !== 'member-self') {
@@ -825,84 +604,8 @@ const CheckIn = () => {
         setMemberContact('');
         setSelectedFamilyIds([]);
       } else {
-        if (!validateGuestForm()) {
-          setSubmitting(false);
-          return;
-        }
-
-        setGuestSuccessData(null);
-        setShowMemberForm(false);
-        setMemberConverted(false);
-
-        const numericContact = guestFormData.contact_number.replace(/\D+/g, '');
-
-        const response = await fetch(`${API_BASE_URL}/api/guest/checkin.php`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            session_token: sessionToken,
-            first_name: guestFormData.first_name.trim(),
-            middle_name: guestFormData.middle_name.trim(),
-            surname: guestFormData.surname.trim(),
-            suffix: makeSafeSuffix(guestFormData.suffix),
-            contact_number: numericContact,
-            email: guestFormData.email.trim(),
-            notes: guestFormData.notes.trim(),
-            source: 'qr',
-            status: 'present'
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.status === 409) {
-          setError(result.message || 'Guest already checked in.');
-          setSubmitting(false);
-          return;
-        }
-
-        if (!response.ok || !result.success) {
-          setError(result.message || 'Guest check-in failed. Please try again.');
-          setSubmitting(false);
-          return;
-        }
-
-        const data = result.data || null;
-        setGuestSuccessData(data);
-
-        const currentFormData = { ...guestFormData };
-
-        if (data?.ready_for_membership) {
-          setMemberFormData({
-            surname: currentFormData.surname || '',
-            firstName: currentFormData.first_name || '',
-            middleName: currentFormData.middle_name || '',
-            suffix: currentFormData.suffix || 'None',
-            birthday: '',
-            gender: '',
-            email: currentFormData.email || '',
-            contactNumber: currentFormData.contact_number || '',
-            street: '',
-            barangay: '',
-            city: '',
-            province: '',
-            zipCode: '',
-            username: '',
-            password: '',
-            confirmPassword: '',
-            guardianSurname: '',
-            guardianFirstName: '',
-            guardianMiddleName: '',
-            guardianSuffix: 'None',
-            relationshipToGuardian: ''
-          });
-          setShowMemberForm(true);
-        } else {
-          setShowMemberForm(false);
-        }
-
-        resetGuestForm();
-        setSuccess(false);
+        setError('This link is for members only. Visitors can check in with staff at the registration desk.');
+        setSubmitting(false);
       }
     } catch (err) {
 
@@ -925,7 +628,45 @@ const CheckIn = () => {
     );
   }
 
-  // No longer show error for non-members - they'll use guest form instead
+  const checkinLoginRedirect = `/login?redirect=${encodeURIComponent(`/checkin?session=${encodeURIComponent(sessionToken || '')}`)}`;
+
+  if (
+    sessionData &&
+    checkinType === 'members_only' &&
+    !detectedMember &&
+    localStorage.getItem('userType') !== 'member'
+  ) {
+    return (
+      <div className="checkin-container">
+        <div className="checkin-card">
+          <div className="checkin-header">
+            <img src={headerLogo || logoImage} alt="Church Logo" className="checkin-logo" />
+            <h1>Event Check-In</h1>
+          </div>
+          <div className="checkin-error" style={{ textAlign: 'center', padding: '1.5rem 1rem 2rem' }}>
+            <h2 style={{ marginBottom: '0.75rem' }}>Members only</h2>
+            <p style={{ maxWidth: '26rem', margin: '0 auto 1rem', lineHeight: 1.55 }}>
+              This QR check-in is for church members signed in on this device. Please log in with your member account, then scan again or open this link again.
+            </p>
+            <p style={{ fontSize: '0.9rem', color: '#64748b', maxWidth: '26rem', margin: '0 auto 1.25rem', lineHeight: 1.5 }}>
+              Visitors can check in with staff at the registration desk.
+            </p>
+            <button type="button" className="checkin-home-btn" onClick={() => navigate(checkinLoginRedirect)}>
+              Member login
+            </button>
+            <button
+              type="button"
+              className="checkin-home-btn"
+              style={{ marginTop: '0.65rem', background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' }}
+              onClick={() => navigate('/')}
+            >
+              Back to home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!sessionData) {
     return (
@@ -980,374 +721,15 @@ const CheckIn = () => {
     );
   }
 
-  const renderGuestPostCheckIn = () => {
-    if (memberConverted) {
-      return (
-        <section className="guest-success-panel">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <h2>Congratulations! You're Now a Member!</h2>
-          <p>Welcome to the church family! Your membership has been created successfully.</p>
-          <p className="guest-success-hint">You can now log in with your username and password to access member features.</p>
-          <div className="guest-success-actions">
-            <button className="guest-success-btn" onClick={() => navigate('/login')}>Go to Login</button>
-            <button className="guest-success-secondary" onClick={handleNewCheckIn}>Check-In Another Guest</button>
-          </div>
-        </section>
-      );
-    }
-
-    if (showMemberForm && guestSuccessData?.ready_for_membership) {
-      return (
-        <section className="guest-member-form-panel">
-          <div className="guest-member-form-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <h2>Congratulations! You're Ready to Become a Member!</h2>
-            <p>You've attended 4 consecutive Sunday services. Please complete the form below to become a member.</p>
-          </div>
-
-          {error && (
-            <div className="guest-error-banner" style={{ marginBottom: '1rem' }}>
-              {error}
-            </div>
-          )}
-
-          <form className="guest-member-form" onSubmit={handleMemberFormSubmit}>
-            <div className="guest-form-section">
-              <h3>Personal Information</h3>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>
-                    Surname <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.surname}
-                    onChange={(e) => handleMemberInputChange('surname', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.surname && <span className="guest-field-error">{memberFormErrors.surname}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>
-                    First Name <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.firstName}
-                    onChange={(e) => handleMemberInputChange('firstName', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.firstName && <span className="guest-field-error">{memberFormErrors.firstName}</span>}
-                </div>
-              </div>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>Middle Name</label>
-                  <input
-                    type="text"
-                    value={memberFormData.middleName}
-                    onChange={(e) => handleMemberInputChange('middleName', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                </div>
-                <div className="guest-form-group">
-                  <label>Suffix</label>
-                  <select
-                    value={memberFormData.suffix}
-                    onChange={(e) => handleMemberInputChange('suffix', e.target.value)}
-                    disabled={convertingMember}
-                  >
-                    {suffixOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>
-                    Birthday <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={memberFormData.birthday}
-                    onChange={(e) => handleMemberInputChange('birthday', e.target.value)}
-                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 5)).toISOString().split('T')[0]}
-                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 120)).toISOString().split('T')[0]}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.birthday && <span className="guest-field-error">{memberFormErrors.birthday}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>
-                    Gender <span className="required-asterisk">*</span>
-                  </label>
-                  <select
-                    value={memberFormData.gender}
-                    onChange={(e) => handleMemberInputChange('gender', e.target.value)}
-                    disabled={convertingMember}
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Prefer not to say">Prefer not to say</option>
-                  </select>
-                  {memberFormErrors.gender && <span className="guest-field-error">{memberFormErrors.gender}</span>}
-                </div>
-              </div>
-            </div>
-
-            <div className="guest-form-section">
-              <h3>Contact Information</h3>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>
-                    Contact Number <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={memberFormData.contactNumber}
-                    onChange={(e) => handleMemberInputChange('contactNumber', e.target.value.replace(/[^0-9]/g, '').slice(0, 11))}
-                    placeholder="09123456789"
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.contactNumber && <span className="guest-field-error">{memberFormErrors.contactNumber}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    value={memberFormData.email}
-                    onChange={(e) => handleMemberInputChange('email', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.email && <span className="guest-field-error">{memberFormErrors.email}</span>}
-                </div>
-              </div>
-            </div>
-
-            <div className="guest-form-section">
-              <h3>Address Information</h3>
-              <div className="guest-form-group">
-                <label>
-                  Street <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={memberFormData.street}
-                  onChange={(e) => handleMemberInputChange('street', e.target.value)}
-                  disabled={convertingMember}
-                />
-                {memberFormErrors.street && <span className="guest-field-error">{memberFormErrors.street}</span>}
-              </div>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>
-                    Barangay <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.barangay}
-                    onChange={(e) => handleMemberInputChange('barangay', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.barangay && <span className="guest-field-error">{memberFormErrors.barangay}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>
-                    City <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.city}
-                    onChange={(e) => handleMemberInputChange('city', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.city && <span className="guest-field-error">{memberFormErrors.city}</span>}
-                </div>
-              </div>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>
-                    Province <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.province}
-                    onChange={(e) => handleMemberInputChange('province', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.province && <span className="guest-field-error">{memberFormErrors.province}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>
-                    ZIP Code <span className="required-asterisk">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={memberFormData.zipCode}
-                    onChange={(e) => handleMemberInputChange('zipCode', e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
-                    placeholder="1234"
-                    maxLength="4"
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.zipCode && <span className="guest-field-error">{memberFormErrors.zipCode}</span>}
-                </div>
-              </div>
-            </div>
-
-            {memberFormData.birthday && (() => {
-              const birthDate = new Date(memberFormData.birthday);
-              const today = new Date();
-              const age = today.getFullYear() - birthDate.getFullYear();
-              const monthDiff = today.getMonth() - birthDate.getMonth();
-              const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
-              return actualAge <= 17 ? (
-                <div className="guest-form-section">
-                  <h3>Guardian Information (Required for members 17 years old and below)</h3>
-                  <div className="guest-form-grid">
-                    <div className="guest-form-group">
-                      <label>
-                        Guardian Surname <span className="required-asterisk">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={memberFormData.guardianSurname}
-                        onChange={(e) => handleMemberInputChange('guardianSurname', e.target.value)}
-                        disabled={convertingMember}
-                      />
-                      {memberFormErrors.guardianSurname && <span className="guest-field-error">{memberFormErrors.guardianSurname}</span>}
-                    </div>
-                    <div className="guest-form-group">
-                      <label>
-                        Guardian First Name <span className="required-asterisk">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={memberFormData.guardianFirstName}
-                        onChange={(e) => handleMemberInputChange('guardianFirstName', e.target.value)}
-                        disabled={convertingMember}
-                      />
-                      {memberFormErrors.guardianFirstName && <span className="guest-field-error">{memberFormErrors.guardianFirstName}</span>}
-                    </div>
-                  </div>
-                  <div className="guest-form-grid">
-                    <div className="guest-form-group">
-                      <label>Guardian Middle Name</label>
-                      <input
-                        type="text"
-                        value={memberFormData.guardianMiddleName}
-                        onChange={(e) => handleMemberInputChange('guardianMiddleName', e.target.value)}
-                        disabled={convertingMember}
-                      />
-                    </div>
-                    <div className="guest-form-group">
-                      <label>Relationship to Guardian <span>*</span></label>
-                      <input
-                        type="text"
-                        value={memberFormData.relationshipToGuardian}
-                        onChange={(e) => handleMemberInputChange('relationshipToGuardian', e.target.value)}
-                        placeholder="e.g. Father, Mother, Guardian"
-                        disabled={convertingMember}
-                      />
-                      {memberFormErrors.relationshipToGuardian && <span className="guest-field-error">{memberFormErrors.relationshipToGuardian}</span>}
-                    </div>
-                  </div>
-                </div>
-              ) : null;
-            })()}
-
-            <div className="guest-form-section">
-              <h3>Account Information</h3>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>Username <span>*</span></label>
-                  <input
-                    type="text"
-                    value={memberFormData.username}
-                    onChange={(e) => handleMemberInputChange('username', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.username && <span className="guest-field-error">{memberFormErrors.username}</span>}
-                </div>
-              </div>
-              <div className="guest-form-grid">
-                <div className="guest-form-group">
-                  <label>Password <span>*</span></label>
-                  <input
-                    type="password"
-                    value={memberFormData.password}
-                    onChange={(e) => handleMemberInputChange('password', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.password && <span className="guest-field-error">{memberFormErrors.password}</span>}
-                </div>
-                <div className="guest-form-group">
-                  <label>Confirm Password <span>*</span></label>
-                  <input
-                    type="password"
-                    value={memberFormData.confirmPassword}
-                    onChange={(e) => handleMemberInputChange('confirmPassword', e.target.value)}
-                    disabled={convertingMember}
-                  />
-                  {memberFormErrors.confirmPassword && <span className="guest-field-error">{memberFormErrors.confirmPassword}</span>}
-                </div>
-              </div>
-            </div>
-
-            <button type="submit" className="guest-submit-btn" disabled={convertingMember}>
-              {convertingMember ? (
-                <>
-                  <div className="guest-btn-spinner" />
-                  Creating membership...
-                </>
-              ) : (
-                'Complete Membership Registration'
-              )}
-            </button>
-          </form>
-        </section>
-      );
-    }
-
-    if (guestSuccessData) {
-      return (
-        <section className="guest-success-panel">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-          </svg>
-          <h2>Welcome, {guestSuccessData.guest_name}!</h2>
-          <p>We've recorded your attendance for {guestSuccessData.service_name}.</p>
-          <div className="guest-success-actions">
-            <button className="guest-success-btn" onClick={handleNewCheckIn}>Check-In Another Guest</button>
-            <button className="guest-success-secondary" onClick={() => navigate('/home')}>Back to Home</button>
-          </div>
-        </section>
-      );
-    }
-
-    return null;
-  };
-
-  const guestPostCheckInContent = renderGuestPostCheckIn();
-  const showSessionInfo = !(showMemberForm && guestSuccessData?.ready_for_membership) && !memberConverted;
 
   return (
     <div className="checkin-container">
-      <div className={`checkin-card ${showMemberForm || guestSuccessData ? 'guest-checkin-card-expanded' : ''}`}>
-        {showSessionInfo && (
-          <div className="checkin-header">
-            <img src={headerLogo || logoImage} alt="Church Logo" className="checkin-logo" />
-            <h1>Event Check-In</h1>
-          </div>
-        )}
-        {showSessionInfo && (
-          <div className="checkin-event-info">
+      <div className="checkin-card">
+        <div className="checkin-header">
+          <img src={headerLogo || logoImage} alt="Church Logo" className="checkin-logo" />
+          <h1>Event Check-In</h1>
+        </div>
+        <div className="checkin-event-info">
             <h2>
               {sessionData.service_name}
               {sessionData.offline_mode && (
@@ -1396,7 +778,6 @@ const CheckIn = () => {
               </p>
             )}
           </div>
-        )}
         {isMinorRestricted && detectedMember && (
           <div className="minor-restriction-message" style={{
             padding: '2rem',
@@ -1533,111 +914,9 @@ const CheckIn = () => {
           </div>
         )}
 
-        {guestPostCheckInContent ? (
-          <div className="guest-post-checkin-wrapper">
-            {guestPostCheckInContent}
-          </div>
-        ) : !isMinorRestricted ? (
+        {!isMinorRestricted ? (
           <form onSubmit={handleSubmit} className="checkin-form">
-            {checkinType === 'guest' || (!detectedMember && checkinType !== 'member') ? (
-            // Guest check-in form
-            <>
-              <div className="form-group">
-                <label htmlFor="guestFirstName">
-                  First Name <span className="required-asterisk">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="guestFirstName"
-                  value={guestFormData.first_name}
-                  onChange={(e) => handleGuestInputChange('first_name', e.target.value)}
-                  placeholder="Enter your first name"
-                  required
-                  disabled={submitting}
-                />
-                {guestFormErrors.first_name && <span className="field-error">{guestFormErrors.first_name}</span>}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="guestMiddleName">Middle Name</label>
-                <input
-                  type="text"
-                  id="guestMiddleName"
-                  value={guestFormData.middle_name}
-                  onChange={(e) => handleGuestInputChange('middle_name', e.target.value)}
-                  placeholder="Enter your middle name (optional)"
-                  disabled={submitting}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="guestSurname">
-                  Surname <span className="required-asterisk">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="guestSurname"
-                  value={guestFormData.surname}
-                  onChange={(e) => handleGuestInputChange('surname', e.target.value)}
-                  placeholder="Enter your surname"
-                  required
-                  disabled={submitting}
-                />
-                {guestFormErrors.surname && <span className="field-error">{guestFormErrors.surname}</span>}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="guestSuffix">Suffix</label>
-                <select
-                  id="guestSuffix"
-                  value={guestFormData.suffix}
-                  onChange={(e) => handleGuestInputChange('suffix', e.target.value)}
-                  disabled={submitting}
-                >
-                  <option value="None">None</option>
-                  <option value="Jr">Jr</option>
-                  <option value="Sr">Sr</option>
-                  <option value="II">II</option>
-                  <option value="III">III</option>
-                  <option value="IV">IV</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="guestContact">
-                  Contact Number <span style={{color: '#94a3b8', fontWeight: 500}}>(optional)</span>
-                </label>
-                <input
-                  type="tel"
-                  id="guestContact"
-                  value={guestFormData.contact_number}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
-                    handleGuestInputChange('contact_number', value);
-                  }}
-                  placeholder="e.g., 09123456789"
-                  disabled={submitting}
-                />
-                {guestFormErrors.contact_number && <span className="field-error">{guestFormErrors.contact_number}</span>}
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="guestEmail">Email Address <span className="required-asterisk">*</span></label>
-                <input
-                  type="email"
-                  id="guestEmail"
-                  value={guestFormData.email}
-                  onChange={(e) => handleGuestInputChange('email', e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  disabled={submitting}
-                />
-              </div>
-
-            </>
-          ) : (
-            // Member check-in form (simplified - name is auto-filled)
-            !detectedMember && (
+            {!detectedMember && (
               <>
                 <div className="form-group">
                   <div className="checkin-label-row">
@@ -1668,8 +947,7 @@ const CheckIn = () => {
                   />
                 </div>
               </>
-            )
-          )}
+            )}
 
           {error && (
             <div className="checkin-error-message">
@@ -1677,7 +955,7 @@ const CheckIn = () => {
             </div>
           )}
 
-          {expiryInfo && showSessionInfo && (
+          {expiryInfo && (
             <p className="checkin-expiry-hint">
               Tip: If you refresh this page after {expiryInfo.timeLabel}, the QR link will be inactive.
             </p>
@@ -1695,7 +973,7 @@ const CheckIn = () => {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                {checkinType === 'guest' ? 'Check In as Guest' : submitButtonLabel}
+                {submitButtonLabel}
               </>
             )}
           </button>

@@ -136,8 +136,9 @@ try {
             $alreadyCheckedIn = (bool) $dupStmt->fetchColumn();
         }
     } else {
-        // No member info provided - assume guest check-in
-        $isGuest = true;
+        // Public QR: members only (guests check in with staff / manager app)
+        $isGuest = false;
+        $isMember = false;
     }
 
     $expirationHours = strcasecmp(trim($session['service_name'] ?? ''), 'Sunday Service') === 0 ? 4 : 2;
@@ -161,7 +162,7 @@ try {
             'already_checked_in' => $alreadyCheckedIn,
             'is_member' => $isMember,
             'is_guest' => $isGuest,
-            'checkin_type' => $isMember ? 'member' : 'guest', // Indicates what type of check-in to show
+            'checkin_type' => $isMember ? 'member' : 'members_only',
             'seconds_until_event' => $secondsUntilEvent
         ]
     ]);
