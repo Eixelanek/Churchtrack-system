@@ -198,7 +198,8 @@ try {
             'relationship_relative_id' => $member['relationship_relative_id']
         ];
 
-        if (in_array($displayRelation, ['Father', 'Mother'])) {
+        // Categorize using the normalized display relation
+        if (in_array($displayRelation, ['Father', 'Mother', 'Parent'])) {
             $tree['parents'][] = $memberData;
         } elseif ($displayRelation === 'Spouse') {
             $tree['couple'][] = $memberData;

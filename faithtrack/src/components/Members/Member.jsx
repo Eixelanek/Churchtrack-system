@@ -1700,6 +1700,19 @@ const Member = () => {
     return parts.map((part) => part[0]?.toUpperCase() ?? '').join('');
   }, []);
 
+  const normalizeRelationLabel = useCallback((relation) => {
+    if (!relation) return '';
+    const normalized = relation.toLowerCase();
+    
+    // Normalize gender-specific labels to generic ones
+    if (normalized === 'son' || normalized === 'daughter') return 'Child';
+    if (normalized === 'brother' || normalized === 'sister') return 'Sibling';
+    if (normalized === 'father' || normalized === 'mother') return 'Parent';
+    
+    // Return original if already generic or other
+    return relation;
+  }, []);
+
   const maxMonthlyCount = useMemo(() => {
     if (monthlyData.length === 0) return 1;
     return Math.max(...monthlyData.map(d => d.count), 1);
@@ -2083,7 +2096,7 @@ const Member = () => {
                               <span className="node-name">{member.name}</span>
                               <div className="node-meta">
                                 {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{member.relation}</span>}
+                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
                               </div>
                             </div>
                           </div>
@@ -2103,7 +2116,7 @@ const Member = () => {
                               <span className="node-name">{member.name}</span>
                               <div className="node-meta">
                                 {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{member.relation}</span>}
+                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
                               </div>
                             </div>
                           </div>
@@ -2123,7 +2136,7 @@ const Member = () => {
                               <span className="node-name">{member.name}</span>
                               <div className="node-meta">
                                 {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{member.relation}</span>}
+                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
                               </div>
                             </div>
                           </div>
@@ -2143,7 +2156,7 @@ const Member = () => {
                               <span className="node-name">{member.name}</span>
                               <div className="node-meta">
                                 {member.birth_year && <span className="node-birth-year">{member.birth_year} - Living</span>}
-                                {member.relation && <span className="node-role">{member.relation}</span>}
+                                {member.relation && <span className="node-role">{normalizeRelationLabel(member.relation)}</span>}
                               </div>
                             </div>
                           </div>
