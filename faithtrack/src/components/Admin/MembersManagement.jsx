@@ -2397,24 +2397,15 @@ ChurchTrack System`;
                 const isExpanded = expandedMemberId === member.id;
                 return (
                   <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                    {multiSelectMode && allowMemberMutations && (
-                      <input 
-                        type="checkbox" 
-                        className="member-card-checkbox"
-                        checked={selectedMembers.has(member.id)}
-                        onChange={() => toggleMemberSelection(member.id)}
-                        style={{
-                          position: 'absolute',
-                          top: '12px',
-                          left: '12px',
-                          width: '20px',
-                          height: '20px',
-                          cursor: 'pointer',
-                          zIndex: 10
-                        }}
-                      />
-                    )}
                     <div className="member-card">
+                      {multiSelectMode && allowMemberMutations && (
+                        <input 
+                          type="checkbox" 
+                          className="member-card-checkbox"
+                          checked={selectedMembers.has(member.id)}
+                          onChange={() => toggleMemberSelection(member.id)}
+                        />
+                      )}
                       <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                         {member.profile_picture ? (
                           <img 
@@ -2652,24 +2643,15 @@ ChurchTrack System`;
               const isExpanded = expandedGuestId === guest.id;
               return (
                 <div key={guest.id || guest.full_name} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                  {multiSelectMode && canManageGuests && (
-                    <input 
-                      type="checkbox" 
-                      className="member-card-checkbox"
-                      checked={selectedGuests.has(guest.id)}
-                      onChange={() => toggleGuestSelection(guest.id)}
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        width: '20px',
-                        height: '20px',
-                        cursor: 'pointer',
-                        zIndex: 10
-                      }}
-                    />
-                  )}
                   <div className="member-card guest-card" onClick={() => toggleGuestExpand(guest.id)}>
+                    {multiSelectMode && canManageGuests && (
+                      <input 
+                        type="checkbox" 
+                        className="member-card-checkbox"
+                        checked={selectedGuests.has(guest.id)}
+                        onChange={() => toggleGuestSelection(guest.id)}
+                      />
+                    )}
                     <div className="member-avatar guest">
                       {getInitials(guest.name)}
                     </div>
@@ -2762,6 +2744,94 @@ ChurchTrack System`;
       )}
 
       {activeTab === 'rejected' && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            {allowMemberMutations && (
+              <button
+                onClick={() => {
+                  setMultiSelectMode(!multiSelectMode);
+                  if (multiSelectMode) {
+                    setSelectedMembers(new Set());
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                  color: multiSelectMode ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+              </button>
+            )}
+          </div>
+          {multiSelectMode && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                {selectedMembers.size} selected
+              </span>
+              <button
+                onClick={clearMemberSelection}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => selectAllMembers(sortedRejected)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Select All
+              </button>
+              {selectedMembers.size > 0 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleBulkDeleteMembers}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#ef4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         <div className="members-cards-container">
           {sortedRejected.map(request => {
             const rejectedByManager = request.manager_status === 'rejected';
@@ -2774,6 +2844,14 @@ ChurchTrack System`;
 
             return (
             <div key={request.id} className="member-card">
+              {multiSelectMode && allowMemberMutations && (
+                <input 
+                  type="checkbox" 
+                  className="member-card-checkbox"
+                  checked={selectedMembers.has(request.id)}
+                  onChange={() => toggleMemberSelection(request.id)}
+                />
+              )}
               <div className="member-avatar rejected">
                 {getInitials(request.name)}
               </div>
@@ -2828,9 +2906,98 @@ ChurchTrack System`;
             </div>
           )}
         </div>
+        </>
       )}
 
       {activeTab === 'pending_requests' && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            {allowMemberMutations && (
+              <button
+                onClick={() => {
+                  setMultiSelectMode(!multiSelectMode);
+                  if (multiSelectMode) {
+                    setSelectedMembers(new Set());
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                  color: multiSelectMode ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+              </button>
+            )}
+          </div>
+          {multiSelectMode && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#f0f9ff',
+              borderRadius: '8px',
+              marginBottom: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
+                {selectedMembers.size} selected
+              </span>
+              <button
+                onClick={clearMemberSelection}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => selectAllMembers(sortedRequests)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '4px',
+                  background: 'white',
+                  color: '#1e40af',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Select All
+              </button>
+              {selectedMembers.size > 0 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button
+                    onClick={handleBulkDeleteMembers}
+                    style={{
+                      padding: '8px 16px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      background: '#ef4444',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         <div className="members-cards-container">
           {sortedRequests.map(request => {
             const awaitingManager = request.manager_status !== 'approved';
@@ -2839,6 +3006,14 @@ ChurchTrack System`;
               : (isManagerScope ? null : 'Waiting for manager approval.');
             return (
             <div key={request.id} className="member-card">
+              {multiSelectMode && allowMemberMutations && (
+                <input 
+                  type="checkbox" 
+                  className="member-card-checkbox"
+                  checked={selectedMembers.has(request.id)}
+                  onChange={() => toggleMemberSelection(request.id)}
+                />
+              )}
               <div className="member-avatar pending">
                 {getInitials(request.name)}
               </div>
@@ -2918,6 +3093,7 @@ ChurchTrack System`;
             </div>
           )}
         </div>
+        </>
       )}
 
       {activeTab === 'birthdays' && (
