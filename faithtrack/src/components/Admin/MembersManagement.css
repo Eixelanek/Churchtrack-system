@@ -1951,3 +1951,18 @@
     padding: 1rem 0.65rem;
   }
 } 
+
+
+/* Member Card Checkbox */
+.member-card-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  accent-color: #3B82F6;
+}
+
+.member-card-checkbox:hover {
+  accent-color: #2563EB;
+}

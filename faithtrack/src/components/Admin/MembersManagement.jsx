@@ -1907,24 +1907,15 @@ ChurchTrack System`;
             const isExpanded = expandedMemberId === member.id;
             return (
               <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                {multiSelectMode && allowMemberMutations && (
-                  <input 
-                    type="checkbox" 
-                    className="member-card-checkbox"
-                    checked={selectedMembers.has(member.id)}
-                    onChange={() => toggleMemberSelection(member.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer',
-                      zIndex: 10
-                    }}
-                  />
-                )}
                 <div className="member-card">
+                  {multiSelectMode && allowMemberMutations && (
+                    <input 
+                      type="checkbox" 
+                      className="member-card-checkbox"
+                      checked={selectedMembers.has(member.id)}
+                      onChange={() => toggleMemberSelection(member.id)}
+                    />
+                  )}
                   <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                     {member.profile_picture ? (
                       <img 
