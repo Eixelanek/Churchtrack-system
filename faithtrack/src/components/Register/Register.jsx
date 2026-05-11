@@ -1023,6 +1023,31 @@ const Register = () => {
                       min={minAllowedBirthdayStr}
                       max={maxAllowedBirthdayStr}
                     />
+                    {formData.birthday && (() => {
+                      const birthDate = new Date(formData.birthday);
+                      const today = new Date();
+                      const age = today.getFullYear() - birthDate.getFullYear();
+                      const monthDiff = today.getMonth() - birthDate.getMonth();
+                      const dayDiff = today.getDate() - birthDate.getDate();
+                      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+                      
+                      if (actualAge < 12) {
+                        return (
+                          <div style={{
+                            marginTop: '0.5rem',
+                            padding: '0.75rem',
+                            backgroundColor: '#fef3c7',
+                            color: '#b45309',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            fontWeight: '500'
+                          }}>
+                            ℹ️ Self-registration is only available for ages 12 and above. If you're under 12, please ask an admin to create your account.
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
 
                   <div className="form-group">
