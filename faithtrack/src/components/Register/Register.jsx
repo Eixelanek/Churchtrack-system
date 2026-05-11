@@ -340,7 +340,7 @@ const Register = () => {
       return;
     }
     
-    // For 12-17 year olds, allow duplicate emails (parent's email)
+    // For 12-17 year olds, allow duplicate emails (parent's email) - just validate format
     if (formData.birthday) {
       const birthDate = new Date(formData.birthday);
       const today = new Date();
@@ -350,11 +350,11 @@ const Register = () => {
       const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
       
       if (actualAge >= 12 && actualAge < 18) {
-        // For 12-17, just validate email format, don't check for duplicates
+        // For 12-17, just validate email format, no API call
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (emailRegex.test(email)) {
           setEmailAvailable(true);
-          setEmailCheckMessage('Email format is valid');
+          setEmailCheckMessage('');
         } else {
           setEmailAvailable(false);
           setEmailCheckMessage('Please enter a valid email address');
