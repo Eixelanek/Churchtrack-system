@@ -407,7 +407,28 @@ const Register = () => {
       if (!res.ok) throw new Error('Failed to fetch members');
       
       const members = await res.json();
-      const guardian = members.find(m => m.email && m.email.toLowerCase() === email.toLowerCase());
+      
+      // Find guardian: must match email AND be 18+ years old (not a minor)
+      const guardian = members.find(m => {
+        if (!m.email || m.email.toLowerCase() !== email.toLowerCase()) {
+          return false;
+        }
+        
+        // Check if member is 18+ (adult, not a minor)
+        if (m.birthday) {
+          const birthDate = new Date(m.birthday);
+          const today = new Date();
+          const age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          const dayDiff = today.getDate() - birthDate.getDate();
+          const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+          
+          // Only accept members 18 or older as guardians
+          return actualAge >= 18;
+        }
+        
+        return false;
+      });
       
       if (guardian) {
         // Auto-fill guardian information
