@@ -189,6 +189,15 @@ const Login = () => {
           }
         }
 
+        if (memberData.requires_email_setup) {
+          localStorage.setItem('requiresEmailSetup', 'true');
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.setItem('memberLastLoginPassword', password);
+          }
+        } else {
+          localStorage.removeItem('requiresEmailSetup');
+        }
+
         const redirectAfterLogin = safeMemberRedirectPath(searchParams.get('redirect'));
         navigate(redirectAfterLogin || '/member', { replace: true });
       } else {

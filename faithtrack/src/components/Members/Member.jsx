@@ -153,8 +153,12 @@ const Member = () => {
   useEffect(() => {
     const mustChange = localStorage.getItem('mustChangePassword') === 'true';
     const needsEmail = localStorage.getItem('requiresEmailVerification') === 'true';
+    const needsEmailSetup = localStorage.getItem('requiresEmailSetup') === 'true';
     if (mustChange) {
       setShowForcePasswordModal(true);
+    } else if (needsEmailSetup) {
+      setShowEmailVerificationGate(true);
+      setEmailGateNeedsAddress(true);
     } else if (needsEmail) {
       setShowEmailVerificationGate(true);
     }
@@ -1105,6 +1109,7 @@ const Member = () => {
     localStorage.removeItem('memberEmail');
     localStorage.removeItem('memberBirthday');
     localStorage.removeItem('requiresEmailVerification');
+    localStorage.removeItem('requiresEmailSetup');
     localStorage.removeItem('mustChangePassword');
     localStorage.removeItem('tempPasswordExpiresAt');
     setEmailGateNeedsAddress(false);

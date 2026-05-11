@@ -81,6 +81,19 @@ try {
 
                 $requiresEmailVerification = ($createdVia === 'admin' && !$hasEmail);
 
+                // Check if member is 18+ and doesn't have a unique email (shared parent email)
+                $requiresEmailSetup = false;
+                if ($birthday) {
+                    $birthDate = new DateTime($birthday);
+                    $today = new DateTime();
+                    $age = $today->diff($birthDate)->y;
+                    
+                    // If 18+ and email is empty or shared (created via admin), require email setup
+                    if ($age >= 18 && !$hasEmail) {
+                        $requiresEmailSetup = true;
+                    }
+                }
+
                 http_response_code(200);
                 echo json_encode(array(
                     "message" => "Login successful.",
@@ -94,6 +107,7 @@ try {
                     "must_change_password" => (int)($row['must_change_password'] ?? 0) === 1,
                     "temp_password_expires_at" => $row['password_temp_expires_at'],
                     "requires_email_verification" => $requiresEmailVerification,
+                    "requires_email_setup" => $requiresEmailSetup,
                     "member_created_via" => $createdVia
                 ));
             } else {
