@@ -88,6 +88,8 @@ const Register = () => {
   const [familyLinkResults, setFamilyLinkResults] = useState([]);
   const [showFamilyLinkResults, setShowFamilyLinkResults] = useState(false);
   const [searchingFamilyLink, setSearchingFamilyLink] = useState(false);
+  const [guardianLookupLoading, setGuardianLookupLoading] = useState(false);
+  const [guardianFound, setGuardianFound] = useState(false);
 
   // Calculate the max allowed birthday (5 years ago from today)
   const today = new Date();
@@ -355,9 +357,12 @@ const Register = () => {
         if (emailRegex.test(email)) {
           setEmailAvailable(true);
           setEmailCheckMessage('');
+          // Try to lookup guardian by email
+          lookupGuardianByEmail(email);
         } else {
           setEmailAvailable(false);
           setEmailCheckMessage('Please enter a valid email address');
+          setGuardianFound(false);
         }
         return;
       }
@@ -385,6 +390,41 @@ const Register = () => {
       setEmailCheckMessage('Unable to verify email. Please try again.');
     } finally {
       setCheckingEmail(false);
+    }
+  };
+
+  const lookupGuardianByEmail = async (email) => {
+    if (!(email || '').trim()) {
+      setGuardianFound(false);
+      return;
+    }
+
+    setGuardianLookupLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/members/get_all.php`);
+      if (!res.ok) throw new Error('Failed to fetch members');
+      
+      const members = await res.json();
+      const guardian = members.find(m => m.email && m.email.toLowerCase() === email.toLowerCase());
+      
+      if (guardian) {
+        // Auto-fill guardian information
+        setFormData(prev => ({
+          ...prev,
+          guardianSurname: guardian.surname || '',
+          guardianFirstName: guardian.first_name || '',
+          guardianMiddleName: guardian.middle_name || '',
+          guardianSuffix: guardian.suffix || 'None',
+          relationshipToGuardian: 'Parent' // Default relationship
+        }));
+        setGuardianFound(true);
+      } else {
+        setGuardianFound(false);
+      }
+    } catch (err) {
+      setGuardianFound(false);
+    } finally {
+      setGuardianLookupLoading(false);
     }
   };
 
@@ -1203,6 +1243,17 @@ const Register = () => {
                     <h2 className="step-title">Guardian Information</h2>
                     <p className="step-subtitle">Please provide your guardian's details</p>
                   </div>
+                  
+                  {guardianFound && (
+                    <div className="success-message" style={{ marginBottom: '20px' }}>
+                      <svg className="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 2 6"/>
+                      </svg>
+                      Guardian information found and auto-filled!
+                    </div>
+                  )}
+                  
                   <div className="form-groups">
                     <div className="form-group">
                       <label>
