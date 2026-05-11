@@ -251,8 +251,9 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     setBulkDeleteLoading(true);
 
     try {
-      const ids = bulkDeleteType === 'members' ? Array.from(selectedMembers) : Array.from(selectedGuests);
-      const endpoint = bulkDeleteType === 'members' ? '/api/members/delete.php' : '/api/guest/delete.php';
+      const currentBulkDeleteType = bulkDeleteType; // Store the type before it changes
+      const ids = currentBulkDeleteType === 'members' ? Array.from(selectedMembers) : Array.from(selectedGuests);
+      const endpoint = currentBulkDeleteType === 'members' ? '/api/members/delete.php' : '/api/guest/delete.php';
       
       let successCount = 0;
       let failCount = 0;
@@ -276,8 +277,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       }
 
       setShowBulkDeleteModal(false);
-      setBulkDeleteType(null);
-      if (bulkDeleteType === 'members') {
+      if (currentBulkDeleteType === 'members') {
         setSelectedMembers(new Set());
       } else {
         setSelectedGuests(new Set());
@@ -286,10 +286,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       fetchData();
       
       const message = failCount === 0 
-        ? `Successfully deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}.`
-        : `Deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}, ${failCount} failed.`;
+        ? `Successfully deleted ${successCount} ${currentBulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}.`
+        : `Deleted ${successCount} ${currentBulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}, ${failCount} failed.`;
       
       showCustomAlert(message);
+      setBulkDeleteType(null);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -3745,26 +3746,6 @@ ChurchTrack System`;
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Success Message Banner */}
-      {showAlertModal && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: '#d1fae5',
-          color: '#065f46',
-          padding: '12px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          zIndex: 999,
-          maxWidth: '500px',
-          animation: 'slideDown 0.3s ease-out'
-        }}>
-          {alertMessage}
         </div>
       )}
     </div>
