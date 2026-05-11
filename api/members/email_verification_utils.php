@@ -317,3 +317,116 @@ if (!function_exists('sendEmailVerificationLink')) {
         }
     }
 }
+
+
+if (!function_exists('sendParentNotificationEmail')) {
+    function sendParentNotificationEmail(PDO $db, string $parentEmail, string $childName, string $parentName): array
+    {
+        $branding = fetchChurchEmailBranding($db);
+        $churchName = htmlspecialchars($branding['churchName'], ENT_QUOTES, 'UTF-8');
+        $displayName = trim($parentName) !== '' ? $parentName : $parentEmail;
+        $childNameEsc = htmlspecialchars($childName, ENT_QUOTES, 'UTF-8');
+        $displayNameEsc = htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8');
+        $logoSrc = resolveEmailLogoSrc($branding['logoSrc'] ?? null);
+        $systemName = htmlspecialchars(
+            trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')),
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $subject = $churchName . ' — child account registration notification';
+
+        $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">';
+        $html .= '<title>' . htmlspecialchars($subject, ENT_QUOTES, 'UTF-8') . '</title></head><body style="margin:0;padding:0;background:#f1f5f9;-webkit-font-smoothing:antialiased;">';
+        $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;"><tr><td align="center">';
+        $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.06);">';
+        $html .= '<tr><td style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);padding:28px 24px;text-align:center;">';
+        $html .= '<img src="' . $logoSrc . '" alt="" width="72" height="72" style="display:inline-block;width:72px;height:72px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,0.95);padding:8px;border:1px solid rgba(255,255,255,0.4);" />';
+        $html .= '<div style="font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.9);margin-top:12px;letter-spacing:0.04em;text-transform:uppercase;">' . $systemName . '</div>';
+        $html .= '<div style="font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;color:#ffffff;margin-top:8px;line-height:1.3;">' . $churchName . '</div>';
+        $html .= '</td></tr>';
+        $html .= '<tr><td style="padding:32px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#334155;">';
+        $html .= '<p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . $displayNameEsc . ',</strong></p>';
+        $html .= '<p style="margin:0 0 24px;">A child account has been registered using your email address (' . htmlspecialchars($parentEmail, ENT_QUOTES, 'UTF-8') . '). The account for <strong>' . $childNameEsc . '</strong> is now pending admin approval.</p>';
+        $html .= '<p style="margin:0 0 24px;padding:16px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;font-size:14px;color:#1e40af;"><strong>Note:</strong> This email address is linked to the child account for verification purposes. The child will need to set up their own email when they turn 18.</p>';
+        $html .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you did not authorize this registration, please contact the church administrator.</p>';
+        $html .= '</td></tr>';
+        $html .= '<tr><td style="padding:16px 28px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">';
+        $html .= $systemName . ' · membership registration<br/>';
+        $html .= '<span style="color:#cbd5e1;">You received this because a child account was registered with your email address.</span>';
+        $html .= '</td></tr></table></td></tr></table></body></html>';
+
+        $text = strip_tags($branding['churchName']) . " — child account registration notification\n\n";
+        $text .= 'Hello ' . $displayName . ",\n\n";
+        $text .= 'A child account has been registered using your email address (' . $parentEmail . '). The account for ' . $childName . ' is now pending admin approval.' . "\n\n";
+        $text .= "Note: This email address is linked to the child account for verification purposes. The child will need to set up their own email when they turn 18.\n\n";
+        $text .= "If you did not authorize this registration, please contact the church administrator.\n\n";
+        $text .= "---\n" . strip_tags(trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack'))) . ' · membership registration';
+
+        $replyTo = $branding['replyToEmail'] ?? null;
+        $envReply = trim((string)(getenv('RESEND_REPLY_TO') ?: ''));
+        if (($replyTo === null || $replyTo === '') && $envReply !== '' && filter_var($envReply, FILTER_VALIDATE_EMAIL)) {
+            $replyTo = $envReply;
+        }
+
+        $resendKey = trim((string)(getenv('RESEND_API_KEY') ?: ''));
+        $resendResult = null;
+        if ($resendKey !== '') {
+            $resendResult = sendEmailViaResendApi($parentEmail, $displayName, $subject, $html, $text, $replyTo);
+            if ($resendResult['success']) {
+                return $resendResult;
+            }
+            error_log('Resend parent notification failed: ' . ($resendResult['message'] ?? 'unknown'));
+        }
+
+        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
+        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
+
+        $mail = new PHPMailer(true);
+
+        try {
+            $smtpHost = trim((string)(getenv('SMTP_HOST') ?: ''));
+            $smtpUsername = trim((string)(getenv('SMTP_USERNAME') ?: ''));
+            $smtpPassword = (string)(getenv('SMTP_PASSWORD') ?: '');
+            $smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
+            $fromEmail = trim((string)(getenv('SMTP_FROM_EMAIL') ?: ''));
+            $fromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'ChurchTrack'));
+            $secure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'tls')));
+
+            if ($smtpHost === '' || $smtpUsername === '' || $smtpPassword === '' || $fromEmail === '') {
+                if ($resendResult !== null) {
+                    return $resendResult;
+                }
+                return ['success' => false, 'message' => 'Email service not configured'];
+            }
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $secure === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $smtpPort;
+            $mail->setFrom($fromEmail, $fromName);
+            $mail->addAddress($parentEmail, $displayName);
+            if ($replyTo !== null && $replyTo !== '') {
+                $mail->addReplyTo($replyTo);
+            }
+            $mail->Subject = $subject;
+            $mail->isHTML(true);
+            $mail->Body = $html;
+            $mail->AltBody = $text;
+            $mail->send();
+
+            return ['success' => true, 'message' => 'Parent notification sent successfully'];
+        } catch (PHPMailerException $e) {
+            error_log('PHPMailer error sending parent notification: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to send parent notification: ' . $e->getMessage()];
+        } catch (Exception $e) {
+            error_log('Unexpected error sending parent notification: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unexpected error: ' . $e->getMessage()];
+        }
+    }
+}
+?>

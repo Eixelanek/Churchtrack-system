@@ -145,6 +145,13 @@ try {
         $displayName = trim(($data['firstName'] ?? '') . ' ' . ($data['surname'] ?? ''));
         $emailSendResult = sendEmailVerificationLink($db, $data['email'], $displayName, $verificationToken);
 
+        // If minor, also send parent notification
+        $parentNotificationResult = null;
+        if ($age <= 17) {
+            $guardianName = trim(($data['guardianFirstName'] ?? '') . ' ' . ($data['guardianSurname'] ?? ''));
+            $parentNotificationResult = sendParentNotificationEmail($db, $data['email'], $displayName, $guardianName);
+        }
+
         http_response_code(201);
         echo json_encode([
             "message" => "Registration successful. Please verify your email and wait for admin approval.",
