@@ -220,13 +220,14 @@ if (
         require_once __DIR__ . '/../family/link_at_registration.php';
         link_family_after_registration($db, $newMemberId, $data->familyLinks ?? null, $age);
         $displayName = trim($first_name . ' ' . $surname);
-        $emailSendResult = sendEmailVerificationLink($db, $email, $displayName, $verificationToken);
-
-        // If minor, also send parent notification
-        $parentNotificationResult = null;
+        
+        // For minors, send parent notification instead of regular verification email
         if ($age <= 17) {
             $guardianName = trim(($data->guardianFirstName ?? '') . ' ' . ($data->guardianSurname ?? ''));
-            $parentNotificationResult = sendParentNotificationEmail($db, $email, $displayName, $guardianName);
+            $emailSendResult = sendParentNotificationEmail($db, $email, $displayName, $guardianName);
+        } else {
+            // For adults, send regular verification email
+            $emailSendResult = sendEmailVerificationLink($db, $email, $displayName, $verificationToken);
         }
 
         http_response_code(201);

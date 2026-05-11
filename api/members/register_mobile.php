@@ -143,13 +143,14 @@ try {
         $familyLinks = isset($data['familyLinks']) ? $data['familyLinks'] : null;
         link_family_after_registration($db, $newMemberId, $familyLinks, $age);
         $displayName = trim(($data['firstName'] ?? '') . ' ' . ($data['surname'] ?? ''));
-        $emailSendResult = sendEmailVerificationLink($db, $data['email'], $displayName, $verificationToken);
-
-        // If minor, also send parent notification
-        $parentNotificationResult = null;
+        
+        // For minors, send parent notification instead of regular verification email
         if ($age <= 17) {
             $guardianName = trim(($data['guardianFirstName'] ?? '') . ' ' . ($data['guardianSurname'] ?? ''));
-            $parentNotificationResult = sendParentNotificationEmail($db, $data['email'], $displayName, $guardianName);
+            $emailSendResult = sendParentNotificationEmail($db, $data['email'], $displayName, $guardianName);
+        } else {
+            // For adults, send regular verification email
+            $emailSendResult = sendEmailVerificationLink($db, $data['email'], $displayName, $verificationToken);
         }
 
         http_response_code(201);
