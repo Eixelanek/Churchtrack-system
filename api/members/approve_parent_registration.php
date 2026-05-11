@@ -25,7 +25,7 @@ try {
     $token = $data->token;
 
     // Find member with this parent approval token
-    $query = "SELECT id, email, first_name, surname, email_verified_at FROM members WHERE parent_approval_token = :token LIMIT 1";
+    $query = "SELECT id, email, first_name, surname, email_verified_at, parent_approval_expires_at FROM members WHERE parent_approval_token = :token LIMIT 1";
     $stmt = $db->prepare($query);
     $stmt->bindParam(":token", $token);
     $stmt->execute();
@@ -38,6 +38,17 @@ try {
 
     $member = $stmt->fetch(PDO::FETCH_ASSOC);
     $memberId = $member['id'];
+
+    // Check if token has expired
+    if ($member['parent_approval_expires_at'] !== null) {
+        $expiresAt = new DateTime($member['parent_approval_expires_at']);
+        $now = new DateTime();
+        if ($now > $expiresAt) {
+            http_response_code(400);
+            echo json_encode(["message" => "Approval token has expired. Please contact the church administrator to request a new registration link."]);
+            exit();
+        }
+    }
 
     // Check if already approved
     if ($member['email_verified_at'] !== null) {

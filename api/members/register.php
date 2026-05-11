@@ -88,17 +88,19 @@ if (
     
     // For minors, generate parent approval token
     $parentApprovalToken = null;
+    $parentApprovalExpiresAt = null;
     if ($age <= 17) {
         $parentApprovalToken = generateEmailVerificationToken();
+        $parentApprovalExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
     }
 
     // Insert new member with comprehensive data
     $query = "INSERT INTO members 
-              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, parent_approval_token, contact_number,
+              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, parent_approval_token, parent_approval_expires_at, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
                street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer, username, password, status) 
               VALUES 
-              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :parent_approval_token, :contact_number,
+              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :parent_approval_token, :parent_approval_expires_at, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
                :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer, :username, :password, 'pending')";
 
@@ -202,8 +204,10 @@ if (
     $stmt->bindParam(":email_verification_expires_at", $verificationExpiresAt);
     if ($parentApprovalToken !== null) {
         $stmt->bindParam(":parent_approval_token", $parentApprovalToken);
+        $stmt->bindParam(":parent_approval_expires_at", $parentApprovalExpiresAt);
     } else {
         $stmt->bindValue(":parent_approval_token", null, PDO::PARAM_NULL);
+        $stmt->bindValue(":parent_approval_expires_at", null, PDO::PARAM_NULL);
     }
     if ($contact_number !== null) {
         $stmt->bindParam(":contact_number", $contact_number);

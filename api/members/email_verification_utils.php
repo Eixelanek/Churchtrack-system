@@ -360,7 +360,7 @@ if (!function_exists('sendParentNotificationEmail')) {
         $html .= '<p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . $displayNameEsc . ',</strong></p>';
         $html .= '<p style="margin:0 0 24px;">A child account has been registered using your email address (' . htmlspecialchars($parentEmail, ENT_QUOTES, 'UTF-8') . '). The account for <strong>' . $childNameEsc . '</strong> is now pending your approval and admin approval.</p>';
         $html .= $approvalButton;
-        $html .= '<p style="margin:0 0 24px;padding:16px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;font-size:14px;color:#1e40af;"><strong>Important:</strong> By approving this registration, you confirm that you are the parent/guardian of ' . $childNameEsc . '. This will verify the email address and allow the account to proceed to admin approval.</p>';
+        $html .= '<p style="margin:0 0 24px;padding:16px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;font-size:14px;color:#1e40af;"><strong>Important:</strong> By approving this registration, you confirm that you are the parent/guardian of ' . $childNameEsc . '. This will verify the email address and allow the account to proceed to admin approval. <strong>This approval link expires in 24 hours.</strong></p>';
         $html .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you did not authorize this registration or do not recognize this child, please do not approve. Contact the church administrator if you have concerns.</p>';
         $html .= '</td></tr>';
         $html .= '<tr><td style="padding:16px 28px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">';
@@ -374,7 +374,7 @@ if (!function_exists('sendParentNotificationEmail')) {
         if ($approvalUrl !== '') {
             $text .= "To approve this registration, open this link:\n" . $approvalUrl . "\n\n";
         }
-        $text .= "Important: By approving this registration, you confirm that you are the parent/guardian of " . $childName . ". This will verify the email address and allow the account to proceed to admin approval.\n\n";
+        $text .= "Important: By approving this registration, you confirm that you are the parent/guardian of " . $childName . ". This will verify the email address and allow the account to proceed to admin approval. This approval link expires in 24 hours.\n\n";
         $text .= "If you did not authorize this registration or do not recognize this child, please do not approve. Contact the church administrator if you have concerns.\n\n";
         $text .= "---\n" . strip_tags(trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack'))) . ' · membership registration';
 
