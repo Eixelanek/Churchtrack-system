@@ -20,11 +20,14 @@ if (!empty($data->id)) {
     $stmt->bindParam(":id", $data->id);
 
     if ($stmt->execute()) {
-        echo json_encode(["message" => "Member deleted successfully."]);
+        http_response_code(200);
+        echo json_encode(["success" => true, "message" => "Member deleted successfully."]);
     } else {
-        echo json_encode(["message" => "Failed to delete member."]);
+        http_response_code(500);
+        echo json_encode(["success" => false, "message" => "Failed to delete member."]);
     }
 } else {
-    echo json_encode(["message" => "No member ID provided."]);
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "No member ID provided."]);
 }
-?> 
+?>
