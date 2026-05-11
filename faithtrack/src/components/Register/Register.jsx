@@ -452,15 +452,33 @@ const Register = () => {
       setEmailAvailable(null);
       setEmailCheckMessage('');
       setCheckingEmail(false);
+      setGuardianFound(false);
       return;
     }
-    setCheckingEmail(true);
+
+    // Check if user is 12-17 (minor)
+    let isMinor = false;
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      isMinor = actualAge >= 12 && actualAge < 18;
+    }
+
+    // For minors, don't show checking state
+    if (!isMinor) {
+      setCheckingEmail(true);
+    }
+
     const handler = setTimeout(() => {
       checkEmailAvailability(formData.email);
     }, 800);
     return () => clearTimeout(handler);
     // eslint-disable-next-line
-  }, [formData.email]);
+  }, [formData.email, formData.birthday]);
 
   useEffect(() => {
     if (parseInt(formData.age, 10) > 17) {
