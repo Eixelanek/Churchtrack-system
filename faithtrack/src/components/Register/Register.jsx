@@ -1100,6 +1100,33 @@ const Register = () => {
                           : ''
                     }
                   />
+                  {(() => {
+                    if (formData.birthday) {
+                      const birthDate = new Date(formData.birthday);
+                      const today = new Date();
+                      const age = today.getFullYear() - birthDate.getFullYear();
+                      const monthDiff = today.getMonth() - birthDate.getMonth();
+                      const dayDiff = today.getDate() - birthDate.getDate();
+                      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+                      
+                      if (actualAge >= 12 && actualAge < 18) {
+                        return (
+                          <div style={{
+                            marginTop: '0.5rem',
+                            padding: '0.75rem',
+                            backgroundColor: '#dbeafe',
+                            color: '#1d4ed8',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            fontWeight: '500'
+                          }}>
+                            💡 Please enter your parent's or guardian's email address
+                          </div>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
                   {checkingEmail && (
                     <div className="field-message info">
                       Checking email availability...
