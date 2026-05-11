@@ -44,6 +44,16 @@ const AttendanceManagement = ({
   // Add this new state variable near the other state declarations
   const [attendanceTimestamps, setAttendanceTimestamps] = useState({});
   
+  // Custom alert modal state
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  
+  // Function to show custom alert
+  const showCustomAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlertModal(true);
+  };
+  
   // Function to check if a date is today
   const isToday = (dateString) => {
     const today = new Date();
@@ -418,17 +428,17 @@ const AttendanceManagement = ({
             handleStatusChange(memberId, 'present');
             const isOnline = navigator.onLine;
             if (isOnline) {
-              alert(`Marked ${member.name} as present!`);
+              showCustomAlert(`Marked ${member.name} as present!`);
             } else {
-              alert(`Marked ${member.name} as present! (Offline - will sync when online)`);
+              showCustomAlert(`Marked ${member.name} as present! (Offline - will sync when online)`);
             }
           } else {
-            alert('Member not found!');
+            showCustomAlert('Member not found!');
           }
           scanner.clear();
           setShowQRScanner(false);
         } else {
-          alert('Invalid QR code format!');
+          showCustomAlert('Invalid QR code format!');
         }
       }, (error) => {
 
@@ -690,7 +700,7 @@ const AttendanceManagement = ({
         ? `Successfully deleted ${successCount} event(s).`
         : `Deleted ${successCount} event(s), ${failCount} failed.`;
       
-      alert(message);
+      showCustomAlert(message);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -915,7 +925,7 @@ const AttendanceManagement = ({
           }
         );
         
-        alert('Saved offline! Attendance will sync when you\'re back online.');
+        showCustomAlert('Saved offline! Attendance will sync when you\'re back online.');
         
         setShowMarkAttendanceModal(false);
         setAttendanceStatus({});
@@ -926,7 +936,7 @@ const AttendanceManagement = ({
         setMemberSearchQuery('');
       } catch (error) {
         console.error('Error saving offline attendance:', error);
-        alert('Failed to save offline attendance. Please try again.');
+        showCustomAlert('Failed to save offline attendance. Please try again.');
       }
       return;
     }
@@ -1577,14 +1587,14 @@ const AttendanceManagement = ({
         
         // Reload merged attendance counts
         await loadMergedAttendanceCounts();
-        alert('Event unlinked successfully! Synced attendance has been removed from the unlinked event.');
+        showCustomAlert('Event unlinked successfully! Synced attendance has been removed from the unlinked event.');
       } else {
         const errorData = await response.json();
-        alert('Failed to unlink event: ' + errorData.message);
+        showCustomAlert('Failed to unlink event: ' + errorData.message);
       }
     } catch (error) {
 
-      alert('Error unlinking event. Please try again.');
+      showCustomAlert('Error unlinking event. Please try again.');
     }
   };
 
@@ -3275,6 +3285,29 @@ const AttendanceManagement = ({
                 style={{ background: '#ef4444' }}
               >
                 {bulkDeleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Alert Modal */}
+      {showAlertModal && (
+        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>churchtrack-system.vercel.app says</h3>
+            </div>
+            <div className="confirm-content">
+              <p>{alertMessage}</p>
+            </div>
+            <div className="confirm-actions">
+              <button 
+                onClick={() => setShowAlertModal(false)}
+                className="ok-btn"
+                style={{ background: '#3b82f6', marginLeft: 'auto' }}
+              >
+                OK
               </button>
             </div>
           </div>
