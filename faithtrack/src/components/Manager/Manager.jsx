@@ -390,13 +390,6 @@ const Manager = () => {
   }, [backendBaseUrl]);
 
   const fetchQuickQrSessions = useCallback(async () => {
-    // Only show loading on initial load, not on refresh
-    if (quickQrSessions.length === 0) {
-      setIsQuickQrLoading(true);
-    } else {
-      setIsQuickQrRefreshing(true);
-    }
-    
     try {
       const response = await fetch(`${backendBaseUrl}/api/qr_sessions/list.php?limit=12`);
       const responseText = await response.text();
@@ -418,18 +411,16 @@ const Manager = () => {
         });
 
       setQuickQrSessions(sessions.slice(0, 4));
-    } catch (error) {
-      if (quickQrSessions.length === 0) {
-        setQuickQrSessions([]);
-      }
-    } finally {
       setIsQuickQrLoading(false);
-      setIsQuickQrRefreshing(false);
+    } catch (error) {
+      setIsQuickQrLoading(false);
     }
-  }, [backendBaseUrl, quickQrSessions.length]);
+  }, [backendBaseUrl]);
 
   useEffect(() => {
     fetchQuickQrSessions();
+    const interval = setInterval(fetchQuickQrSessions, 20000);
+    return () => clearInterval(interval);
   }, [backendBaseUrl]);
 
   useEffect(() => {
@@ -1255,6 +1246,8 @@ const Manager = () => {
             </header>
             {isQuickQrLoading && quickQrSessions.length === 0 ? (
               <div className="manager-empty-state">Loading quick QR sessions…</div>
+            ) : quickQrSessions.length === 0 ? (
+              <div className="manager-empty-state">No QR sessions available</div>
             ) : (
               <div className="manager-qr-grid">
                 {quickQrCards.map((card) => {
