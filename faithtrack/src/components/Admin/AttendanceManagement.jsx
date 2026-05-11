@@ -3251,47 +3251,28 @@ const AttendanceManagement = ({
       {/* Bulk Delete Modal */}
       {showBulkDeleteModal && (
         <div className="modal-overlay" onMouseDown={handleModalMouseDown} onClick={() => !bulkDeleteLoading && setShowBulkDeleteModal(false)}>
-          <div className="confirm-modal" onClick={e => e.stopPropagation()} style={{ minHeight: '220px', minWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1a1a1a' }}>
-              Delete Events?
-            </h3>
-            <p style={{
-              margin: 0, color: '#666', fontSize: '0.875rem'
-            }}>
-              Are you sure you want to delete {selectedEvents.size} event(s) permanently? This action cannot be undone.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>Delete Events?</h3>
+            </div>
+            <div className="confirm-content">
+              <p>
+                Are you sure you want to delete {selectedEvents.size} event(s) permanently? This action cannot be undone.
+              </p>
+            </div>
+            <div className="confirm-actions">
               <button 
                 onClick={() => setShowBulkDeleteModal(false)}
                 disabled={bulkDeleteLoading}
-                style={{
-                  padding: '10px 24px',
-                  border: '1px solid #D9D9D9',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: 'black',
-                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  minWidth: '100px',
-                  opacity: bulkDeleteLoading ? 0.6 : 1
-                }}
+                className="cancel-btn"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmBulkDeleteEvents}
                 disabled={bulkDeleteLoading}
-                style={{
-                  padding: '10px 24px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: '#ef4444',
-                  color: 'white',
-                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  minWidth: '100px',
-                  opacity: bulkDeleteLoading ? 0.6 : 1
-                }}
+                className="ok-btn"
+                style={{ background: '#ef4444' }}
               >
                 {bulkDeleteLoading ? 'Deleting...' : 'Delete'}
               </button>
