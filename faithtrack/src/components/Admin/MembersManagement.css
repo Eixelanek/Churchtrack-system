@@ -732,6 +732,39 @@
   font-weight: 600;
 }
 
+/* Multi-Select Button in Tab Header */
+.multi-select-tab-btn {
+  margin-left: auto !important;
+  padding: 0.75rem 1.5rem !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: #e5e7eb !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.multi-select-tab-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.multi-select-tab-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* When multi-select is active */
+.members-new-tabs .multi-select-tab-btn[style*="background: rgb(59, 130, 246)"],
+.multi-select-tab-btn[style*="background: #3b82f6"] {
+  background: #3b82f6 !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
 /* Member Cards Container */
 .members-cards-container {
   display: flex;

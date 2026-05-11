@@ -1781,6 +1781,38 @@ ChurchTrack System`;
           >
             Birthdays
           </button>
+          
+          {/* Multi-Select Button in Tab Header */}
+          {(activeTab === 'all_members' || activeTab === 'inactive' || activeTab === 'guests' || activeTab === 'pending_requests' || activeTab === 'rejected') && allowMemberMutations && (
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  if (activeTab === 'guests') {
+                    setSelectedGuests(new Set());
+                  } else {
+                    setSelectedMembers(new Set());
+                  }
+                }
+              }}
+              className="multi-select-tab-btn"
+              style={{
+                marginLeft: 'auto',
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                borderRadius: '8px',
+                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                color: multiSelectMode ? 'white' : '#374151',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+            </button>
+          )}
         </div>
 
         {activeTab === 'all_members' && (
@@ -1811,30 +1843,6 @@ ChurchTrack System`;
 
       {activeTab === 'all_members' && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            {allowMemberMutations && (
-              <button
-                onClick={() => {
-                  setMultiSelectMode(!multiSelectMode);
-                  if (multiSelectMode) {
-                    setSelectedMembers(new Set());
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                  color: multiSelectMode ? 'white' : '#374151',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-              </button>
-            )}
-          </div>
           {multiSelectMode && (
             <div style={{
               display: 'flex',
@@ -2292,29 +2300,6 @@ ChurchTrack System`;
 
       {activeTab === 'inactive' && (
         <>
-          {allowMemberMutations && (
-            <button
-              onClick={() => {
-                setMultiSelectMode(!multiSelectMode);
-                if (multiSelectMode) {
-                  setSelectedMembers(new Set());
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                color: multiSelectMode ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                marginBottom: '16px'
-              }}
-            >
-              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-            </button>
-          )}
           {multiSelectMode && (
             <div style={{
               display: 'flex',
@@ -2546,30 +2531,6 @@ ChurchTrack System`;
 
       {activeTab === 'guests' && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            {canManageGuests && (
-              <button
-                onClick={() => {
-                  setMultiSelectMode(!multiSelectMode);
-                  if (multiSelectMode) {
-                    setSelectedGuests(new Set());
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                  color: multiSelectMode ? 'white' : '#374151',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-              </button>
-            )}
-          </div>
           {multiSelectMode && (
             <div style={{
               display: 'flex',
@@ -2745,30 +2706,6 @@ ChurchTrack System`;
 
       {activeTab === 'rejected' && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            {allowMemberMutations && (
-              <button
-                onClick={() => {
-                  setMultiSelectMode(!multiSelectMode);
-                  if (multiSelectMode) {
-                    setSelectedMembers(new Set());
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                  color: multiSelectMode ? 'white' : '#374151',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-              </button>
-            )}
-          </div>
           {multiSelectMode && (
             <div style={{
               display: 'flex',
@@ -2911,30 +2848,6 @@ ChurchTrack System`;
 
       {activeTab === 'pending_requests' && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            {allowMemberMutations && (
-              <button
-                onClick={() => {
-                  setMultiSelectMode(!multiSelectMode);
-                  if (multiSelectMode) {
-                    setSelectedMembers(new Set());
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                  color: multiSelectMode ? 'white' : '#374151',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-              </button>
-            )}
-          </div>
           {multiSelectMode && (
             <div style={{
               display: 'flex',
