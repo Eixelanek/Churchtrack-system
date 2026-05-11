@@ -1383,71 +1383,72 @@ const Register = () => {
                       </select>
                     </div>
 
-                    <div className="form-group family-registration-links">
-                      <label>Link church members to your family circle (optional)</label>
-                      <p className="field-hint">
-                        If a parent or sibling already has an account, you can link them now. Skip this if no one in your household is registered yet.
-                      </p>
-                      <div className="form-group referrer-group">
-                        <input
-                          type="text"
-                          placeholder="Search by name or email..."
-                          value={familyLinkSearch}
-                          onChange={(e) => setFamilyLinkSearch(e.target.value)}
-                          onFocus={() => {
-                            if (familyLinkResults.length > 0) setShowFamilyLinkResults(true);
-                          }}
-                          disabled={isLoading || familyLinks.length >= 5}
-                          autoComplete="off"
-                        />
-                        {searchingFamilyLink && (
-                          <div className="searching-indicator">Searching...</div>
-                        )}
-                        {showFamilyLinkResults &&
-                          familyLinkResults.filter((m) => !familyLinks.some((f) => f.id === m.id))
-                            .length > 0 && (
-                            <div className="search-results">
-                              {familyLinkResults
-                                .filter((m) => !familyLinks.some((f) => f.id === m.id))
-                                .map((m) => (
-                                  <div
-                                    key={m.id}
-                                    className="search-result-item"
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => addFamilyMemberLink(m)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        addFamilyMemberLink(m);
-                                      }
-                                    }}
-                                  >
-                                    <div className="referrer-name">{m.full_name || m.name}</div>
-                                    {m.email && (
-                                      <div className="referrer-username">{m.email}</div>
-                                    )}
-                                  </div>
-                                ))}
-                            </div>
+                    {!guardianFound && (
+                      <div className="form-group family-registration-links">
+                        <label>Link church members to your family circle (optional)</label>
+                        <p className="field-hint">
+                          If a parent or sibling already has an account, you can link them now. Skip this if no one in your household is registered yet.
+                        </p>
+                        <div className="form-group referrer-group">
+                          <input
+                            type="text"
+                            placeholder="Search by name or email..."
+                            value={familyLinkSearch}
+                            onChange={(e) => setFamilyLinkSearch(e.target.value)}
+                            onFocus={() => {
+                              if (familyLinkResults.length > 0) setShowFamilyLinkResults(true);
+                            }}
+                            disabled={isLoading || familyLinks.length >= 5}
+                            autoComplete="off"
+                          />
+                          {searchingFamilyLink && (
+                            <div className="searching-indicator">Searching...</div>
                           )}
-                      </div>
-                      {familyLinks.length > 0 && (
-                        <ul className="family-registration-link-list">
-                          {familyLinks.map((fl) => (
-                            <li key={fl.id} className="family-registration-link-row">
-                              <span className="family-registration-link-name">{fl.name}</span>
-                              <select
-                                value={fl.relationship}
-                                onChange={(e) =>
-                                  updateFamilyMemberLinkRelationship(fl.id, e.target.value)
-                                }
-                                disabled={isLoading}
-                                aria-label={`Relationship to ${fl.name}`}
-                              >
-                                {FAMILY_LINK_RELATIONSHIPS.map((r) => (
-                                  <option key={r} value={r}>
-                                    {r}
+                          {showFamilyLinkResults &&
+                            familyLinkResults.filter((m) => !familyLinks.some((f) => f.id === m.id))
+                              .length > 0 && (
+                              <div className="search-results">
+                                {familyLinkResults
+                                  .filter((m) => !familyLinks.some((f) => f.id === m.id))
+                                  .map((m) => (
+                                    <div
+                                      key={m.id}
+                                      className="search-result-item"
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={() => addFamilyMemberLink(m)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          addFamilyMemberLink(m);
+                                        }
+                                      }}
+                                    >
+                                      <div className="referrer-name">{m.full_name || m.name}</div>
+                                      {m.email && (
+                                        <div className="referrer-username">{m.email}</div>
+                                      )}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                        </div>
+                        {familyLinks.length > 0 && (
+                          <ul className="family-registration-link-list">
+                            {familyLinks.map((fl) => (
+                              <li key={fl.id} className="family-registration-link-row">
+                                <span className="family-registration-link-name">{fl.name}</span>
+                                <select
+                                  value={fl.relationship}
+                                  onChange={(e) =>
+                                    updateFamilyMemberLinkRelationship(fl.id, e.target.value)
+                                  }
+                                  disabled={isLoading}
+                                  aria-label={`Relationship to ${fl.name}`}
+                                >
+                                  {FAMILY_LINK_RELATIONSHIPS.map((r) => (
+                                    <option key={r} value={r}>
+                                      {r}
                                   </option>
                                 ))}
                               </select>
@@ -1463,7 +1464,8 @@ const Register = () => {
                           ))}
                         </ul>
                       )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
