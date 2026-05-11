@@ -168,15 +168,19 @@ if (
     }
 
     // Check if email already exists (excluding rejected members)
-    $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
-    $check_email_stmt = $db->prepare($check_email_query);
-    $check_email_stmt->bindParam(":email", $email);
-    $check_email_stmt->execute();
+    // For minors (17 and below), allow duplicate emails (parent's email)
+    // For 18+, check for duplicate emails
+    if ($age >= 18) {
+        $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
+        $check_email_stmt = $db->prepare($check_email_query);
+        $check_email_stmt->bindParam(":email", $email);
+        $check_email_stmt->execute();
 
-    if ($check_email_stmt->rowCount() > 0) {
-        http_response_code(400);
-        echo json_encode(["message" => "Email already exists"]);
-        exit();
+        if ($check_email_stmt->rowCount() > 0) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email already exists"]);
+            exit();
+        }
     }
 
     // Bind all parameters

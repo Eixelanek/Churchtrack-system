@@ -76,13 +76,17 @@ try {
     }
     
     // Check email uniqueness
-    $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
-    $check_email_stmt = $db->prepare($check_email_query);
-    $check_email_stmt->bindParam(":email", $data['email']);
-    $check_email_stmt->execute();
-    
-    if ($check_email_stmt->rowCount() > 0) {
-        throw new Exception("Email already exists");
+    // For minors (17 and below), allow duplicate emails (parent's email)
+    // For 18+, check for duplicate emails
+    if ($age >= 18) {
+        $check_email_query = "SELECT id FROM members WHERE email = :email AND status != 'rejected'";
+        $check_email_stmt = $db->prepare($check_email_query);
+        $check_email_stmt->bindParam(":email", $data['email']);
+        $check_email_stmt->execute();
+        
+        if ($check_email_stmt->rowCount() > 0) {
+            throw new Exception("Email already exists");
+        }
     }
     
     $verificationToken = generateEmailVerificationToken();
