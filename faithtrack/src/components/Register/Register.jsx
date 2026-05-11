@@ -642,9 +642,21 @@ const Register = () => {
       return;
     }
 
-    if (emailAvailable !== true) {
-      setMessage({ type: 'error', text: 'Please use an available email address' });
-      return;
+    // For minors, just validate email format. For 18+, check availability
+    const isMinor = parseInt(formData.age) <= 17;
+    if (isMinor) {
+      // For minors, just validate format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        setMessage({ type: 'error', text: 'Please enter a valid email address' });
+        return;
+      }
+    } else {
+      // For 18+, check availability
+      if (emailAvailable !== true) {
+        setMessage({ type: 'error', text: 'Please use an available email address' });
+        return;
+      }
     }
 
     if (formData.password.length < 8) {
@@ -667,8 +679,6 @@ const Register = () => {
       setMessage(null);
       setError('');
 
-      const isMinor = parseInt(formData.age) <= 17;
-      
       const payload = {
         surname: formData.surname,
         firstName: formData.firstName,
