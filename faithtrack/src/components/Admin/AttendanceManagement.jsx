@@ -1752,30 +1752,32 @@ const AttendanceManagement = ({
           </button>
           
           {/* Multi-Select Button in Tab Header */}
-          <button
-            onClick={() => {
-              setMultiSelectMode(!multiSelectMode);
-              if (multiSelectMode) {
-                setSelectedEvents(new Set());
-              }
-            }}
-            className="multi-select-tab-btn"
-            style={{
-              marginLeft: 'auto',
-              padding: '0.75rem 1.5rem',
-              border: 'none',
-              borderRadius: '8px',
-              background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-              color: multiSelectMode ? 'white' : '#374151',
-              cursor: 'pointer',
-              fontSize: '0.95rem',
-              fontWeight: '500',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-          </button>
+          {!isManager && (
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  setSelectedEvents(new Set());
+                }
+              }}
+              className="multi-select-tab-btn"
+              style={{
+                marginLeft: 'auto',
+                padding: '0.75rem 1.5rem',
+                border: 'none',
+                borderRadius: '8px',
+                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
+                color: multiSelectMode ? 'white' : '#374151',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+            </button>
+          )}
         </div>
       </div>
 
