@@ -339,6 +339,7 @@ const Register = () => {
     if (!(email || '').trim()) {
       setEmailAvailable(null);
       setEmailCheckMessage('');
+      setCheckingEmail(false);
       return;
     }
     
@@ -354,6 +355,7 @@ const Register = () => {
       if (actualAge >= 12 && actualAge < 18) {
         // For 12-17, just validate email format, no API call
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        setCheckingEmail(false);
         if (emailRegex.test(email)) {
           setEmailAvailable(true);
           setEmailCheckMessage('');
