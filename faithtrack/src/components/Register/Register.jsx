@@ -181,7 +181,21 @@ const Register = () => {
       formData.birthday.split('-').every(part => part.length > 0) &&
       new Date(formData.birthday) >= minAllowedBirthday &&
       new Date(formData.birthday) <= maxAllowedBirthday;
-    return surnameValid && firstNameValid && genderValid && birthdayValid;
+    
+    // Check if age is at least 12 for self-registration
+    let ageValid = true;
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      ageValid = actualAge >= 12;
+    }
+    
+    return surnameValid && firstNameValid && genderValid && birthdayValid && ageValid;
   };
 
   const validateStep2 = () => {

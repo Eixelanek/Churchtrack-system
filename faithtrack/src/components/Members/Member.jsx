@@ -1054,6 +1054,7 @@ const Member = () => {
     setEmailGateError('');
     const memberId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
+    const isAdultSetup = localStorage.getItem('isAdultEmailSetup') === 'true';
     let pwd = emailGateResendPassword.trim();
     if (!pwd && typeof window !== 'undefined') {
       pwd = window.sessionStorage.getItem('memberLastLoginPassword') || '';
@@ -1080,7 +1081,8 @@ const Member = () => {
           member_id: parseInt(memberId, 10),
           username,
           password: pwd,
-          email
+          email,
+          is_adult_setup: isAdultSetup
         })
       });
       const data = await res.json().catch(() => ({}));
@@ -1088,6 +1090,7 @@ const Member = () => {
         throw new Error(data.message || 'Unable to save email.');
       }
       localStorage.setItem('memberEmail', email);
+      localStorage.removeItem('isAdultEmailSetup');
       setUser((prev) => ({ ...prev, email }));
       setEmailGateNewEmail('');
       setEmailGateResendPassword('');

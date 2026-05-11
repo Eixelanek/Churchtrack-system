@@ -191,11 +191,15 @@ const Login = () => {
 
         if (memberData.requires_email_setup) {
           localStorage.setItem('requiresEmailSetup', 'true');
+          if (memberData.is_adult_email_setup) {
+            localStorage.setItem('isAdultEmailSetup', 'true');
+          }
           if (typeof window !== 'undefined') {
             window.sessionStorage.setItem('memberLastLoginPassword', password);
           }
         } else {
           localStorage.removeItem('requiresEmailSetup');
+          localStorage.removeItem('isAdultEmailSetup');
         }
 
         const redirectAfterLogin = safeMemberRedirectPath(searchParams.get('redirect'));
