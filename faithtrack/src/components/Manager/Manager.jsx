@@ -178,7 +178,8 @@ const Manager = () => {
   const [isWeeklyTrendLoading, setIsWeeklyTrendLoading] = useState(false);
   const [isQrStatsLoading, setIsQrStatsLoading] = useState(false);
   const [quickQrSessions, setQuickQrSessions] = useState([]);
-  const [isQuickQrLoading, setIsQuickQrLoading] = useState(false);
+  const [isQuickQrLoading, setIsQuickQrLoading] = useState(true);
+  const [isQuickQrRefreshing, setIsQuickQrRefreshing] = useState(false);
   const [recentAttendanceRaw, setRecentAttendanceRaw] = useState([]);
   const [isRecentAttendanceLoading, setIsRecentAttendanceLoading] = useState(false);
   const [topActiveMembersRaw, setTopActiveMembersRaw] = useState([]);
@@ -389,7 +390,13 @@ const Manager = () => {
   }, [backendBaseUrl]);
 
   const fetchQuickQrSessions = useCallback(async () => {
-    setIsQuickQrLoading(true);
+    // Only show loading on initial load, not on refresh
+    if (quickQrSessions.length === 0) {
+      setIsQuickQrLoading(true);
+    } else {
+      setIsQuickQrRefreshing(true);
+    }
+    
     try {
       const response = await fetch(`${backendBaseUrl}/api/qr_sessions/list.php?limit=12`);
       const responseText = await response.text();
@@ -412,11 +419,14 @@ const Manager = () => {
 
       setQuickQrSessions(sessions.slice(0, 4));
     } catch (error) {
-      setQuickQrSessions([]);
+      if (quickQrSessions.length === 0) {
+        setQuickQrSessions([]);
+      }
     } finally {
       setIsQuickQrLoading(false);
+      setIsQuickQrRefreshing(false);
     }
-  }, [backendBaseUrl]);
+  }, [backendBaseUrl, quickQrSessions.length]);
 
   useEffect(() => {
     fetchQuickQrSessions();
