@@ -430,9 +430,7 @@ const Manager = () => {
 
   useEffect(() => {
     fetchQuickQrSessions();
-    const interval = setInterval(fetchQuickQrSessions, 20000);
-    return () => clearInterval(interval);
-  }, [fetchQuickQrSessions]);
+  }, [backendBaseUrl]);
 
   useEffect(() => {
     const fetchRecentAttendance = async () => {
