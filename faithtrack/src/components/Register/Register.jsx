@@ -339,6 +339,31 @@ const Register = () => {
       setEmailCheckMessage('');
       return;
     }
+    
+    // For 12-17 year olds, allow duplicate emails (parent's email)
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      
+      if (actualAge >= 12 && actualAge < 18) {
+        // For 12-17, just validate email format, don't check for duplicates
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(email)) {
+          setEmailAvailable(true);
+          setEmailCheckMessage('Email format is valid');
+        } else {
+          setEmailAvailable(false);
+          setEmailCheckMessage('Please enter a valid email address');
+        }
+        return;
+      }
+    }
+    
+    // For 18+, check for duplicates
     setCheckingEmail(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/members/check_email.php?email=${encodeURIComponent(email)}`, {
