@@ -1842,14 +1842,33 @@ ChurchTrack System`;
           transform: 'translateX(-50%)',
           backgroundColor: '#d1fae5',
           color: '#065f46',
-          padding: '12px 20px',
-          borderRadius: '8px',
+          padding: '0',
+          borderRadius: '12px',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
           zIndex: 999,
           maxWidth: '500px',
-          animation: 'slideDown 0.3s ease-out'
+          animation: 'slideDown 0.3s ease-out',
+          overflow: 'hidden'
         }}>
-          {alertMessage}
+          <div style={{
+            backgroundColor: '#10b981',
+            color: 'white',
+            padding: '8px 16px',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>✓</span>
+            <span>Success</span>
+          </div>
+          <div style={{
+            padding: '12px 16px',
+            fontSize: '0.95rem'
+          }}>
+            {alertMessage}
+          </div>
         </div>
       )}
 
