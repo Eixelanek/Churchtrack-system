@@ -47,8 +47,8 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [userToAction, setUserToAction] = useState(null);
   const [newUserCredentials, setNewUserCredentials] = useState(null);
   const [generatePassword, setGeneratePassword] = useState(true);
-  const [showConfirmActionSuccess, setShowConfirmActionSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [members, setMembers] = useState([]);
@@ -128,23 +128,19 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
 
-  // Custom alert modal state
-  const [showAlertModal, setShowAlertModal] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  
-  // Function to show custom alert
-  const showCustomAlert = (message) => {
-    setAlertMessage(message);
-    setShowAlertModal(true);
-    setTimeout(() => setShowAlertModal(false), 3000);
-  };
-
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
       writeManagerReviewMap(next);
       return next;
     });
+  };
+
+  // Function to show custom alert banner
+  const showCustomAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlertModal(true);
+    setTimeout(() => setShowAlertModal(false), 3000);
   };
 
   // Fetch referred members for a specific member
@@ -293,9 +289,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         ? `Successfully deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}.`
         : `Deleted ${successCount} ${bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'}, ${failCount} failed.`;
       
-      setSuccessMessage(message);
-      setShowConfirmActionSuccess(true);
-      setTimeout(() => setShowConfirmActionSuccess(false), 3000);
+      showCustomAlert(message);
     } finally {
       setBulkDeleteLoading(false);
     }
@@ -1124,11 +1118,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       setConfirmAction(null);
       setUserToAction(null);
       if (message) {
-        setSuccessMessage(message);
-        setShowConfirmActionSuccess(true);
-        setTimeout(() => {
-          setShowConfirmActionSuccess(false);
-        }, 3000);
+        showCustomAlert(message);
       }
       setConfirmLoading(false);
       setGlobalLoading(false);
@@ -1392,9 +1382,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       const okMsg = data.email_send_ok === false && data.message
         ? data.message
         : 'Member updated successfully.';
-      setSuccessMessage(okMsg);
-      setShowConfirmActionSuccess(true);
-      setTimeout(() => setShowConfirmActionSuccess(false), 4000);
+      showCustomAlert(okMsg);
     } catch (err) {
       setEditError(err.message || 'Could not save changes.');
     } finally {
@@ -1846,9 +1834,22 @@ ChurchTrack System`;
       <div className="top-controls">
       </div>
 
-      {showConfirmActionSuccess && (
-        <div className="success-message">
-          {successMessage}
+      {showAlertModal && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#d1fae5',
+          color: '#065f46',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 999,
+          maxWidth: '500px',
+          animation: 'slideDown 0.3s ease-out'
+        }}>
+          {alertMessage}
         </div>
       )}
 
