@@ -67,9 +67,50 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip API calls - let them fail naturally for offline detection
-  if (url.pathname.startsWith('/api/')) {
+  // Allow specific API calls that need to work during registration
+  const allowedApiPaths = [
+    '/api/members/get_all.php',
+    '/api/members/check_email.php',
+    '/api/members/check_username.php'
+  ];
+  
+  const isAllowedApi = allowedApiPaths.some(path => url.pathname.includes(path));
+
+  // Skip other API calls - let them fail naturally for offline detection
+  if (url.pathname.startsWith('/api/') && !isAllowedApi) {
     console.log('[SW] Skipping API call:', url.pathname);
+    return;
+  }
+
+  // For allowed API calls, use network-first strategy
+  if (isAllowedApi) {
+    console.log('[SW] Allowing API call:', url.pathname);
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch((error) => {
+          console.log('[SW] API fetch failed:', url.pathname, error);
+          return caches.match(request)
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                console.log('[SW] Serving API from cache:', url.pathname);
+                return cachedResponse;
+              }
+              return new Response(JSON.stringify({ error: 'Offline' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              });
+            });
+        })
+    );
     return;
   }
 
