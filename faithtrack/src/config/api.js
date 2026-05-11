@@ -1,6 +1,6 @@
 // Centralized API configuration
-// Using Render backend (already deployed)
-export const API_BASE_URL = 'https://churchtrack-api.onrender.com';
+// Using custom domain pointing to Render backend
+export const API_BASE_URL = 'https://api.clcc.site';
 
 // Direct API call (no proxy needed - Render handles CORS)
 export const apiCall = async (endpoint, options = {}) => {
