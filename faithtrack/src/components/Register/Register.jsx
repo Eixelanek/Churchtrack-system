@@ -340,6 +340,7 @@ const Register = () => {
       setEmailAvailable(null);
       setEmailCheckMessage('');
       setCheckingEmail(false);
+      setGuardianFound(false);
       return;
     }
     
@@ -359,8 +360,8 @@ const Register = () => {
         if (emailRegex.test(email)) {
           setEmailAvailable(true);
           setEmailCheckMessage('');
-          // Try to lookup guardian by email
-          lookupGuardianByEmail(email);
+          // Try to lookup guardian by email immediately
+          await lookupGuardianByEmail(email);
         } else {
           setEmailAvailable(false);
           setEmailCheckMessage('Please enter a valid email address');
@@ -403,10 +404,12 @@ const Register = () => {
 
     setGuardianLookupLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/members/get_all.php`);
+      // Fetch all members (without pagination limit to get all members)
+      const res = await fetch(`${API_BASE_URL}/api/members/get_all.php?limit=1000`);
       if (!res.ok) throw new Error('Failed to fetch members');
       
-      const members = await res.json();
+      const data = await res.json();
+      const members = data.members || [];
       
       // Find guardian: must match email AND be 18+ years old (not a minor)
       const guardian = members.find(m => {
@@ -445,6 +448,7 @@ const Register = () => {
         setGuardianFound(false);
       }
     } catch (err) {
+      console.error('Guardian lookup error:', err);
       setGuardianFound(false);
     } finally {
       setGuardianLookupLoading(false);
