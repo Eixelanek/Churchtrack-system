@@ -1255,7 +1255,7 @@ const Manager = () => {
                 Refresh list
               </button>
             </header>
-            {isQuickQrLoading ? (
+            {isQuickQrLoading && quickQrSessions.length === 0 ? (
               <div className="manager-empty-state">Loading quick QR sessions…</div>
             ) : (
               <div className="manager-qr-grid">
