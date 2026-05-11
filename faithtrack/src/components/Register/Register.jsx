@@ -91,7 +91,7 @@ const Register = () => {
 
   // Calculate the max allowed birthday (5 years ago from today)
   const today = new Date();
-  const maxAllowedBirthday = new Date(today.getFullYear() - 12, today.getMonth(), today.getDate());
+  const maxAllowedBirthday = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
   const maxAllowedBirthdayStr = maxAllowedBirthday.toISOString().split('T')[0];
   
   // Set minimum allowed birthday (120 years ago)
