@@ -320,7 +320,7 @@ if (!function_exists('sendEmailVerificationLink')) {
 
 
 if (!function_exists('sendParentNotificationEmail')) {
-    function sendParentNotificationEmail(PDO $db, string $parentEmail, string $childName, string $parentName): array
+    function sendParentNotificationEmail(PDO $db, string $parentEmail, string $childName, string $parentName, string $approvalToken = null): array
     {
         $branding = fetchChurchEmailBranding($db);
         $churchName = htmlspecialchars($branding['churchName'], ENT_QUOTES, 'UTF-8');
@@ -335,6 +335,17 @@ if (!function_exists('sendParentNotificationEmail')) {
         );
 
         $subject = $churchName . ' — child account registration notification';
+        
+        // Build approval URL if token provided
+        $approvalUrl = '';
+        $approvalButton = '';
+        if ($approvalToken !== null && $approvalToken !== '') {
+            $approvalUrl = getFrontendBaseUrl() . '/approve-parent-registration?token=' . urlencode($approvalToken);
+            $approvalUrlEsc = htmlspecialchars($approvalUrl, ENT_QUOTES, 'UTF-8');
+            $approvalButton = '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;"><tr><td style="border-radius:8px;background:#10b981;">';
+            $approvalButton .= '<a href="' . $approvalUrlEsc . '" style="display:inline-block;padding:14px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Approve Registration</a>';
+            $approvalButton .= '</td></tr></table>';
+        }
 
         $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">';
         $html .= '<title>' . htmlspecialchars($subject, ENT_QUOTES, 'UTF-8') . '</title></head><body style="margin:0;padding:0;background:#f1f5f9;-webkit-font-smoothing:antialiased;">';
@@ -347,9 +358,10 @@ if (!function_exists('sendParentNotificationEmail')) {
         $html .= '</td></tr>';
         $html .= '<tr><td style="padding:32px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#334155;">';
         $html .= '<p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . $displayNameEsc . ',</strong></p>';
-        $html .= '<p style="margin:0 0 24px;">A child account has been registered using your email address (' . htmlspecialchars($parentEmail, ENT_QUOTES, 'UTF-8') . '). The account for <strong>' . $childNameEsc . '</strong> is now pending admin approval.</p>';
-        $html .= '<p style="margin:0 0 24px;padding:16px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;font-size:14px;color:#1e40af;"><strong>Note:</strong> This email address is linked to the child account for verification purposes. The child will need to set up their own email when they turn 18.</p>';
-        $html .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you did not authorize this registration, please contact the church administrator.</p>';
+        $html .= '<p style="margin:0 0 24px;">A child account has been registered using your email address (' . htmlspecialchars($parentEmail, ENT_QUOTES, 'UTF-8') . '). The account for <strong>' . $childNameEsc . '</strong> is now pending your approval and admin approval.</p>';
+        $html .= $approvalButton;
+        $html .= '<p style="margin:0 0 24px;padding:16px;background:#f0f9ff;border-left:4px solid #2563eb;border-radius:4px;font-size:14px;color:#1e40af;"><strong>Important:</strong> By approving this registration, you confirm that you are the parent/guardian of ' . $childNameEsc . '. This will verify the email address and allow the account to proceed to admin approval.</p>';
+        $html .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you did not authorize this registration or do not recognize this child, please do not approve. Contact the church administrator if you have concerns.</p>';
         $html .= '</td></tr>';
         $html .= '<tr><td style="padding:16px 28px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">';
         $html .= $systemName . ' · membership registration<br/>';
@@ -358,9 +370,12 @@ if (!function_exists('sendParentNotificationEmail')) {
 
         $text = strip_tags($branding['churchName']) . " — child account registration notification\n\n";
         $text .= 'Hello ' . $displayName . ",\n\n";
-        $text .= 'A child account has been registered using your email address (' . $parentEmail . '). The account for ' . $childName . ' is now pending admin approval.' . "\n\n";
-        $text .= "Note: This email address is linked to the child account for verification purposes. The child will need to set up their own email when they turn 18.\n\n";
-        $text .= "If you did not authorize this registration, please contact the church administrator.\n\n";
+        $text .= 'A child account has been registered using your email address (' . $parentEmail . '). The account for ' . $childName . ' is now pending your approval and admin approval.' . "\n\n";
+        if ($approvalUrl !== '') {
+            $text .= "To approve this registration, open this link:\n" . $approvalUrl . "\n\n";
+        }
+        $text .= "Important: By approving this registration, you confirm that you are the parent/guardian of " . $childName . ". This will verify the email address and allow the account to proceed to admin approval.\n\n";
+        $text .= "If you did not authorize this registration or do not recognize this child, please do not approve. Contact the church administrator if you have concerns.\n\n";
         $text .= "---\n" . strip_tags(trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack'))) . ' · membership registration';
 
         $replyTo = $branding['replyToEmail'] ?? null;

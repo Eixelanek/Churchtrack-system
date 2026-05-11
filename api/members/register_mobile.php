@@ -91,14 +91,20 @@ try {
     
     $verificationToken = generateEmailVerificationToken();
     $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+    
+    // For minors, generate parent approval token
+    $parentApprovalToken = null;
+    if ($age <= 17) {
+        $parentApprovalToken = generateEmailVerificationToken();
+    }
 
     // Insert member
     $query = "INSERT INTO members 
-              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
+              (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, parent_approval_token, contact_number,
                guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
                street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer, username, password, status) 
               VALUES 
-              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
+              (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :parent_approval_token, :contact_number,
                :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
                :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer, :username, :password, 'pending')";
     
@@ -115,6 +121,11 @@ try {
     $stmt->bindValue(":email_verified_at", null, PDO::PARAM_NULL);
     $stmt->bindParam(":email_verification_token", $verificationToken);
     $stmt->bindParam(":email_verification_expires_at", $verificationExpiresAt);
+    if ($parentApprovalToken !== null) {
+        $stmt->bindParam(":parent_approval_token", $parentApprovalToken);
+    } else {
+        $stmt->bindValue(":parent_approval_token", null, PDO::PARAM_NULL);
+    }
     $contactNumber = isset($data['contactNumber']) && trim((string)$data['contactNumber']) !== '' ? $data['contactNumber'] : null;
     if ($contactNumber !== null) {
         $stmt->bindParam(":contact_number", $contactNumber);
@@ -147,7 +158,7 @@ try {
         // For minors, send parent notification instead of regular verification email
         if ($age <= 17) {
             $guardianName = trim(($data['guardianFirstName'] ?? '') . ' ' . ($data['guardianSurname'] ?? ''));
-            $emailSendResult = sendParentNotificationEmail($db, $data['email'], $displayName, $guardianName);
+            $emailSendResult = sendParentNotificationEmail($db, $data['email'], $displayName, $guardianName, $parentApprovalToken);
         } else {
             // For adults, send regular verification email
             $emailSendResult = sendEmailVerificationLink($db, $data['email'], $displayName, $verificationToken);
