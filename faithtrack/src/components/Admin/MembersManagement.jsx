@@ -136,6 +136,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const showCustomAlert = (message) => {
     setAlertMessage(message);
     setShowAlertModal(true);
+    setTimeout(() => setShowAlertModal(false), 3000);
   };
 
   const updateManagerModeration = (updater) => {
@@ -3727,26 +3728,23 @@ ChurchTrack System`;
         </div>
       )}
 
-      {/* Custom Alert Modal */}
+      {/* Success Message Banner */}
       {showAlertModal && (
-        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
-          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-            <div className="confirm-header">
-              <h3>churchtrack-system.vercel.app says</h3>
-            </div>
-            <div className="confirm-content">
-              <p>{alertMessage}</p>
-            </div>
-            <div className="confirm-actions">
-              <button 
-                onClick={() => setShowAlertModal(false)}
-                className="ok-btn"
-                style={{ background: '#3b82f6', marginLeft: 'auto' }}
-              >
-                OK
-              </button>
-            </div>
-          </div>
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#d1fae5',
+          color: '#065f46',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 999,
+          maxWidth: '500px',
+          animation: 'slideDown 0.3s ease-out'
+        }}>
+          {alertMessage}
         </div>
       )}
     </div>
