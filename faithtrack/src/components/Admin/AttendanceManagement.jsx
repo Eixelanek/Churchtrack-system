@@ -1853,24 +1853,7 @@ const AttendanceManagement = ({
             const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'long' });
             
             return (
-              <div key={event.id} className={`member-card-wrapper ${expandedServiceId === event.id ? 'expanded' : ''}`} style={{ position: 'relative' }}>
-                {multiSelectMode && (
-                  <input 
-                    type="checkbox" 
-                    className="member-card-checkbox"
-                    checked={selectedEvents.has(event.id)}
-                    onChange={() => toggleEventSelection(event.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '16px',
-                      left: '16px',
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer',
-                      zIndex: 10
-                    }}
-                  />
-                )}
+              <div key={event.id} className={`member-card-wrapper ${expandedServiceId === event.id ? 'expanded' : ''}`}>
                 <div
                   className="member-card"
                   onClick={() => {
@@ -1892,6 +1875,15 @@ const AttendanceManagement = ({
                     }
                   }}
                 >
+                  {multiSelectMode && (
+                    <input 
+                      type="checkbox" 
+                      className="member-card-checkbox"
+                      checked={selectedEvents.has(event.id)}
+                      onChange={() => toggleEventSelection(event.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
                   <div className="event-date-box">
                     <div className="date-number">{dayNumber}</div>
                   </div>
