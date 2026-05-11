@@ -128,6 +128,16 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
 
+  // Custom alert modal state
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  
+  // Function to show custom alert
+  const showCustomAlert = (message) => {
+    setAlertMessage(message);
+    setShowAlertModal(true);
+  };
+
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
@@ -1421,7 +1431,7 @@ ChurchTrack System`;
     
     navigator.clipboard.writeText(text.trim())
       .then(() => {
-        alert('Credentials copied to clipboard!');
+        showCustomAlert('Credentials copied to clipboard!');
       })
       .catch(err => {
 
@@ -3687,47 +3697,53 @@ ChurchTrack System`;
       {/* Bulk Delete Modal */}
       {showBulkDeleteModal && (
         <div className="modal-overlay" onClick={() => !bulkDeleteLoading && setShowBulkDeleteModal(false)}>
-          <div className="confirm-modal" onClick={e => e.stopPropagation()} style={{ minHeight: '220px', minWidth: '360px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#1a1a1a' }}>
-              Delete {bulkDeleteType === 'members' ? 'Members' : 'Guests'}?
-            </h3>
-            <p style={{ margin: 0, color: '#666', fontSize: '0.875rem' }}>
-              Are you sure you want to delete {bulkDeleteType === 'members' ? selectedMembers.size : selectedGuests.size} {bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'} permanently? This action cannot be undone.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '1rem' }}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>Delete {bulkDeleteType === 'members' ? 'Members' : 'Guests'}?</h3>
+            </div>
+            <div className="confirm-content">
+              <p>
+                Are you sure you want to delete {bulkDeleteType === 'members' ? selectedMembers.size : selectedGuests.size} {bulkDeleteType === 'members' ? 'member(s)' : 'guest(s)'} permanently? This action cannot be undone.
+              </p>
+            </div>
+            <div className="confirm-actions">
               <button 
                 onClick={() => setShowBulkDeleteModal(false)}
                 disabled={bulkDeleteLoading}
-                style={{
-                  padding: '10px 24px',
-                  border: '1px solid #D9D9D9',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: 'black',
-                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  minWidth: '100px',
-                  opacity: bulkDeleteLoading ? 0.6 : 1
-                }}
+                className="cancel-btn"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmBulkDelete}
                 disabled={bulkDeleteLoading}
-                style={{
-                  padding: '10px 24px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: '#ef4444',
-                  color: 'white',
-                  cursor: bulkDeleteLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  minWidth: '100px',
-                  opacity: bulkDeleteLoading ? 0.6 : 1
-                }}
+                className="ok-btn"
+                style={{ background: '#ef4444' }}
               >
                 {bulkDeleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Alert Modal */}
+      {showAlertModal && (
+        <div className="modal-overlay" onClick={() => setShowAlertModal(false)}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>churchtrack-system.vercel.app says</h3>
+            </div>
+            <div className="confirm-content">
+              <p>{alertMessage}</p>
+            </div>
+            <div className="confirm-actions">
+              <button 
+                onClick={() => setShowAlertModal(false)}
+                className="ok-btn"
+                style={{ background: '#3b82f6', marginLeft: 'auto' }}
+              >
+                OK
               </button>
             </div>
           </div>
