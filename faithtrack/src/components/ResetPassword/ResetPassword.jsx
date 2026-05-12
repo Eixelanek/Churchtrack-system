@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import './ResetPassword.css';
 import { API_BASE_URL } from '../../config/api';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const token = searchParams.get('token');
 
   const [newPassword, setNewPassword] = useState('');
@@ -78,7 +77,7 @@ const ResetPassword = () => {
         
         // Redirect to login after 2 seconds
         setTimeout(() => {
-          navigate('/login');
+          window.location.href = '/login';
         }, 2000);
       } else {
         setStatusType('error');
@@ -92,55 +91,31 @@ const ResetPassword = () => {
     }
   };
 
-  const handleBackClick = (event) => {
-    event.preventDefault();
-    navigate('/login');
-  };
-
   return (
     <div className="reset-wrapper">
-      <button
-        onClick={handleBackClick}
-        className="back-button animate-fade-in"
-        aria-label="Back to login"
-        title="Back to Sign In"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5" />
-          <path d="M12 19l-7-7 7-7" />
-        </svg>
-        <span>Back to Sign In</span>
-      </button>
+      <div className="reset-container">
+        <Link to="/login" className="reset-back-link">← Back to login</Link>
 
-      <div className="reset-card">
-        <div className="reset-card__left">
-          <header className="reset-card__header">
-            <div className="reset-card__badge">Reset Password</div>
-            <h1>Create a new password</h1>
-            <p>Enter a strong password to secure your account.</p>
-          </header>
+        <div className="reset-form-box">
+          <h1>Reset Password</h1>
+          <p>Enter a new password for your account</p>
 
           {statusMessage && (
-            <div className={`reset-card__status reset-card__status--${statusType || 'info'}`}>
-              <div className="reset-card__status-icon">
-                {statusType === 'success' ? '✓' : statusType === 'error' ? '⚠️' : 'ℹ️'}
-              </div>
-              <div>{statusMessage}</div>
+            <div className={`reset-alert reset-alert--${statusType || 'info'}`}>
+              {statusMessage}
             </div>
           )}
 
           {!token ? (
-            <div className="reset-card__error-box">
-              <p>Invalid or missing reset token. Please request a new password reset.</p>
-              <Link to="/forgot-password" className="reset-card__link">
-                Request Password Reset
-              </Link>
+            <div className="reset-error">
+              <p>Invalid or missing reset link. Please request a new password reset.</p>
+              <Link to="/forgot-password" className="reset-btn">Request New Link</Link>
             </div>
           ) : statusType !== 'success' ? (
-            <form onSubmit={handleSubmit} className="reset-card__form">
+            <form onSubmit={handleSubmit} className="reset-form">
               <div className="form-group">
-                <label htmlFor="newPassword" className="reset-card__label">New Password</label>
-                <div className="reset-card__input-wrapper">
+                <label htmlFor="newPassword">New Password</label>
+                <div className="input-wrapper">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="newPassword"
@@ -152,7 +127,7 @@ const ResetPassword = () => {
                   />
                   <button
                     type="button"
-                    className="toggle-password"
+                    className="toggle-btn"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex="-1"
                   >
@@ -162,8 +137,8 @@ const ResetPassword = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="confirmPassword" className="reset-card__label">Confirm Password</label>
-                <div className="reset-card__input-wrapper">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <div className="input-wrapper">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
@@ -175,7 +150,7 @@ const ResetPassword = () => {
                   />
                   <button
                     type="button"
-                    className="toggle-password"
+                    className="toggle-btn"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     tabIndex="-1"
                   >
@@ -184,35 +159,11 @@ const ResetPassword = () => {
                 </div>
               </div>
 
-              <div className="password-requirements">
-                <p>Password must:</p>
-                <ul>
-                  <li className={newPassword.length >= 8 ? 'met' : ''}>Be at least 8 characters long</li>
-                </ul>
-              </div>
-
-              <button type="submit" disabled={isSubmitting} className="reset-card__submit">
-                {isSubmitting ? 'Resetting password…' : 'Reset Password'}
+              <button type="submit" disabled={isSubmitting} className="reset-btn reset-btn--primary">
+                {isSubmitting ? 'Resetting…' : 'Reset Password'}
               </button>
             </form>
           ) : null}
-
-          <footer className="reset-card__footer">
-            <Link to="/login">Back to login</Link>
-          </footer>
-        </div>
-
-        <div className="reset-card__right">
-          <section className="reset-card__info">
-            <h2>Password Security Tips</h2>
-            <ul>
-              <li>Use a mix of uppercase and lowercase letters</li>
-              <li>Include numbers and special characters</li>
-              <li>Avoid using personal information</li>
-              <li>Don't reuse old passwords</li>
-              <li>Keep your password confidential</li>
-            </ul>
-          </section>
         </div>
       </div>
     </div>
