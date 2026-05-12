@@ -9,7 +9,26 @@ const ForgotPassword = () => {
   const [statusType, setStatusType] = useState(''); // success | error | ''
   const [statusMessage, setStatusMessage] = useState('');
   const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [waitMinutes, setWaitMinutes] = useState(0);
+  const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (countdown <= 0) return;
+    
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -46,16 +65,29 @@ const ForgotPassword = () => {
         setStatusType('success');
         setStatusMessage(data.message || 'Your request has been sent to the administrator.');
         setRequestSubmitted(true);
+        setWaitMinutes(0);
+        setCountdown(0);
+      } else if (response.status === 429 && data?.waitMinutes) {
+        // Rate limited
+        setStatusType('error');
+        setStatusMessage(data.message || `Too many requests. Please try again in ${data.waitMinutes} minutes.`);
+        setRequestSubmitted(false);
+        setWaitMinutes(data.waitMinutes);
+        setCountdown(data.waitMinutes * 60); // Convert to seconds
       } else {
         const errorMessage = data?.message || 'We were unable to submit your request. Please try again.';
         setStatusType('error');
         setStatusMessage(errorMessage);
         setRequestSubmitted(false);
+        setWaitMinutes(0);
+        setCountdown(0);
       }
     } catch (error) {
       setStatusType('error');
       setStatusMessage('Unable to reach the server. Please check your connection and try again.');
       setRequestSubmitted(false);
+      setWaitMinutes(0);
+      setCountdown(0);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,8 +153,8 @@ const ForgotPassword = () => {
               />
             </div>
 
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending request…' : 'Send reset request'}
+            <button type="submit" disabled={isSubmitting || countdown > 0}>
+              {isSubmitting ? 'Sending request…' : countdown > 0 ? `Try again in ${countdown}s` : 'Send reset request'}
             </button>
           </form>
 

@@ -66,6 +66,52 @@ try {
     $memberEmail = $member['email'];
     $memberFirstName = $member['first_name'] ?? 'Member';
 
+    // Check rate limiting - count requests in last hour
+    $oneHourAgo = (new DateTime('-1 hour'))->format('Y-m-d H:i:s');
+    $countQuery = $db->prepare("SELECT COUNT(*) as count FROM password_reset_requests WHERE member_id = :member_id AND requested_at > :one_hour_ago");
+    $countQuery->bindParam(':member_id', $memberId, PDO::PARAM_INT);
+    $countQuery->bindParam(':one_hour_ago', $oneHourAgo);
+    $countQuery->execute();
+    $countResult = $countQuery->fetch(PDO::FETCH_ASSOC);
+    $requestCount = (int)$countResult['count'];
+
+    // Determine wait time based on request count
+    $waitMinutes = 0;
+    if ($requestCount >= 3) {
+        $waitMinutes = 60; // 4th+ request: lock for 1 hour
+    } elseif ($requestCount === 2) {
+        $waitMinutes = 15; // 3rd request: wait 15 minutes
+    } elseif ($requestCount === 1) {
+        $waitMinutes = 5;  // 2nd request: wait 5 minutes
+    }
+
+    // If there's a wait time, check if enough time has passed
+    if ($waitMinutes > 0) {
+        $lastRequestQuery = $db->prepare("SELECT requested_at FROM password_reset_requests WHERE member_id = :member_id AND requested_at > :one_hour_ago ORDER BY requested_at DESC LIMIT 1");
+        $lastRequestQuery->bindParam(':member_id', $memberId, PDO::PARAM_INT);
+        $lastRequestQuery->bindParam(':one_hour_ago', $oneHourAgo);
+        $lastRequestQuery->execute();
+        $lastRequest = $lastRequestQuery->fetch(PDO::FETCH_ASSOC);
+
+        if ($lastRequest) {
+            $lastRequestTime = new DateTime($lastRequest['requested_at']);
+            $now = new DateTime();
+            $minutesPassed = (int)$now->diff($lastRequestTime)->format('%i');
+
+            if ($minutesPassed < $waitMinutes) {
+                $remainingMinutes = $waitMinutes - $minutesPassed;
+                http_response_code(429); // Too Many Requests
+                echo json_encode([
+                    'success' => false,
+                    'message' => "Too many requests. Please try again in $remainingMinutes minute" . ($remainingMinutes !== 1 ? 's' : '') . '.',
+                    'waitMinutes' => $remainingMinutes,
+                    'retryAfter' => $remainingMinutes * 60
+                ]);
+                exit();
+            }
+        }
+    }
+
     // Calculate age
     $birthDate = new DateTime($member['birthday']);
     $today = new DateTime();
