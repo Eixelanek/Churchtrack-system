@@ -771,7 +771,7 @@ const Member = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedRelationship, setSelectedRelationship] = useState('Son');
+  const [selectedRelationship, setSelectedRelationship] = useState('Child');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
@@ -2149,13 +2149,10 @@ const Member = () => {
                     onChange={(e) => setSelectedRelationship(e.target.value)}
                     className="relationship-select"
                   >
-                    <option value="Father">Father</option>
-                    <option value="Mother">Mother</option>
+                    <option value="Parent">Parent</option>
                     <option value="Spouse">Spouse</option>
-                    <option value="Son">Son</option>
-                    <option value="Daughter">Daughter</option>
-                    <option value="Brother">Brother</option>
-                    <option value="Sister">Sister</option>
+                    <option value="Child">Child</option>
+                    <option value="Sibling">Sibling</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
