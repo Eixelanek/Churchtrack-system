@@ -111,51 +111,42 @@ try {
     $resendKey = trim((string)(getenv('RESEND_API_KEY') ?: ''));
     $emailSent = false;
 
-    if ($resendKey !== '') {
-        $emailSent = sendEmailViaResendApi($resetEmail, $memberFirstName, $emailSubject, $htmlBody, $emailBody, null);
-        if (!$emailSent['success']) {
-            error_log('Resend password reset email failed: ' . ($emailSent['message'] ?? 'unknown'));
-        } else {
+    // Use SMTP to send email
+    require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+    require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
+    require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
+
+    $mail = new PHPMailer(true);
+
+    try {
+        $smtpHost = trim((string)(getenv('SMTP_HOST') ?: ''));
+        $smtpUsername = trim((string)(getenv('SMTP_USERNAME') ?: ''));
+        $smtpPassword = (string)(getenv('SMTP_PASSWORD') ?: '');
+        $smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
+        $fromEmail = trim((string)(getenv('SMTP_FROM_EMAIL') ?: ''));
+        $fromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'ChurchTrack'));
+
+        if ($smtpHost && $smtpUsername && $smtpPassword && $fromEmail) {
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'tls'))) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $smtpPort;
+            $mail->setFrom($fromEmail, $fromName);
+            $mail->addAddress($resetEmail, $memberFirstName);
+            $mail->Subject = $emailSubject;
+            $mail->isHTML(true);
+            $mail->Body = $htmlBody;
+            $mail->AltBody = $emailBody;
+            $mail->send();
             $emailSent = true;
+        } else {
+            error_log('SMTP configuration incomplete');
         }
-    }
-
-    // Fallback to SMTP if Resend failed or not configured
-    if (!$emailSent) {
-        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
-        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
-        require_once __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
-
-        $mail = new PHPMailer(true);
-
-        try {
-            $smtpHost = trim((string)(getenv('SMTP_HOST') ?: ''));
-            $smtpUsername = trim((string)(getenv('SMTP_USERNAME') ?: ''));
-            $smtpPassword = (string)(getenv('SMTP_PASSWORD') ?: '');
-            $smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
-            $fromEmail = trim((string)(getenv('SMTP_FROM_EMAIL') ?: ''));
-            $fromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'ChurchTrack'));
-
-            if ($smtpHost && $smtpUsername && $smtpPassword && $fromEmail) {
-                $mail->isSMTP();
-                $mail->Host = $smtpHost;
-                $mail->SMTPAuth = true;
-                $mail->Username = $smtpUsername;
-                $mail->Password = $smtpPassword;
-                $mail->SMTPSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'tls'))) === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = $smtpPort;
-                $mail->setFrom($fromEmail, $fromName);
-                $mail->addAddress($resetEmail, $memberFirstName);
-                $mail->Subject = $emailSubject;
-                $mail->isHTML(true);
-                $mail->Body = $htmlBody;
-                $mail->AltBody = $emailBody;
-                $mail->send();
-                $emailSent = true;
-            }
-        } catch (Exception $e) {
-            error_log('PHPMailer password reset error: ' . $e->getMessage());
-        }
+    } catch (Exception $e) {
+        error_log('PHPMailer password reset error: ' . $e->getMessage());
     }
 
     if ($emailSent) {
