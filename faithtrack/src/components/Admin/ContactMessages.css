@@ -33,7 +33,7 @@
   background: #f0f4f8;
   border-radius: 20px;
   font-size: 0.9rem;
-  color: #475569;
+  color: #0049AF;
   font-weight: 500;
 }
 
@@ -71,8 +71,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #1095D2;
+  box-shadow: 0 0 0 3px rgba(16, 149, 210, 0.1);
 }
 
 .filter-buttons {
@@ -88,19 +88,20 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #475569;
+  color: #0049AF;
   transition: all 0.2s;
 }
 
 .filter-btn:hover {
-  border-color: #3B82F6;
-  color: #3B82F6;
+  border-color: #1095D2;
+  color: #1095D2;
+  background: #f0f9ff;
 }
 
 .filter-btn.active {
-  background: #3B82F6;
+  background: linear-gradient(90deg, #0049AF 0%, #1095D2 100%);
   color: white;
-  border-color: #3B82F6;
+  border-color: #0049AF;
 }
 
 .messages-layout {
@@ -142,7 +143,7 @@
 
 .message-item.active {
   background-color: #eff6ff;
-  border-left: 4px solid #3B82F6;
+  border-left: 4px solid #1095D2;
   padding-left: 12px;
 }
 
@@ -238,6 +239,7 @@
 
 .btn-delete:hover {
   background: #fecaca;
+  border-color: #f87171;
 }
 
 .detail-info {
@@ -260,13 +262,14 @@
 }
 
 .info-row a {
-  color: #3B82F6;
+  color: #1095D2;
   text-decoration: none;
   word-break: break-all;
 }
 
 .info-row a:hover {
   text-decoration: underline;
+  color: #0049AF;
 }
 
 .info-row span {

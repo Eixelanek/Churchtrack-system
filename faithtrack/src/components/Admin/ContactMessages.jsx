@@ -79,8 +79,8 @@ const ContactMessages = () => {
   const getStatusBadge = (status) => {
     const badges = {
       new: { label: 'New', color: '#3B82F6' },
-      read: { label: 'Read', color: '#6B7280' },
-      replied: { label: 'Replied', color: '#10B981' }
+      read: { label: 'Read', color: '#1095D2' },
+      replied: { label: 'Replied', color: '#0049AF' }
     };
     return badges[status] || badges.new;
   };
