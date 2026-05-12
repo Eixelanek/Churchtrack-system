@@ -470,16 +470,13 @@
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 0;
 }
 
 .reply-to-info {
-  margin-bottom: 0;
+  margin-bottom: 16px;
   padding: 12px;
   background: #f8fafc;
   border-radius: 6px;
-  flex-shrink: 0;
 }
 
 .reply-to-info p {
@@ -504,8 +501,7 @@
   resize: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
-  flex: 1;
-  min-height: 0;
+  height: 300px;
 }
 
 .reply-textarea:focus {
@@ -520,12 +516,11 @@
 }
 
 .reply-hint {
-  margin-top: 0;
+  margin-top: 16px;
   padding: 12px;
   background: #f0f9ff;
   border-left: 3px solid #1095D2;
   border-radius: 4px;
-  flex-shrink: 0;
 }
 
 .reply-hint p {
