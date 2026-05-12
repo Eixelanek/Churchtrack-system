@@ -424,20 +424,22 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
+  border-radius: 12px 12px 0 0;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #0049AF;
+  color: white;
   font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .modal-close {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   font-size: 1.5rem;
-  color: #94a3b8;
+  color: white;
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -450,8 +452,7 @@
 }
 
 .modal-close:hover {
-  background: #f1f5f9;
-  color: #0049AF;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .modal-close:disabled {
