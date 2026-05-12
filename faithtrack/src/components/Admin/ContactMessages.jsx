@@ -257,7 +257,8 @@ const ContactMessages = () => {
         <div className="modal-overlay" onClick={() => !isSendingReply && setShowReplyModal(false)}>
           <div className="reply-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Send Reply</h3>
+              <span className="header-icon">✉️</span>
+              <h3>Send reply</h3>
               <button
                 className="modal-close"
                 onClick={() => !isSendingReply && setShowReplyModal(false)}
@@ -268,21 +269,28 @@ const ContactMessages = () => {
             </div>
 
             <div className="modal-content">
-              <div className="reply-to-info">
-                <p><strong>To:</strong> {selectedMessage?.email}</p>
+              <div className="reply-section">
+                <label className="section-label">TO</label>
+                <div className="reply-to-box">
+                  <div className="email-avatar">{selectedMessage?.email?.charAt(0).toUpperCase()}</div>
+                  <span className="email-text">{selectedMessage?.email}</span>
+                </div>
               </div>
 
-              <textarea
-                className="reply-textarea"
-                placeholder="Type your reply message here..."
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                disabled={isSendingReply}
-                rows="8"
-              />
+              <div className="reply-section">
+                <label className="section-label">MESSAGE</label>
+                <textarea
+                  className="reply-textarea"
+                  placeholder="Type your reply message here..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  disabled={isSendingReply}
+                />
+              </div>
 
               <div className="reply-hint">
-                <p>💡 Tip: Keep your reply professional and helpful. The recipient will receive this via email.</p>
+                <span className="hint-icon">ℹ️</span>
+                <p>Keep your reply professional and helpful. The recipient will receive this via email.</p>
               </div>
             </div>
 
@@ -299,7 +307,8 @@ const ContactMessages = () => {
                 onClick={handleSendReply}
                 disabled={isSendingReply || !replyText.trim()}
               >
-                {isSendingReply ? 'Sending...' : 'Send Reply'}
+                <span className="send-icon">✉️</span>
+                {isSendingReply ? 'Sending...' : 'Send reply'}
               </button>
             </div>
           </div>

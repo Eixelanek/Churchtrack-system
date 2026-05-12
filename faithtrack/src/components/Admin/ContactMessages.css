@@ -427,6 +427,19 @@
   padding: 20px 24px;
   background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   border-radius: 12px 12px 0 0;
+  gap: 12px;
+}
+
+.header-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -470,23 +483,52 @@
   background: white;
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
-.reply-to-info {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 6px;
+.reply-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.reply-to-info p {
-  margin: 0;
+.section-label {
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #475569;
-  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.reply-to-info strong {
-  color: #0049AF;
+.reply-to-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.email-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.email-text {
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 500;
+  word-break: break-all;
 }
 
 .reply-textarea {
@@ -501,7 +543,7 @@
   resize: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
-  height: 300px;
+  min-height: 200px;
 }
 
 .reply-textarea:focus {
@@ -516,11 +558,20 @@
 }
 
 .reply-hint {
-  margin-top: 16px;
-  padding: 12px;
+  margin-top: 0;
+  padding: 12px 14px;
   background: #f0f9ff;
   border-left: 3px solid #1095D2;
   border-radius: 4px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.hint-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .reply-hint p {
@@ -570,6 +621,13 @@
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.send-icon {
+  font-size: 1rem;
 }
 
 .btn-send:hover:not(:disabled) {
