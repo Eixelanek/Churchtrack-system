@@ -1,6 +1,6 @@
 // Centralized API configuration
 // Using Render backend (free tier)
-export const API_BASE_URL = 'https://churchtrack-api.onrender.com';
+export const API_BASE_URL = 'https://churchtrack-api-fyv7.onrender.com';
 
 // Direct API call (no proxy needed - Render handles CORS)
 export const apiCall = async (endpoint, options = {}) => {
