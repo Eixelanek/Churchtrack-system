@@ -117,6 +117,18 @@ try {
     $today = new DateTime();
     $age = $today->diff($birthDate)->y;
 
+    // For minors, get parent's name
+    $parentFirstName = null;
+    if ($age < 18) {
+        $parentQuery = $db->prepare("SELECT first_name FROM members WHERE id = (SELECT guardian_id FROM members WHERE id = :member_id LIMIT 1) LIMIT 1");
+        $parentQuery->bindParam(':member_id', $memberId, PDO::PARAM_INT);
+        $parentQuery->execute();
+        $parentResult = $parentQuery->fetch(PDO::FETCH_ASSOC);
+        if ($parentResult) {
+            $parentFirstName = $parentResult['first_name'] ?? 'Parent';
+        }
+    }
+
     // Determine which email to send reset link to
     // For minors (under 18): send to parent's email (which is stored in the email field)
     // For adults (18+): send to their own email
@@ -136,17 +148,24 @@ try {
     // Build reset URL
     $resetUrl = getFrontendBaseUrl() . '/reset-password?token=' . urlencode($resetToken);
 
+    // Determine email greeting and message based on age
+    $isMinor = $age < 18;
+    $emailGreeting = $isMinor && $parentFirstName ? $parentFirstName : $memberFirstName;
+    $emailMessage = $isMinor ? "We received a request to reset the password for <strong>$memberFirstName</strong>'s account. Click the button below to set a new password:" : "We received a request to reset your password. Click the button below to set a new password:";
+
     // Send reset email
     $emailSubject = 'Password Reset Request';
-    $textBody = "Hello $memberFirstName,\n\n";
-    $textBody .= "We received a request to reset your password. Open this link to set a new password (expires in 24 hours):\n\n";
+    $textBody = "Hello $emailGreeting,\n\n";
+    $textBody .= ($isMinor ? "We received a request to reset the password for $memberFirstName's account. " : "We received a request to reset your password. ");
+    $textBody .= "Open this link to set a new password (expires in 24 hours):\n\n";
     $textBody .= "$resetUrl\n\n";
     $textBody .= "---\n" . trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')) . ' · password reset';
 
     $resetUrlEsc = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
     $systemName = htmlspecialchars(trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')), ENT_QUOTES, 'UTF-8');
     $churchName = htmlspecialchars(trim((string)(getenv('CHURCH_NAME') ?: 'Christ-Like Christian Church')), ENT_QUOTES, 'UTF-8');
-    $displayName = htmlspecialchars($memberFirstName, ENT_QUOTES, 'UTF-8');
+    $displayName = htmlspecialchars($emailGreeting, ENT_QUOTES, 'UTF-8');
+    $childName = htmlspecialchars($memberFirstName, ENT_QUOTES, 'UTF-8');
     
     $htmlBody = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">';
     $htmlBody .= '<title>Password Reset Request</title></head><body style="margin:0;padding:0;background:#f1f5f9;-webkit-font-smoothing:antialiased;">';
@@ -158,7 +177,11 @@ try {
     $htmlBody .= '</td></tr>';
     $htmlBody .= '<tr><td style="padding:32px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#334155;">';
     $htmlBody .= '<p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . $displayName . ',</strong></p>';
-    $htmlBody .= '<p style="margin:0 0 24px;">We received a request to reset your password. Click the button below to set a new password:</p>';
+    if ($isMinor) {
+        $htmlBody .= '<p style="margin:0 0 24px;">We received a request to reset the password for <strong>' . $childName . '</strong>\'s account. Click the button below to set a new password:</p>';
+    } else {
+        $htmlBody .= '<p style="margin:0 0 24px;">We received a request to reset your password. Click the button below to set a new password:</p>';
+    }
     $htmlBody .= '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;"><tr><td style="border-radius:8px;background:#2563eb;">';
     $htmlBody .= '<a href="' . $resetUrlEsc . '" style="display:inline-block;padding:14px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Reset Password</a>';
     $htmlBody .= '</td></tr></table>';
