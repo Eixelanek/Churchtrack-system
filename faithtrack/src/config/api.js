@@ -1,6 +1,6 @@
 // Centralized API configuration
-// Using clcc.site backend (Hostinger)
-export const API_BASE_URL = 'https://clcc.site';
+// Using Render backend (free tier)
+export const API_BASE_URL = 'https://churchtrack-api.onrender.com';
 
 // Direct API call (no proxy needed - Render handles CORS)
 export const apiCall = async (endpoint, options = {}) => {
