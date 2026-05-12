@@ -93,9 +93,15 @@ const ResetPassword = () => {
 
   return (
     <div className="reset-wrapper">
-      <div className="reset-container">
-        <Link to="/login" className="reset-back-link">← Back to login</Link>
+      <Link to="/login" className="back-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5" />
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+        <span className="back-button-text">Back to login</span>
+      </Link>
 
+      <div className="reset-container">
         <div className="reset-form-box">
           <h1>Reset Password</h1>
           <p>Enter a new password for your account</p>
