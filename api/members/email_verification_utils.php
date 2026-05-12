@@ -59,8 +59,8 @@ if (!function_exists('getFrontendBaseUrl')) {
             return rtrim($origin, '/');
         }
 
-        // Default to Vercel frontend for production
-        return 'https://churchtrack-system.vercel.app';
+        // Default to churchtrack-system.clcc.site for production
+        return 'https://churchtrack-system.clcc.site';
     }
 }
 
