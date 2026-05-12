@@ -77,7 +77,7 @@ try {
     $updateQuery->execute();
 
     // Mark reset request as completed
-    $completeQuery = $db->prepare("UPDATE password_reset_requests SET status = 'completed', completed_at = NOW() WHERE id = :reset_id");
+    $completeQuery = $db->prepare("UPDATE password_reset_requests SET status = 'completed' WHERE id = :reset_id");
     $completeQuery->bindParam(':reset_id', $resetId, PDO::PARAM_INT);
     $completeQuery->execute();
 
