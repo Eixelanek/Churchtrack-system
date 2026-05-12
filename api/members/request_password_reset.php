@@ -93,21 +93,38 @@ try {
     // Send reset email
     $emailSubject = 'Password Reset Request';
     $textBody = "Hello $memberFirstName,\n\n";
-    $textBody .= "We received a request to reset your password. Click the link below to set a new password:\n\n";
+    $textBody .= "We received a request to reset your password. Open this link to set a new password (expires in 24 hours):\n\n";
     $textBody .= "$resetUrl\n\n";
-    $textBody .= "This link expires in 24 hours.\n\n";
-    $textBody .= "If you didn't request this, please ignore this email.\n\n";
-    $textBody .= "Best regards,\nChurchTrack System";
+    $textBody .= "---\n" . trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')) . ' · password reset';
 
     $resetUrlEsc = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
-    $htmlBody = "<!DOCTYPE html><html><head><meta charset='utf-8'></head><body>";
-    $htmlBody .= "<p>Hello $memberFirstName,</p>";
-    $htmlBody .= "<p>We received a request to reset your password. Click the button below to set a new password:</p>";
-    $htmlBody .= "<p><a href='" . $resetUrlEsc . "' style='display:inline-block;padding:10px 20px;background:#3B82F6;color:white;text-decoration:none;border-radius:5px;'>Reset Password</a></p>";
-    $htmlBody .= "<p>This link expires in 24 hours.</p>";
-    $htmlBody .= "<p>If you didn't request this, please ignore this email.</p>";
-    $htmlBody .= "<p>Best regards,<br>ChurchTrack System</p>";
-    $htmlBody .= "</body></html>";
+    $systemName = htmlspecialchars(trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')), ENT_QUOTES, 'UTF-8');
+    $churchName = htmlspecialchars(trim((string)(getenv('CHURCH_NAME') ?: 'Christ-Like Christian Church')), ENT_QUOTES, 'UTF-8');
+    $displayName = htmlspecialchars($memberFirstName, ENT_QUOTES, 'UTF-8');
+    
+    $htmlBody = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">';
+    $htmlBody .= '<title>Password Reset Request</title></head><body style="margin:0;padding:0;background:#f1f5f9;-webkit-font-smoothing:antialiased;">';
+    $htmlBody .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;"><tr><td align="center">';
+    $htmlBody .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 24px rgba(15,23,42,0.06);">';
+    $htmlBody .= '<tr><td style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);padding:28px 24px;text-align:center;">';
+    $htmlBody .= '<div style="font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.9);margin-bottom:8px;letter-spacing:0.04em;text-transform:uppercase;">Password Reset</div>';
+    $htmlBody .= '<div style="font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;">' . $churchName . '</div>';
+    $htmlBody .= '</td></tr>';
+    $htmlBody .= '<tr><td style="padding:32px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#334155;">';
+    $htmlBody .= '<p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . $displayName . ',</strong></p>';
+    $htmlBody .= '<p style="margin:0 0 24px;">We received a request to reset your password. Click the button below to set a new password:</p>';
+    $htmlBody .= '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;"><tr><td style="border-radius:8px;background:#2563eb;">';
+    $htmlBody .= '<a href="' . $resetUrlEsc . '" style="display:inline-block;padding:14px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">Reset Password</a>';
+    $htmlBody .= '</td></tr></table>';
+    $htmlBody .= '<p style="margin:0 0 8px;font-size:13px;color:#64748b;">If the button does not work, copy and paste this link into your browser:</p>';
+    $htmlBody .= '<p style="margin:0 0 24px;word-break:break-all;font-size:13px;"><a href="' . $resetUrlEsc . '" style="color:#2563eb;">' . $resetUrlEsc . '</a></p>';
+    $htmlBody .= '<p style="margin:0 0 16px;font-size:13px;color:#94a3b8;">This link expires in <strong style="color:#64748b;">24 hours</strong>.</p>';
+    $htmlBody .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you didn\'t request this, please ignore this email.</p>';
+    $htmlBody .= '</td></tr>';
+    $htmlBody .= '<tr><td style="padding:16px 28px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">';
+    $htmlBody .= $systemName . ' · password reset<br/>';
+    $htmlBody .= '<span style="color:#cbd5e1;">You received this because a password reset was requested for your account.</span>';
+    $htmlBody .= '</td></tr></table></td></tr></table></body></html>';
 
     $replyTo = null;
     $envReply = trim((string)(getenv('RESEND_REPLY_TO') ?: ''));
