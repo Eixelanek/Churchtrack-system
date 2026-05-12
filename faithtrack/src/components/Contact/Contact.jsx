@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Contact.css';
 import '../transitions.css';
+import { API_BASE_URL } from '../../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,9 @@ const Contact = () => {
     phone: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusType, setStatusType] = useState(''); // success | error | ''
+  const [statusMessage, setStatusMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,16 +23,43 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      message: ''
-    });
+    setIsSubmitting(true);
+    setStatusType('');
+    setStatusMessage('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contact/send_message.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStatusType('success');
+        setStatusMessage(data.message || 'Thank you for your message! We will get back to you soon.');
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        setStatusType('error');
+        setStatusMessage(data.message || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      setStatusType('error');
+      setStatusMessage('Unable to reach the server. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -42,6 +73,15 @@ const Contact = () => {
         <p className="contact-description">
           We are here to support you on your spiritual journey. Feel free to contact us for any questions, prayer requests, or to learn more about our church.
         </p>
+
+        {statusMessage && (
+          <div className={`contact-status contact-status--${statusType || 'info'}`}>
+            <div className="contact-status-icon">
+              {statusType === 'success' ? '✓' : statusType === 'error' ? '⚠️' : 'ℹ️'}
+            </div>
+            <div>{statusMessage}</div>
+          </div>
+        )}
 
         <form className="contact-form-modern" onSubmit={handleSubmit}>
           <div className="form-row">
@@ -115,7 +155,9 @@ const Contact = () => {
               required
             ></textarea>
           </div>
-          <button type="submit" className="submit-btn-modern">Send Message</button>
+          <button type="submit" className="submit-btn-modern" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending message…' : 'Send Message'}
+          </button>
         </form>
         
         <div className="admin-contact-info-wrapper">
