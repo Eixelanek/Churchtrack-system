@@ -9,6 +9,9 @@ const ContactMessages = () => {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all'); // all, new, read, replied
   const [searchTerm, setSearchTerm] = useState('');
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [isSendingReply, setIsSendingReply] = useState(false);
 
   useEffect(() => {
     loadMessages();
@@ -67,6 +70,41 @@ const ContactMessages = () => {
       }
     } catch (err) {
       console.error('Error deleting message:', err);
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) {
+      alert('Please enter a reply message');
+      return;
+    }
+
+    setIsSendingReply(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contact/send_reply.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message_id: selectedMessage.id,
+          reply_text: replyText
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setShowReplyModal(false);
+        setReplyText('');
+        loadMessages();
+        // Update selected message to show new status
+        setSelectedMessage(prev => prev ? { ...prev, status: 'replied' } : null);
+      } else {
+        alert('Error sending reply: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error sending reply:', err);
+      alert('Unable to send reply. Please try again.');
+    } finally {
+      setIsSendingReply(false);
     }
   };
 
@@ -162,6 +200,12 @@ const ContactMessages = () => {
                 <h3>{selectedMessage.first_name} {selectedMessage.last_name}</h3>
                 <div className="detail-actions">
                   <button
+                    className="btn-reply"
+                    onClick={() => setShowReplyModal(true)}
+                  >
+                    ✉️ Reply
+                  </button>
+                  <button
                     className="btn-delete"
                     onClick={() => deleteMessage(selectedMessage.id)}
                   >
@@ -208,6 +252,59 @@ const ContactMessages = () => {
           )}
         </div>
       </div>
+
+      {showReplyModal && (
+        <div className="modal-overlay" onClick={() => !isSendingReply && setShowReplyModal(false)}>
+          <div className="reply-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Send Reply</h3>
+              <button
+                className="modal-close"
+                onClick={() => !isSendingReply && setShowReplyModal(false)}
+                disabled={isSendingReply}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-content">
+              <div className="reply-to-info">
+                <p><strong>To:</strong> {selectedMessage?.email}</p>
+              </div>
+
+              <textarea
+                className="reply-textarea"
+                placeholder="Type your reply message here..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                disabled={isSendingReply}
+                rows="8"
+              />
+
+              <div className="reply-hint">
+                <p>💡 Tip: Keep your reply professional and helpful. The recipient will receive this via email.</p>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setShowReplyModal(false)}
+                disabled={isSendingReply}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-send"
+                onClick={handleSendReply}
+                disabled={isSendingReply || !replyText.trim()}
+              >
+                {isSendingReply ? 'Sending...' : 'Send Reply'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
