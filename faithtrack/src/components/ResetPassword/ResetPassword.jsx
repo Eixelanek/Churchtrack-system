@@ -101,27 +101,35 @@ const ResetPassword = () => {
         <span className="back-button-text">Back to login</span>
       </Link>
 
-      <div className="reset-container">
-        <div className="reset-form-box">
-          <h1>Reset Password</h1>
-          <p>Enter a new password for your account</p>
+      <div className="reset-card">
+        <div className="reset-card__left">
+          <header className="reset-card__header">
+            <div className="reset-card__badge">Reset Password</div>
+            <h1>Create a new password</h1>
+            <p>Enter a strong password to secure your account.</p>
+          </header>
 
           {statusMessage && (
-            <div className={`reset-alert reset-alert--${statusType || 'info'}`}>
-              {statusMessage}
+            <div className={`reset-card__status reset-card__status--${statusType || 'info'}`}>
+              <div className="reset-card__status-icon">
+                {statusType === 'success' ? '✓' : statusType === 'error' ? '⚠️' : 'ℹ️'}
+              </div>
+              <div>{statusMessage}</div>
             </div>
           )}
 
           {!token ? (
-            <div className="reset-error">
-              <p>Invalid or missing reset link. Please request a new password reset.</p>
-              <Link to="/forgot-password" className="reset-btn">Request New Link</Link>
+            <div className="reset-card__error-box">
+              <p>Invalid or missing reset token. Please request a new password reset.</p>
+              <Link to="/forgot-password" className="reset-card__link">
+                Request Password Reset
+              </Link>
             </div>
           ) : statusType !== 'success' ? (
-            <form onSubmit={handleSubmit} className="reset-form">
+            <form onSubmit={handleSubmit} className="reset-card__form">
               <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <div className="input-wrapper">
+                <label htmlFor="newPassword" className="reset-card__label">New Password</label>
+                <div className="reset-card__input-wrapper">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="newPassword"
@@ -133,7 +141,7 @@ const ResetPassword = () => {
                   />
                   <button
                     type="button"
-                    className="toggle-btn"
+                    className="toggle-password"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex="-1"
                   >
@@ -143,8 +151,8 @@ const ResetPassword = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <div className="input-wrapper">
+                <label htmlFor="confirmPassword" className="reset-card__label">Confirm Password</label>
+                <div className="reset-card__input-wrapper">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
@@ -156,7 +164,7 @@ const ResetPassword = () => {
                   />
                   <button
                     type="button"
-                    className="toggle-btn"
+                    className="toggle-password"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     tabIndex="-1"
                   >
@@ -165,11 +173,35 @@ const ResetPassword = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="reset-btn reset-btn--primary">
-                {isSubmitting ? 'Resetting…' : 'Reset Password'}
+              <div className="password-requirements">
+                <p>Password must:</p>
+                <ul>
+                  <li className={newPassword.length >= 8 ? 'met' : ''}>Be at least 8 characters long</li>
+                </ul>
+              </div>
+
+              <button type="submit" disabled={isSubmitting} className="reset-card__submit">
+                {isSubmitting ? 'Resetting password…' : 'Reset Password'}
               </button>
             </form>
           ) : null}
+
+          <footer className="reset-card__footer">
+            <Link to="/login">Back to login</Link>
+          </footer>
+        </div>
+
+        <div className="reset-card__right">
+          <section className="reset-card__info">
+            <h2>Password Security Tips</h2>
+            <ul>
+              <li>Use a mix of uppercase and lowercase letters</li>
+              <li>Include numbers and special characters</li>
+              <li>Avoid using personal information</li>
+              <li>Don't reuse old passwords</li>
+              <li>Keep your password confidential</li>
+            </ul>
+          </section>
         </div>
       </div>
     </div>
