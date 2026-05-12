@@ -464,20 +464,22 @@
 }
 
 .modal-content {
-  padding: 32px;
+  padding: 24px;
   overflow-y: auto;
   flex: 1;
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
+  min-height: 0;
 }
 
 .reply-to-info {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   padding: 12px;
   background: #f8fafc;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .reply-to-info p {
@@ -499,11 +501,11 @@
   font-size: 0.95rem;
   line-height: 1.5;
   color: #0f172a;
-  resize: vertical;
+  resize: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
   flex: 1;
-  min-height: 200px;
+  min-height: 0;
 }
 
 .reply-textarea:focus {
@@ -518,11 +520,12 @@
 }
 
 .reply-hint {
-  margin-top: 16px;
+  margin-top: 0;
   padding: 12px;
   background: #f0f9ff;
   border-left: 3px solid #1095D2;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .reply-hint p {
