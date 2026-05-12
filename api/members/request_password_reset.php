@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 include_once '../config/database.php';
 require_once __DIR__ . '/email_verification_utils.php';
+require_once __DIR__ . '/resend_transport.php';
 
 function ensurePasswordResetTable(PDO $db): void
 {
@@ -115,8 +116,6 @@ try {
     }
 
     // Send password reset email using the same function as verification emails
-    require_once __DIR__ . '/resend_transport.php';
-    
     $emailSent = sendEmailViaResendApi(
         $resetEmail,
         $memberFirstName,
