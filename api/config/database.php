@@ -10,21 +10,29 @@ class Database {
     public $conn;
 
     public function __construct() {
-        // Check if running on Render or Railway (environment variables set)
-        if (getenv('RENDER') || getenv('DB_HOST') || getenv('RAILWAY_ENVIRONMENT')) {
-            // Render/Railway configuration
-            $this->host = getenv('DB_HOST') ?: getenv('MYSQLHOST');
-            $this->port = getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306';
-            $this->db_name = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'churchtrack';
-            $this->username = getenv('DB_USER') ?: getenv('MYSQLUSER');
-            $this->password = getenv('DB_PASSWORD') ?: getenv('MYSQLPASSWORD');
-        } else {
-            // Aiven MySQL Configuration (fallback)
-            $this->host = "churchtrack-db-churchtrack.a.aivencloud.com";
-            $this->port = "17629";
-            $this->db_name = "defaultdb";
-            $this->username = "avnadmin";
-            $this->password = "AVNS_YXyhc87L5iDG6SRQ4cg";
+        // Priority 1: Check environment variables (for Render, Railway, or custom deployment)
+        if (getenv('DB_HOST')) {
+            $this->host = getenv('DB_HOST');
+            $this->port = getenv('DB_PORT') ?: '3306';
+            $this->db_name = getenv('DB_NAME');
+            $this->username = getenv('DB_USER');
+            $this->password = getenv('DB_PASSWORD');
+        } 
+        // Priority 2: Check Railway environment variables
+        elseif (getenv('RAILWAY_ENVIRONMENT')) {
+            $this->host = getenv('MYSQLHOST');
+            $this->port = getenv('MYSQLPORT') ?: '3306';
+            $this->db_name = getenv('MYSQLDATABASE');
+            $this->username = getenv('MYSQLUSER');
+            $this->password = getenv('MYSQLPASSWORD');
+        }
+        // Priority 3: Hostinger local database (default for shared hosting)
+        else {
+            $this->host = "localhost";
+            $this->port = "3306";
+            $this->db_name = "u123456789_churchtrack"; // Update with your actual database name
+            $this->username = "u123456789_churchtrack"; // Update with your actual username
+            $this->password = ""; // Update with your actual password from Hostinger
         }
     }
 
