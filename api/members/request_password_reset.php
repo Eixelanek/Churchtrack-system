@@ -178,6 +178,9 @@ try {
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
 
+        error_log('Resend API response code: ' . $httpCode);
+        error_log('Resend API response: ' . $response);
+
         if ($httpCode === 200) {
             $emailSent = true;
         } else {
