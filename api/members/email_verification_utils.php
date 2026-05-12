@@ -55,11 +55,12 @@ if (!function_exists('getFrontendBaseUrl')) {
         }
 
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-        if ($origin !== '') {
+        if ($origin !== '' && strpos($origin, 'localhost') === false) {
             return rtrim($origin, '/');
         }
 
-        return 'https://localhost:5173';
+        // Default to churchtrack-system.clcc.site for production
+        return 'https://churchtrack-system.clcc.site';
     }
 }
 
