@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logoImage from '../../assets/logo2.png';
 import AttendanceManagement from './AttendanceManagement';
 import MembersManagement from './MembersManagement';
+import ContactMessages from './ContactMessages';
 import { updateFavicon } from '../../utils/churchSettings';
 import { API_BASE_URL } from '../../config/api';
 
@@ -433,6 +434,7 @@ const Admin = () => {
   const [dateFormat, setDateFormat] = useState('mm/dd/yyyy');
   const [showAttendanceView, setShowAttendanceView] = useState(false);
   const [showMembersView, setShowMembersView] = useState(false);
+  const [showContactView, setShowContactView] = useState(false);
   const [showBirthdayView, setShowBirthdayView] = useState(false);
   const [upcomingServices, setUpcomingServices] = useState([]);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -2174,15 +2176,16 @@ const Admin = () => {
           <span className="topbar-church-name">{churchName}</span>
         </div>
         <nav className="topbar-menu">
-          <button className={`nav-item ${!showAttendanceView && !showMembersView && !showBirthdayView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); }}>Dashboard</button>
-          <button className={`nav-item ${showAttendanceView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(true); setShowMembersView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); }}>Attendance</button>
-          <button className={`nav-item ${showMembersView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(true); setShowProfileView(false); setShowSettingsView(false); }}>Members</button>
+          <button className={`nav-item ${!showAttendanceView && !showMembersView && !showContactView && !showBirthdayView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); }}>Dashboard</button>
+          <button className={`nav-item ${showAttendanceView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(true); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); }}>Attendance</button>
+          <button className={`nav-item ${showMembersView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(true); setShowContactView(false); setShowProfileView(false); setShowSettingsView(false); }}>Members</button>
+          <button className={`nav-item ${showContactView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(true); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); }}>Contact</button>
         </nav>
         
         {/* Mobile Menu Dropdown */}
         {showMobileMenu && (
           <div className="mobile-menu-dropdown">
-            <button className={`mobile-menu-item ${!showAttendanceView && !showMembersView && !showBirthdayView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
+            <button className={`mobile-menu-item ${!showAttendanceView && !showMembersView && !showContactView && !showBirthdayView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -2191,7 +2194,7 @@ const Admin = () => {
               </svg>
               Dashboard
             </button>
-            <button className={`mobile-menu-item ${showAttendanceView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(true); setShowMembersView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
+            <button className={`mobile-menu-item ${showAttendanceView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(true); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="8.5" cy="7" r="4"></circle>
@@ -2199,7 +2202,7 @@ const Admin = () => {
               </svg>
               Attendance
             </button>
-            <button className={`mobile-menu-item ${showMembersView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(true); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
+            <button className={`mobile-menu-item ${showMembersView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(true); setShowContactView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -2207,6 +2210,12 @@ const Admin = () => {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
               Members
+            </button>
+            <button className={`mobile-menu-item ${showContactView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(true); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Contact
             </button>
           </div>
         )}
@@ -3038,6 +3047,8 @@ const Admin = () => {
                   <AttendanceManagement dateFormat={dateFormat} onEventsChange={setEvents} />
                 ) : showMembersView ? (
                   <MembersManagement dateFormat={dateFormat} />
+                ) : showContactView ? (
+                  <ContactMessages />
                 ) : (
                   <>
                     <div className="new-dashboard-container">
