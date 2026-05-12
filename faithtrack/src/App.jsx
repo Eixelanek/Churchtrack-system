@@ -5,6 +5,7 @@ import Register from './components/Register/Register';
 import Home from './components/Home/Home';
 import Admin from './components/Admin/Admin';
 import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import ResetPassword from './components/ResetPassword/ResetPassword';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
 import ReferralSelection from './components/ReferralSelection/ReferralSelection';
@@ -123,6 +124,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/guest-checkin" element={<GuestCheckIn />} />
         <Route 

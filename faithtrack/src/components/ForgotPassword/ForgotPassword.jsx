@@ -89,7 +89,7 @@ const ForgotPassword = () => {
           <header className="forgot-card__header">
             <div className="forgot-card__badge">Forgot Password</div>
             <h1>We'll help you get back in.</h1>
-            <p>Enter your username and an administrator will generate a temporary password for you.</p>
+            <p>Enter your username and we'll send a password reset link to your email.</p>
           </header>
 
           {statusMessage && (
@@ -136,17 +136,17 @@ const ForgotPassword = () => {
             <h2>What happens next?</h2>
             <ul>
               <li>
-                <strong>Notify.</strong> We alert the administrator that you requested a password reset.
+                <strong>Email sent.</strong> We send a password reset link to your email address.
               </li>
               <li>
-                <strong>Generate.</strong> The admin will create a temporary password and contact you.
+                <strong>Click link.</strong> Open the email and click the reset link.
               </li>
               <li>
-                <strong>Sign in.</strong> Use the temporary password, then set a new one immediately after logging in.
+                <strong>New password.</strong> Create a new password and sign in immediately.
               </li>
             </ul>
             <div className="forgot-card__hint">
-              Need help urgently? Reach out to your church administrator so they can prioritise your request.
+              The reset link expires in 24 hours. If you don't receive the email, check your spam folder.
             </div>
           </section>
         </div>
