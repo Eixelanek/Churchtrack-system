@@ -464,10 +464,13 @@
 }
 
 .modal-content {
-  padding: 24px;
+  padding: 32px;
   overflow-y: auto;
   flex: 1;
   background: white;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .reply-to-info {
@@ -499,6 +502,8 @@
   resize: vertical;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  flex: 1;
+  min-height: 200px;
 }
 
 .reply-textarea:focus {
