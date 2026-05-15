@@ -123,10 +123,15 @@ const Login = () => {
         const managerData = await managerResponse.json();
         // Only treat as successful manager login if we have an ID
         if (managerData.id) {
-          localStorage.setItem('token', 'manager-token');
+          localStorage.setItem('token', managerData.token || managerData.session_id || '');
           localStorage.setItem('userType', 'manager');
           localStorage.setItem('userId', managerData.id);
           localStorage.setItem('username', managerData.username);
+          if (managerData.session_id) {
+            localStorage.setItem('sessionId', managerData.session_id);
+          } else {
+            localStorage.removeItem('sessionId');
+          }
           navigate('/manager', { replace: true });
           return;
         }
@@ -147,10 +152,15 @@ const Login = () => {
       const memberData = await memberResponse.json();
 
       if (memberResponse.ok) {
-        localStorage.setItem('token', 'member-token');
+        localStorage.setItem('token', memberData.token || memberData.session_id || '');
         localStorage.setItem('userType', 'member');
         localStorage.setItem('userId', memberData.id);
         localStorage.setItem('username', memberData.username);
+        if (memberData.session_id) {
+          localStorage.setItem('sessionId', memberData.session_id);
+        } else {
+          localStorage.removeItem('sessionId');
+        }
         localStorage.setItem('memberName', memberData.name);
         if (memberData.email != null && String(memberData.email).trim() !== '') {
           localStorage.setItem('memberEmail', memberData.email);

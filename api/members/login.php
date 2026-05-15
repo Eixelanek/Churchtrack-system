@@ -96,6 +96,39 @@ try {
                     }
                 }
 
+                // Generate session token
+                $sessionToken = bin2hex(random_bytes(32));
+                try {
+                    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+                    $device = 'Unknown';
+                    if (preg_match('/iphone|ipad|ipod/i', $userAgent)) {
+                        $device = 'iOS Device';
+                    } elseif (preg_match('/android/i', $userAgent)) {
+                        $device = 'Android Device';
+                    } elseif (preg_match('/macintosh|mac os x/i', $userAgent)) {
+                        $device = 'Mac';
+                    } elseif (preg_match('/windows/i', $userAgent)) {
+                        $device = 'Windows PC';
+                    }
+                    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+
+                    // Deactivate old sessions
+                    $deactivate = $db->prepare("UPDATE member_sessions SET is_active = 0 WHERE member_id = :member_id");
+                    $deactivate->bindParam(':member_id', $id, PDO::PARAM_INT);
+                    $deactivate->execute();
+
+                    // Insert new session
+                    $insertSession = $db->prepare("INSERT INTO member_sessions (session_id, member_id, device, ip_address, user_agent, last_activity, is_active, created_at) VALUES (:session_id, :member_id, :device, :ip_address, :user_agent, NOW(), 1, NOW())");
+                    $insertSession->bindParam(':session_id', $sessionToken);
+                    $insertSession->bindParam(':member_id', $id, PDO::PARAM_INT);
+                    $insertSession->bindParam(':device', $device);
+                    $insertSession->bindParam(':ip_address', $ipAddress);
+                    $insertSession->bindParam(':user_agent', $userAgent);
+                    $insertSession->execute();
+                } catch (Exception $e) {
+                    error_log('Failed to create member session: ' . $e->getMessage());
+                }
+
                 http_response_code(200);
                 echo json_encode(array(
                     "message" => "Login successful.",
@@ -105,6 +138,8 @@ try {
                     "email" => $email,
                     "birthday" => $birthday,
                     "status" => $status,
+                    "token" => $sessionToken,
+                    "session_id" => $sessionToken,
                     "warning" => $status !== 'active' ? 'Account is currently marked as ' . $status . '.' : null,
                     "must_change_password" => (int)($row['must_change_password'] ?? 0) === 1,
                     "temp_password_expires_at" => $row['password_temp_expires_at'],
