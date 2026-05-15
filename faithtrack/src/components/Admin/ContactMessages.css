@@ -407,6 +407,7 @@
   flex-direction: column;
   animation: slideUp 0.3s ease-out;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 @keyframes slideUp {
@@ -486,6 +487,7 @@
   gap: 20px;
   width: 100%;
   box-sizing: border-box;
+  align-self: stretch;
 }
 
 .reply-section {
