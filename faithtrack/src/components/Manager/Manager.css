@@ -1695,6 +1695,9 @@
 .manager-generate-qr-module {
   margin: -25px -10px 0;
   padding: 2rem 1rem 1.75rem;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .qr-module-header {
@@ -2731,6 +2734,10 @@
     padding: 1rem;
   }
 
+  .qr-module-grid {
+    grid-template-columns: 1fr;
+  }
+
   .qr-module-header h2 {
     font-size: 1.5rem;
   }
@@ -2741,6 +2748,11 @@
 
   .qr-list-card {
     padding: 1.25rem;
+  }
+
+  /* Quick generate grid single col on mobile */
+  .qr-quick-grid {
+    grid-template-columns: 1fr;
   }
 
   /* List header stacks */
@@ -2763,9 +2775,20 @@
   .qr-table {
     min-width: 520px;
   }
+
+  /* Inputs full width */
+  .qr-form-select,
+  .qr-form-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 @media (max-width: 480px) {
+  .manager-generate-qr-module {
+    padding: 0.75rem;
+  }
+
   .qr-module-header h2 {
     font-size: 1.25rem;
   }
@@ -2780,6 +2803,10 @@
 
   .qr-list-card {
     padding: 1rem;
+  }
+
+  .qr-quick-card {
+    padding: 0.75rem;
   }
 }
 
