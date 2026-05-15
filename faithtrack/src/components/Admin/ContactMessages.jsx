@@ -225,10 +225,8 @@ const ContactMessages = () => {
               {replyText.length} / {MAX_REPLY_LENGTH}
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="reply-modal-footer">
+          {/* Actions — inside body so always visible */}
           <div className="reply-modal-actions">
             <button
               type="button"
@@ -261,6 +259,7 @@ const ContactMessages = () => {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   ) : null;
