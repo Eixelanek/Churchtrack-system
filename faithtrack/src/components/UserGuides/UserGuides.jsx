@@ -33,7 +33,7 @@ const UserGuides = () => {
       content: [
         {
           subtitle: 'How to Check In',
-          text: 'On the Dashboard, click "Scan QR Code" or "Check In". If there\'s a QR code displayed, scan it with your phone camera. Otherwise, you can manually check in by selecting the event.'
+          text: 'On the Dashboard, click "Scan QR Code" then scan the QR code displayed by the manager using your phone camera.'
         },
         {
           subtitle: 'View Your Attendance',
@@ -109,7 +109,7 @@ const UserGuides = () => {
         },
         {
           subtitle: 'QR Code Not Working?',
-          text: 'Make sure your camera has permission to access. Try refreshing the page or using a different browser. You can also manually check in if the QR code doesn\'t work.'
+          text: 'Make sure your camera has permission to access. Try refreshing the page or using a different browser. If the issue persists, ask the manager to manually check you in.'
         },
         {
           subtitle: 'Still Having Issues?',
