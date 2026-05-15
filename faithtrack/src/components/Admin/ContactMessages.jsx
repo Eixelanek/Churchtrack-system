@@ -266,61 +266,79 @@ const ContactMessages = () => {
       {showReplyModal && (
         <div className="modal-overlay" onClick={() => !isSendingReply && setShowReplyModal(false)}>
           <div className="reply-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="header-icon">✉️</span>
-              <h3>Send reply</h3>
-              <button
-                className="modal-close"
-                onClick={() => !isSendingReply && setShowReplyModal(false)}
-                disabled={isSendingReply}
-              >
-                ✕
-              </button>
+
+            {/* Left sidebar */}
+            <div className="reply-sidebar">
+              <div className="reply-sidebar-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <div className="reply-sidebar-line" />
+              <div className="reply-sidebar-avatar">
+                {selectedMessage?.email?.charAt(0).toUpperCase()}
+              </div>
+              <div className="reply-sidebar-line" />
+              <div className="reply-sidebar-send">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </div>
             </div>
 
-            <div className="modal-content">
-              <div className="reply-section">
-                <label className="section-label">TO</label>
-                <div className="reply-to-box">
-                  <div className="email-avatar">{selectedMessage?.email?.charAt(0).toUpperCase()}</div>
-                  <span className="email-text">{selectedMessage?.email}</span>
+            {/* Right content */}
+            <div className="reply-body">
+              {/* Header */}
+              <div className="reply-header-row">
+                <div>
+                  <h3 className="reply-title">Send reply</h3>
+                  <p className="reply-subtitle">Sent via email</p>
                 </div>
+                <button
+                  className="reply-close-btn"
+                  onClick={() => !isSendingReply && setShowReplyModal(false)}
+                  disabled={isSendingReply}
+                >✕</button>
               </div>
 
-              <div className="reply-section">
-                <label className="section-label">MESSAGE</label>
+              {/* To row */}
+              <div className="reply-to-row">
+                <span className="reply-to-arrow">→</span>
+                <span className="reply-to-label">To</span>
+                <span className="reply-to-email">{selectedMessage?.email}</span>
+              </div>
+
+              {/* Message area */}
+              <div className="reply-message-area">
+                <div className="reply-message-label">MESSAGE</div>
                 <textarea
                   className="reply-textarea"
-                  placeholder="Type your reply message here..."
+                  placeholder="Write your reply..."
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   disabled={isSendingReply}
                 />
               </div>
 
-              <div className="reply-hint">
-                <span className="hint-icon">ℹ️</span>
-                <p>Keep your reply professional and helpful. The recipient will receive this via email.</p>
+              {/* Footer */}
+              <div className="reply-footer">
+                <p className="reply-footer-hint">Keep replies professional and helpful.</p>
+                <div className="reply-footer-actions">
+                  <button className="btn-cancel" onClick={() => setShowReplyModal(false)} disabled={isSendingReply}>
+                    Cancel
+                  </button>
+                  <button className="btn-send" onClick={handleSendReply} disabled={isSendingReply || !replyText.trim()}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    {isSendingReply ? 'Sending...' : 'Send'}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="modal-actions">
-              <button
-                className="btn-cancel"
-                onClick={() => setShowReplyModal(false)}
-                disabled={isSendingReply}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-send"
-                onClick={handleSendReply}
-                disabled={isSendingReply || !replyText.trim()}
-              >
-                <span className="send-icon">✉️</span>
-                {isSendingReply ? 'Sending...' : 'Send reply'}
-              </button>
-            </div>
           </div>
         </div>
       )}
