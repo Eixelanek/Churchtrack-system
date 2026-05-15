@@ -379,6 +379,7 @@ const AttendanceHistory = () => {
   ) : null;
 
   return (
+    <>
     <div className="my-attendance-page">
       {/* Header */}
       <div className="my-attendance-header">
@@ -585,6 +586,7 @@ const AttendanceHistory = () => {
       </div>
     </div>
     {detailModal}
+    </>
   );
 };
 
