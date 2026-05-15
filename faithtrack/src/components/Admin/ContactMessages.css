@@ -401,8 +401,8 @@
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 95%;
-  max-width: 900px;
-  max-height: 85vh;
+  max-width: 620px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease-out;
@@ -425,19 +425,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 18px 24px;
   background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   border-radius: 12px 12px 0 0;
   gap: 12px;
 }
 
 .header-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   flex-shrink: 0;
@@ -446,7 +446,7 @@
 .modal-header h3 {
   margin: 0;
   color: white !important;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   flex: 1;
   text-align: left;
@@ -455,21 +455,21 @@
 .modal-close {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: white;
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 50%;
   transition: all 0.2s;
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .modal-close:disabled {
@@ -478,7 +478,7 @@
 }
 
 .modal-content {
-  padding: 16px 20px;
+  padding: 24px;
   overflow-y: auto;
   flex: 1;
   background: white;
@@ -487,76 +487,76 @@
   gap: 20px;
   width: 100%;
   box-sizing: border-box;
-  align-self: stretch;
 }
 
 .reply-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 
 .section-label {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #475569;
+  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .reply-to-box {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .email-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
 
 .email-text {
-  color: #0f172a;
+  color: #1e293b;
   font-size: 0.95rem;
   font-weight: 500;
-  word-break: break-all;
 }
 
 .reply-textarea {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   font-family: 'Inter', Arial, sans-serif;
   font-size: 0.95rem;
-  line-height: 1.5;
-  color: #0f172a;
+  line-height: 1.6;
+  color: #1e293b;
   resize: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
-  height: 350px;
+  height: 200px;
+  background: #fafbfc;
 }
 
 .reply-textarea:focus {
   outline: none;
   border-color: #1095D2;
-  box-shadow: 0 0 0 3px rgba(16, 149, 210, 0.1);
+  box-shadow: 0 0 0 3px rgba(16, 149, 210, 0.12);
+  background: white;
 }
 
 .reply-textarea:disabled {
@@ -565,35 +565,36 @@
 }
 
 .reply-hint {
-  margin-top: 0;
-  padding: 12px 14px;
+  padding: 10px 14px;
   background: #f0f9ff;
   border-left: 3px solid #1095D2;
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   gap: 10px;
   align-items: flex-start;
 }
 
 .hint-icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .reply-hint p {
   margin: 0;
   color: #0049AF;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: 0.83rem;
+  line-height: 1.5;
 }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   padding: 16px 24px;
   border-top: 1px solid #e2e8f0;
   justify-content: flex-end;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
 }
 
 .btn-cancel {
