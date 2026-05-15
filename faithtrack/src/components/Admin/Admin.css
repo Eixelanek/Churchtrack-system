@@ -4544,6 +4544,122 @@ select.form-input {
   }
 }
 
+/* Admin Settings (church config) — fluid layout */
+.admin-settings-page {
+  box-sizing: border-box;
+}
+
+.admin-settings-page .profile-settings-title {
+  word-break: break-word;
+}
+
+.admin-settings-page .profile-content {
+  width: 100%;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.admin-settings-page .profile-section {
+  width: 100%;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.admin-settings-page .account-section,
+.admin-settings-page .account-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.admin-settings-page .form-input,
+.admin-settings-page .form-group input,
+.admin-settings-page .form-group textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-settings-media-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-settings-media-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.admin-settings-media-actions--grow {
+  flex: 1;
+}
+
+.admin-settings-homepage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.admin-settings-homepage-slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .admin-settings-page {
+    padding: 2rem 2rem 2.5rem !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-settings-homepage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-settings-page {
+    padding: 1rem 0.875rem 2rem !important;
+  }
+
+  .admin-settings-page .profile-settings-title {
+    font-size: 1.5rem;
+  }
+
+  .admin-settings-media-row,
+  .admin-settings-homepage-slot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-settings-media-actions .change-avatar-btn,
+  .admin-settings-media-actions .cancel-btn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .admin-settings-page .button-group {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1400px) {
+  .admin-settings-page .profile-content,
+  .admin-settings-page .profile-section {
+    max-width: 1040px;
+  }
+}
+
 /* =============================================
    ADDITIONAL RESPONSIVE FIXES
    ============================================= */

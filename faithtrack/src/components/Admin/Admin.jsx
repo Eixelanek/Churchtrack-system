@@ -2694,7 +2694,7 @@ const Admin = () => {
                 </div>
               </div>
             ) : showSettingsView ? (
-              <div className="profile-view">
+              <div className="profile-view admin-settings-page">
                 <div className="profile-settings-header">
                   <button 
                     className="back-button"
@@ -2715,11 +2715,11 @@ const Admin = () => {
                         <h2>Church Identity</h2>
                         <div className="form-group">
                           <label>Church Logo</label>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                          <div className="admin-settings-media-row" style={{ marginTop: '0.5rem' }}>
                             <div className="profile-avatar large">
                               <img src={churchLogo} alt="Church Logo" className="avatar-image" />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div className="admin-settings-media-actions">
                               <button 
                                 className="change-avatar-btn"
                                 onClick={() => logoInputRef.current.click()}
@@ -2754,11 +2754,11 @@ const Admin = () => {
 
                         <div className="form-group" style={{ marginTop: '1.5rem' }}>
                           <label>Header Logo (used in Admin/Manager/Member headers)</label>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                          <div className="admin-settings-media-row" style={{ marginTop: '0.5rem' }}>
                             <div className="profile-avatar large">
                               <img src={headerLogo || churchLogo} alt="Header Logo" className="avatar-image" />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div className="admin-settings-media-actions">
                               <button 
                                 className="change-avatar-btn"
                                 onClick={() => headerLogoInputRef.current.click()}
@@ -2851,7 +2851,7 @@ const Admin = () => {
                         <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
                           Customize the floating images displayed on your church homepage.
                         </p>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginTop: '1.5rem' }}>
+                        <div className="admin-settings-homepage-grid" style={{ marginTop: '1.5rem' }}>
                           {[0, 1, 2, 3, 4, 5].map((index) => {
                             const imageValues = [homepageImage1, homepageImage2, homepageImage3, homepageImage4, homepageImage5, homepageImage6];
                             const imageRefs = [homepageImage1Ref, homepageImage2Ref, homepageImage3Ref, homepageImage4Ref, homepageImage5Ref, homepageImage6Ref];
@@ -2862,7 +2862,7 @@ const Admin = () => {
                                 <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>
                                   Image {index + 1}
                                 </label>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                                <div className="admin-settings-homepage-slot">
                                   <div className="profile-avatar large">
                                     <img 
                                       src={imageValue || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23e2e8f0' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E`} 
@@ -2870,7 +2870,7 @@ const Admin = () => {
                                       className="avatar-image" 
                                     />
                                   </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                                  <div className="admin-settings-media-actions admin-settings-media-actions--grow">
                                     <button 
                                       className="change-avatar-btn"
                                       onClick={() => imageRef.current?.click()}
