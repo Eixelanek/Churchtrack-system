@@ -66,7 +66,8 @@ try {
     $textBody .= "---\n\n";
     $textBody .= "Best regards,\n";
     $textBody .= trim((string)(getenv('CHURCH_NAME') ?: 'Christ-Like Christian Church')) . "\n";
-    $textBody .= trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack'));
+    $textBody .= trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')) . "\n\n";
+    $textBody .= "Please do not reply to this email. To send a new message, visit: https://churchtrack-system.clcc.site/contact";
 
     $churchName = htmlspecialchars(trim((string)(getenv('CHURCH_NAME') ?: 'Christ-Like Christian Church')), ENT_QUOTES, 'UTF-8');
     $displayName = htmlspecialchars($recipientName, ENT_QUOTES, 'UTF-8');
@@ -87,7 +88,7 @@ try {
     $htmlBody .= '<div style="background:#f8fafc;padding:20px;border-left:4px solid #2563eb;border-radius:4px;margin:20px 0;">';
     $htmlBody .= '<p style="margin:0;color:#475569;line-height:1.6;white-space:pre-wrap;">' . $replyTextFormatted . '</p>';
     $htmlBody .= '</div>';
-    $htmlBody .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you have any further questions, feel free to contact us again.</p>';
+    $htmlBody .= '<p style="margin:0;font-size:13px;color:#94a3b8;">If you have any further questions, please submit a new message through our <a href="https://churchtrack-system.clcc.site/contact" style="color:#2563eb;">contact form</a>. Please do not reply to this email.</p>';
     $htmlBody .= '</td></tr>';
     $htmlBody .= '<tr><td style="padding:16px 28px 28px;font-family:\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">';
     $htmlBody .= trim((string)(getenv('EMAIL_SYSTEM_NAME') ?: 'ChurchTrack')) . '<br/>';
