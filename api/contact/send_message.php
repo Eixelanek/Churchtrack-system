@@ -82,6 +82,18 @@ try {
         $ipAddress = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
     }
 
+    // Check rate limit: 1 submission per IP per hour
+    $rateLimitQuery = $db->prepare("SELECT COUNT(*) as count FROM contact_messages WHERE ip_address = :ip_address AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+    $rateLimitQuery->bindParam(':ip_address', $ipAddress);
+    $rateLimitQuery->execute();
+    $rateLimitResult = $rateLimitQuery->fetch(PDO::FETCH_ASSOC);
+
+    if ($rateLimitResult['count'] > 0) {
+        http_response_code(429);
+        echo json_encode(['success' => false, 'message' => 'You can only submit one message per hour. Please try again later.']);
+        exit();
+    }
+
     // Store message in database
     $insertQuery = $db->prepare("INSERT INTO contact_messages (first_name, last_name, email, phone, message, ip_address) VALUES (:first_name, :last_name, :email, :phone, :message, :ip_address)");
     $insertQuery->bindParam(':first_name', $firstName);
