@@ -2559,3 +2559,149 @@
     transform: translateY(0);
   }
 }
+
+/* =============================================
+   ADDITIONAL RESPONSIVE FIXES - MANAGER SIDE
+   ============================================= */
+
+/* Fix mobile dropdown — JSX renders it conditionally so remove display:none conflict */
+.manager-mobile-menu-dropdown {
+  display: flex !important;
+}
+
+@media (max-width: 1024px) {
+  /* Summary cards 2-col on tablet */
+  .manager-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Dashboard grid stacks */
+  .manager-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* QR grid single col */
+  .manager-qr-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Summary cards 2-col on mobile */
+  .manager-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .manager-summary-card {
+    padding: 1rem;
+  }
+
+  .manager-summary-value {
+    font-size: 1.5rem;
+  }
+
+  /* Dashboard padding */
+  .manager-dashboard {
+    padding: 0.75rem 1rem 1rem;
+    gap: 1.25rem;
+  }
+
+  /* Card padding */
+  .manager-card {
+    padding: 1rem;
+  }
+
+  /* QR modal single column */
+  .qr-modal-columns {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .qr-modal-card {
+    width: 100%;
+  }
+
+  .qr-modal-card.single-layout {
+    flex-direction: column;
+    max-width: 100%;
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+
+  .qr-modal-body {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  /* QR info grid single col */
+  .qr-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qr-info-pair {
+    grid-template-columns: 1fr;
+  }
+
+  /* QR modal actions stack */
+  .qr-modal-actions {
+    flex-direction: column;
+  }
+
+  /* Delete modal actions */
+  .qr-delete-actions {
+    flex-direction: column-reverse;
+  }
+
+  .qr-delete-cancel,
+  .qr-delete-confirm {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Church name hidden on small */
+  .manager-church-name {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Mobile dropdown full width */
+  .manager-mobile-menu-dropdown {
+    left: 8px;
+    right: 8px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Summary cards 1-col on very small */
+  .manager-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-summary-card {
+    padding: 0.875rem 1rem;
+  }
+
+  .manager-summary-value {
+    font-size: 1.35rem;
+  }
+
+  /* Church name hidden */
+  .manager-church-name {
+    display: none;
+  }
+
+  /* QR display smaller */
+  .qr-display {
+    padding: 1rem;
+  }
+
+  /* Profile dropdown full width */
+  .manager-profile-dropdown {
+    right: 0;
+    left: 0;
+    border-radius: 0 0 12px 12px;
+  }
+}
