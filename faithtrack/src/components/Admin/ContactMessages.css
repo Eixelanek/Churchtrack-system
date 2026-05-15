@@ -400,9 +400,9 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 800px;
-  max-height: 80vh;
+  width: 95%;
+  max-width: 900px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease-out;
@@ -477,7 +477,7 @@
 }
 
 .modal-content {
-  padding: 24px;
+  padding: 16px 20px;
   overflow-y: auto;
   flex: 1;
   background: white;
@@ -511,6 +511,8 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .email-avatar {
