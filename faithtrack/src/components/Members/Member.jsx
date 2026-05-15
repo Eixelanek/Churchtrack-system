@@ -2451,25 +2451,23 @@ const Member = () => {
       {/* Sign Out Confirmation Modal */}
       {showSignOutModal && (
         <div className="modal-overlay" onClick={handleCancelSignOut}>
-          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-            <div className="confirm-header">
-              <h3>Sign Out</h3>
+          <div className="confirm-modal confirm-modal-centered" onClick={e => e.stopPropagation()}>
+            <div className="confirm-content-centered">
+              <h3 className="confirm-title-centered">Sign Out</h3>
+              <p className="confirm-message-centered">Are you sure you want to sign out?</p>
             </div>
-            <div className="confirm-content">
-              <p>Are you sure you want to sign out?</p>
-            </div>
-            <div className="confirm-actions">
+            <div className="confirm-actions-centered">
               <button
-                className="cancel-btn"
+                className="cancel-btn-centered"
                 onClick={handleCancelSignOut}
               >
                 Cancel
               </button>
               <button
-                className="ok-btn"
+                className="confirm-btn-centered"
                 onClick={handleConfirmSignOut}
               >
-                Sign Out
+                Confirm
               </button>
             </div>
           </div>
