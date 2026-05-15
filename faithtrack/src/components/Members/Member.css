@@ -3204,65 +3204,76 @@ button,
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 40px 30px;
+  padding: 32px 28px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  width: 90%;
 }
 
 .confirm-content-centered {
-  margin-bottom: 30px;
+  margin-bottom: 28px;
+  width: 100%;
 }
 
 .confirm-title-centered {
-  margin: 0 0 16px 0;
-  font-size: 1.5rem;
-  color: #1095D2;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 1.4rem;
+  color: #0049AF;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .confirm-message-centered {
   margin: 0;
-  color: #94a3b8;
+  color: #7a8fa6;
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .confirm-actions-centered {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
+  padding-top: 8px;
 }
 
 .cancel-btn-centered {
-  padding: 10px 32px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  background-color: white;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  min-width: 120px;
-}
-
-.cancel-btn-centered:hover {
-  background-color: #f1f5f9;
-  border-color: #94a3b8;
-}
-
-.confirm-btn-centered {
-  padding: 10px 32px;
-  border-radius: 6px;
+  padding: 12px 36px;
+  border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  background-color: white;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  min-width: 130px;
+}
+
+.cancel-btn-centered:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.confirm-btn-centered {
+  padding: 12px 36px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
   background-color: #10b981;
   color: white;
   border: none;
-  min-width: 120px;
+  min-width: 130px;
 }
 
 .confirm-btn-centered:hover {
   background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
 }
