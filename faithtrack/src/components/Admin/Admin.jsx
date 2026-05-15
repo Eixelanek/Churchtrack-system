@@ -2981,7 +2981,7 @@ const Admin = () => {
                       <div className="account-card" style={{ marginTop: '1.5rem' }}>
                         <h2>System Maintenance</h2>
                         <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Run a manual cleanup to remove expired verification codes, stale admin and member sessions, outdated login logs, rejected and stale pending member applications, and guardian data for members aged 18 and above.
+                          Run a manual cleanup to remove stale admin and member sessions, outdated login logs, rejected and stale pending member applications, and guardian data for members aged 18 and above.
                         </p>
                         <div className="maintenance-actions">
                           <button

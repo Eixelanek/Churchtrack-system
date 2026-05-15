@@ -21,11 +21,6 @@ function tableExists(PDO $db, string $tableName): bool {
 try {
     $maintenanceTasks = [
         [
-            'name' => 'Expired verification codes',
-            'table' => 'verification_codes',
-            'query' => "DELETE FROM verification_codes WHERE is_used = 1 OR created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)"
-        ],
-        [
             'name' => 'Inactive admin sessions (30+ days)',
             'table' => 'admin_sessions',
             'query' => "DELETE FROM admin_sessions WHERE is_active = 0 AND COALESCE(last_activity, created_at) < DATE_SUB(NOW(), INTERVAL 30 DAY)"
