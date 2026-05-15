@@ -4543,3 +4543,162 @@ select.form-input {
     width: 100%;
   }
 }
+
+/* =============================================
+   ADDITIONAL RESPONSIVE FIXES
+   ============================================= */
+
+/* --- Members directory header --- */
+@media (max-width: 768px) {
+  .members-directory-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .members-directory-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .add-member-btn,
+  .export-report-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  /* Members search + tabs row */
+  .members-search-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .members-search-bar {
+    min-width: 100%;
+  }
+
+  .members-new-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .new-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Member card badges wrap */
+  .member-badges {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Request actions stack */
+  .request-actions {
+    flex-wrap: wrap;
+    max-width: 100%;
+    gap: 0.5rem;
+  }
+
+  .request-action-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 80px;
+  }
+
+  /* Form two-column collapses to one */
+  .form-row-two {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal full width */
+  .modal-content-new {
+    max-width: 100%;
+    border-radius: 12px 12px 0 0;
+    max-height: 95vh;
+  }
+
+  .modal-overlay-new {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Profile section stacks */
+  .profile-section {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Referral filter stacks */
+  .referral-filter {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .referral-filter-select {
+    flex: 1;
+  }
+
+  /* Stat cards 2 col on tablet */
+  .members-new-stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Stat cards 1 col on phone */
+  .members-new-stat-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .member-card {
+    padding: 0.75rem 1rem;
+  }
+
+  .member-badges {
+    width: 100%;
+  }
+
+  .new-stat-card .stat-number {
+    font-size: 1.5rem;
+  }
+
+  /* Topbar church name hidden on very small */
+  .topbar-church-name {
+    display: none;
+  }
+
+  /* Report modal actions stack */
+  .report-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Date range picker stacks */
+  .date-range-picker {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Modal actions stack */
+  .modal-actions-new {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel-new,
+  .btn-submit-new {
+    width: 100%;
+    justify-content: center;
+  }
+}
