@@ -12,6 +12,8 @@ const ContactMessages = () => {
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   useEffect(() => {
     loadMessages();
@@ -54,13 +56,18 @@ const ContactMessages = () => {
   };
 
   const deleteMessage = async (messageId) => {
-    if (!window.confirm('Are you sure you want to delete this message?')) return;
+    setMessageToDelete(messageId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteMessage = async () => {
+    if (!messageToDelete) return;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/contact/delete_message.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message_id: messageId })
+        body: JSON.stringify({ message_id: messageToDelete })
       });
 
       const data = await response.json();
@@ -70,6 +77,9 @@ const ContactMessages = () => {
       }
     } catch (err) {
       console.error('Error deleting message:', err);
+    } finally {
+      setShowDeleteConfirmModal(false);
+      setMessageToDelete(null);
     }
   };
 
@@ -309,6 +319,33 @@ const ContactMessages = () => {
               >
                 <span className="send-icon">✉️</span>
                 {isSendingReply ? 'Sending...' : 'Send reply'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirmModal(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>Delete Message</h3>
+            </div>
+            <div className="confirm-content">
+              <p>Are you sure you want to delete this message? This action cannot be undone.</p>
+            </div>
+            <div className="confirm-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => setShowDeleteConfirmModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="ok-btn"
+                onClick={confirmDeleteMessage}
+              >
+                Delete
               </button>
             </div>
           </div>
