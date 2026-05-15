@@ -2450,22 +2450,63 @@ const Member = () => {
 
       {/* Sign Out Confirmation Modal */}
       {showSignOutModal && (
-        <div className="modal-overlay" onClick={handleCancelSignOut}>
-          <div className="confirm-modal confirm-modal-centered" onClick={e => e.stopPropagation()}>
-            <div className="confirm-content-centered">
-              <h3 className="confirm-title-centered">Sign Out</h3>
-              <p className="confirm-message-centered">Are you sure you want to sign out?</p>
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            width: '90%',
+            maxWidth: '400px'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: '20px'
+            }}>
+              <h3 style={{ margin: 0 }}>Sign Out</h3>
             </div>
-            <div className="confirm-actions-centered">
+            <p style={{ marginBottom: '20px', color: '#666', textAlign: 'center' }}>
+              Are you sure you want to sign out?
+            </p>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '10px'
+            }}>
               <button
-                className="cancel-btn-centered"
                 onClick={handleCancelSignOut}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  background: 'white',
+                  cursor: 'pointer'
+                }}
               >
                 Cancel
               </button>
               <button
-                className="confirm-btn-centered"
                 onClick={handleConfirmSignOut}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  background: '#10b981',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
               >
                 Confirm
               </button>
