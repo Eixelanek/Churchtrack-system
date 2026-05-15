@@ -589,7 +589,7 @@
   resize: none;
   background: white;
   box-sizing: border-box;
-  height: 180px;
+  height: 280px;
 }
 
 .reply-textarea:disabled {
