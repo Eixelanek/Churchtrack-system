@@ -2981,7 +2981,7 @@ const Admin = () => {
                       <div className="account-card" style={{ marginTop: '1.5rem' }}>
                         <h2>System Maintenance</h2>
                         <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Run a manual cleanup to remove expired verification codes, stale sessions, and outdated logs.
+                          Run a manual cleanup to remove expired verification codes, stale admin and member sessions, outdated login logs, rejected and stale pending member applications, and guardian data for members aged 18 and above.
                         </p>
                         <div className="maintenance-actions">
                           <button
@@ -3004,17 +3004,16 @@ const Admin = () => {
                               Last run: {formatMaintenanceTimestamp(maintenanceResult.ranAt)}
                             </div>
                             {Array.isArray(maintenanceResult.tasks) && maintenanceResult.tasks.length > 0 && (
-                              <ul>
+                              <ul className="maintenance-task-list">
                                 {maintenanceResult.tasks.map((task) => (
-                                  <li key={task.name}>
-                                    {task.name}:&nbsp;
+                                  <li key={task.name} className="maintenance-task-item">
+                                    <span className="maintenance-task-name">{task.name}</span>
                                     {task.skipped ? (
-                                      <span className="maintenance-task-skipped">Skipped</span>
+                                      <span className="maintenance-task-badge skipped">Skipped</span>
+                                    ) : task.deleted > 0 ? (
+                                      <span className="maintenance-task-badge removed">{task.deleted} removed</span>
                                     ) : (
-                                      <span className="maintenance-task-count">{task.deleted} removed</span>
-                                    )}
-                                    {task.message && (
-                                      <span className="maintenance-task-note"> — {task.message}</span>
+                                      <span className="maintenance-task-badge clean">Clean</span>
                                     )}
                                   </li>
                                 ))}

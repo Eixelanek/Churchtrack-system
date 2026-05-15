@@ -50,6 +50,11 @@ try {
             'table' => 'members',
             'query' => "UPDATE members SET guardian_surname = NULL, guardian_first_name = NULL, guardian_middle_name = NULL, guardian_suffix = 'None', relationship_to_guardian = NULL WHERE birthday IS NOT NULL AND TIMESTAMPDIFF(YEAR, birthday, CURDATE()) >= 18 AND (guardian_surname IS NOT NULL OR guardian_first_name IS NOT NULL OR guardian_middle_name IS NOT NULL OR (guardian_suffix IS NOT NULL AND guardian_suffix != 'None') OR relationship_to_guardian IS NOT NULL)"
         ],
+        [
+            'name' => 'Inactive member sessions (30+ days)',
+            'table' => 'member_sessions',
+            'query' => "DELETE FROM member_sessions WHERE is_active = 0 AND COALESCE(last_activity, created_at) < DATE_SUB(NOW(), INTERVAL 30 DAY)"
+        ],
     ];
 
     $summary = [];
