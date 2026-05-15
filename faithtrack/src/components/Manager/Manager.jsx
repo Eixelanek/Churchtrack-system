@@ -2940,14 +2940,7 @@ const Manager = () => {
         </div>
 
         {/* Content - Two Column Layout */}
-        <div style={{
-          padding: '2rem',
-          overflowY: 'auto',
-          flex: 1,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '2rem'
-        }}>
+        <div className="manual-checkin-grid">
 
           {/* Left Column - Select Members */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>

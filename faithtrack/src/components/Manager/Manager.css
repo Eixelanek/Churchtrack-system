@@ -2781,3 +2781,31 @@
     padding: 1rem;
   }
 }
+
+/* =============================================
+   MANUAL CHECKIN MODAL RESPONSIVE
+   ============================================= */
+
+.manual-checkin-grid {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .manual-checkin-grid {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .manual-checkin-grid {
+    padding: 1rem;
+    gap: 1.25rem;
+  }
+}
