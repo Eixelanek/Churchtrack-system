@@ -1202,6 +1202,9 @@
   flex: 1;
   padding: 24px 28px 32px;
   margin-top: 46px;
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .manager-attendance-module {
@@ -1693,8 +1696,8 @@
 }
 
 .manager-generate-qr-module {
-  margin: -25px -10px 0;
-  padding: 2rem 1rem 1.75rem;
+  margin: -25px 0 0;
+  padding: 2rem 0 1.75rem;
   box-sizing: border-box;
   max-width: 100%;
   overflow-x: hidden;
@@ -1726,6 +1729,30 @@
   gap: 1.5rem;
   align-items: start;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.qr-form-panel,
+.qr-list-panel {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.qr-form-card,
+.qr-list-card,
+.qr-quick-generate {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.qr-form-select,
+.qr-form-input,
+.qr-search-input,
+.qr-generate-btn {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .qr-form-panel {
