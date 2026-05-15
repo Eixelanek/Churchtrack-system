@@ -283,9 +283,7 @@ const ContactMessages = () => {
                 disabled={isSendingReply}
                 aria-label="Close"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <span className="reply-modal-close-glyph" aria-hidden="true">×</span>
               </button>
             </div>
 
@@ -323,13 +321,13 @@ const ContactMessages = () => {
             </div>
 
             <div className="reply-modal-footer">
-              <button type="button" className="btn-cancel" onClick={() => setShowReplyModal(false)} disabled={isSendingReply}>
+              <button type="button" className="reply-modal-btn reply-modal-btn--cancel" onClick={() => setShowReplyModal(false)} disabled={isSendingReply}>
                 Cancel
               </button>
-              <button type="button" className="btn-send" onClick={handleSendReply} disabled={isSendingReply || !replyText.trim()}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              <button type="button" className="reply-modal-btn reply-modal-btn--send" onClick={handleSendReply} disabled={isSendingReply || !replyText.trim()}>
+                <svg className="reply-modal-btn-send-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M22 2L11 13" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 {isSendingReply ? 'Sending...' : 'Send reply'}
               </button>
