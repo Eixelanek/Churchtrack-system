@@ -885,6 +885,7 @@
   top: calc(100% + 10px);
   right: 0;
   width: 260px;
+  max-width: calc(100vw - 1rem);
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
@@ -2701,8 +2702,9 @@
   /* Profile dropdown full width */
   .manager-profile-dropdown {
     right: 0;
-    left: 0;
-    border-radius: 0 0 12px 12px;
+    left: auto;
+    width: min(260px, calc(100vw - 1rem));
+    border-radius: 12px;
   }
 }
 
