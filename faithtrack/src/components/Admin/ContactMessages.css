@@ -484,12 +484,15 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .reply-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
 }
 
 .section-label {
