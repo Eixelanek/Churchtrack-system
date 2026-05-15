@@ -2450,59 +2450,25 @@ const Member = () => {
 
       {/* Sign Out Confirmation Modal */}
       {showSignOutModal && (
-        <div className="modal-overlay" onClick={handleCancelSignOut} style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '24px',
-            width: '90%',
-            maxWidth: '400px',
-            textAlign: 'center'
-          }}>
-            <h3 style={{ 
-              margin: '0 0 8px 0',
-              fontSize: '1.25rem',
-              color: '#1a1a1a'
-            }}>Sign Out</h3>
-            <p style={{
-              margin: '0 0 24px 0',
-              color: '#666',
-              fontSize: '0.875rem'
-            }}>Are you sure you want to sign out?</p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button onClick={handleCancelSignOut} style={{
-                padding: '10px 24px',
-                border: '1px solid #D9D9D9',
-                borderRadius: '4px',
-                background: 'white',
-                color: 'black',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                minWidth: '100px'
-              }}>
+        <div className="modal-overlay" onClick={handleCancelSignOut}>
+          <div className="confirm-modal" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">
+              <h3>Sign Out</h3>
+            </div>
+            <div className="confirm-content">
+              <p>Are you sure you want to sign out?</p>
+            </div>
+            <div className="confirm-actions">
+              <button
+                className="cancel-btn"
+                onClick={handleCancelSignOut}
+              >
                 Cancel
               </button>
-              <button onClick={handleConfirmSignOut} style={{
-                padding: '10px 24px',
-                border: 'none',
-                borderRadius: '4px',
-                background: '#00C389',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                minWidth: '100px'
-              }}>
+              <button
+                className="ok-btn"
+                onClick={handleConfirmSignOut}
+              >
                 Sign Out
               </button>
             </div>
