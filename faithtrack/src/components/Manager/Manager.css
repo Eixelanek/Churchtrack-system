@@ -1718,7 +1718,7 @@
 
 .qr-module-grid {
   display: grid;
-  grid-template-columns: 500px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 500px) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
@@ -2703,5 +2703,79 @@
     right: 0;
     left: 0;
     border-radius: 0 0 12px 12px;
+  }
+}
+
+/* =============================================
+   GENERATE QR MODULE RESPONSIVE FIXES
+   ============================================= */
+
+@media (max-width: 1024px) {
+  /* Stack form and list panels */
+  .qr-module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-generate-qr-module {
+    margin: -20px -10px 0;
+    padding: 1.5rem 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .manager-generate-qr-module {
+    margin: 0;
+    padding: 1rem;
+  }
+
+  .qr-module-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .qr-form-card {
+    padding: 1.25rem;
+  }
+
+  .qr-list-card {
+    padding: 1.25rem;
+  }
+
+  /* List header stacks */
+  .qr-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .qr-search-input {
+    width: 100%;
+  }
+
+  /* Table scrolls horizontally */
+  .qr-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .qr-table {
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 480px) {
+  .qr-module-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .qr-form-card {
+    padding: 1rem;
+  }
+
+  .qr-form-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .qr-list-card {
+    padding: 1rem;
   }
 }
