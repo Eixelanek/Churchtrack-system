@@ -2322,17 +2322,19 @@ button,
 
 .family-tree-panel {
   position: relative;
-  width: min(720px, 90vw);
-  max-height: 90vh;
+  width: min(720px, 96vw);
+  max-height: 92vh;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
-  padding: 2rem;
+  padding: 1.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   z-index: 1110;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  box-sizing: border-box;
 }
 
 .family-tree-backdrop {
@@ -2404,8 +2406,8 @@ button,
 }
 
 .family-tree-visual {
-  border-radius: 24px;
-  padding: 1.5rem 1.25rem;
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
   background:
     radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
     radial-gradient(circle at 80% 70%, rgba(34, 197, 94, 0.06) 0%, transparent 60%),
@@ -2419,8 +2421,11 @@ button,
     inset 0 2px 12px rgba(34, 197, 94, 0.06),
     0 4px 20px rgba(15, 23, 42, 0.05);
   position: relative;
+  overflow-x: auto;
   overflow-y: auto;
-  max-height: 800px;
+  max-height: 600px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .family-tree-invite-form {
@@ -2435,6 +2440,8 @@ button,
   grid-template-columns: 1fr auto;
   gap: 0.75rem;
   align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .invite-search-wrapper input {

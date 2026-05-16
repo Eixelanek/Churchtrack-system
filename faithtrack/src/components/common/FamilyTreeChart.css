@@ -194,8 +194,8 @@
 
 /* Cards */
 .ft-card {
-  min-width: 148px;
-  max-width: 220px;
+  min-width: 130px;
+  max-width: 200px;
   background: var(--ft-surface);
   border: 1px solid var(--ft-border);
   border-radius: 14px;
@@ -205,6 +205,7 @@
   gap: 0.65rem;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
   transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .ft-card:hover {
@@ -273,6 +274,10 @@
 }
 
 @media (max-width: 520px) {
+  .ft-chart {
+    max-width: 100%;
+  }
+
   .ft-mid--with-sibs .ft-mid-sibs::after {
     display: none;
   }
@@ -286,5 +291,20 @@
     min-width: 0;
     width: 100%;
     max-width: 100%;
+  }
+
+  .ft-tier-row {
+    gap: 0.65rem;
+  }
+
+  .ft-card__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: 0.75rem;
+  }
+
+  .ft-card__name {
+    font-size: 0.82rem;
   }
 }
