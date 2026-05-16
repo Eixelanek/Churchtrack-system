@@ -50,6 +50,26 @@ try {
         exit();
     }
 
+    // Validate email domain against whitelist
+    $allowedDomains = [
+        'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com',
+        'icloud.com', 'mail.com', 'protonmail.com', 'tutanota.com',
+        'yandex.com', 'mail.ru', 'qq.com', 'sina.com', 'sohu.com',
+        '163.com', '126.com', 'yeah.net', 'foxmail.com',
+        'live.com', 'msn.com', 'bellsouth.net', 'verizon.net',
+        'comcast.net', 'cox.net', 'charter.net', 'earthlink.net',
+        'sbcglobal.net', 'att.net', 'windstream.net', 'frontier.com',
+        'gmail.ph', 'yahoo.com.ph', 'yahoo.ph', 'hotmail.com.ph',
+        'clcc.life', 'clcc.site'
+    ];
+
+    $emailDomain = strtolower(substr(strrchr($email, "@"), 1));
+    if (!in_array($emailDomain, $allowedDomains)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Please use a valid email provider (Gmail, Yahoo, Outlook, etc.).']);
+        exit();
+    }
+
     if (!$message) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Message is required.']);
