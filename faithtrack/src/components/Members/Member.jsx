@@ -1681,6 +1681,8 @@ const Member = () => {
   ]), [attendanceSummary.recent_scans]);
 
   const familyTreePreview = useMemo(() => {
+    const mapPerson = (p) => p ? { ...p, profile_picture: resolveProfilePicUrl(p.profile_picture) } : p;
+
     if (!familyTreeData || !familyTreeData.tree) {
       return {
         parents: [],
@@ -1692,14 +1694,14 @@ const Member = () => {
     }
     
     return {
-      parents: familyTreeData.tree.parents || [],
+      parents: (familyTreeData.tree.parents || []).map(mapPerson),
       couple: [
         { name: displayName, relation: 'You' },
-        ...(familyTreeData.tree.couple || [])
+        ...(familyTreeData.tree.couple || []).map(mapPerson)
       ],
-      siblings: familyTreeData.tree.siblings || [],
-      children: familyTreeData.tree.children || [],
-      other: familyTreeData.tree.other || [],
+      siblings: (familyTreeData.tree.siblings || []).map(mapPerson),
+      children: (familyTreeData.tree.children || []).map(mapPerson),
+      other: (familyTreeData.tree.other || []).map(mapPerson),
     };
   }, [familyTreeData, displayName]);
 

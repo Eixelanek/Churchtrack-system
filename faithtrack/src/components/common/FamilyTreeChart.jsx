@@ -1,5 +1,6 @@
 import React from 'react';
 import './FamilyTreeChart.css';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 
 function ParentsBridge({ count }) {
   if (count <= 1) {
@@ -35,7 +36,7 @@ function VerticalStem({ tall }) {
 }
 
 function TreeCard({ person, getInitials, formatRelation, highlight, theme }) {
-  const pic = person.profile_picture || person.photoUrl || person.photo;
+  const pic = resolveProfilePicUrl(person.profile_picture || person.photoUrl || person.photo);
   const meta = person.birth_year || person.birthday;
 
   return (
