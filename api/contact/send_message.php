@@ -50,16 +50,6 @@ try {
         exit();
     }
 
-    // Validate email domain has a real MX or A record (accepts any legitimate domain)
-    $emailDomain = strtolower(substr(strrchr($email, "@"), 1));
-    $hasMx = checkdnsrr($emailDomain, 'MX');
-    $hasA  = checkdnsrr($emailDomain, 'A');
-    if (!$hasMx && !$hasA) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Please enter a valid email address.']);
-        exit();
-    }
-
     if (!$message) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Message is required.']);
