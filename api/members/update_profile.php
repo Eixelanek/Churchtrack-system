@@ -162,79 +162,35 @@ try {
             ]);
             exit();
         }
-        // Decode base64 image
+
         $imageData = $data->profile_picture;
-        
-        // Check if it's a base64 string
-        if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
-            $imageData = substr($imageData, strpos($imageData, ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, gif
-            
-            if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
-                http_response_code(400);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Invalid image type. Only JPG, PNG, and GIF are allowed."
-                ]);
-                exit();
-            }
-            
-            $imageData = base64_decode($imageData);
-            
-            if ($imageData === false) {
-                http_response_code(400);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Failed to decode image data"
-                ]);
-                exit();
-            }
-            
-            // Paths relative to this file — CWD is often DocumentRoot, NOT api/members
-            $uploadDir = __DIR__ . '/../../uploads/profile_pictures/';
-            if (!is_dir($uploadDir)) {
-                if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                    http_response_code(500);
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Cannot create upload directory on server',
-                    ]);
-                    exit();
-                }
-            }
-            
-            // Generate unique filename
-            $filename = 'member_' . $memberId . '_' . time() . '.' . $type;
-            $filepath = $uploadDir . $filename;
-            
-            // Save the image
-            if (file_put_contents($filepath, $imageData)) {
-                // Delete old profile picture if exists
-                $oldPictureQuery = "SELECT profile_picture FROM members WHERE id = :member_id";
-                $oldPictureStmt = $db->prepare($oldPictureQuery);
-                $oldPictureStmt->bindParam(':member_id', $memberId);
-                $oldPictureStmt->execute();
-                $oldPicture = $oldPictureStmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($oldPicture && !empty($oldPicture['profile_picture'])) {
-                    $rel = ltrim((string) $oldPicture['profile_picture'], '/');
-                    $oldFilePath = __DIR__ . '/../../' . $rel;
-                    if (is_file($oldFilePath)) {
-                        @unlink($oldFilePath);
-                    }
-                }
-                
-                $updateFields[] = "profile_picture = :profile_picture";
-                $params[':profile_picture'] = '/uploads/profile_pictures/' . $filename;
-            } else {
-                http_response_code(500);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Failed to save profile picture"
-                ]);
-                exit();
-            }
+
+        // Must be a base64 data URI
+        if (!preg_match('/^data:image\/(\w+);base64,/', $imageData, $typeMatch)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid image format.']);
+            exit();
         }
+
+        $type = strtolower($typeMatch[1]);
+        if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid image type. Only JPG, PNG, GIF, and WebP are allowed.']);
+            exit();
+        }
+
+        // Upload to Cloudinary
+        require_once __DIR__ . '/../config/cloudinary.php';
+        $upload = uploadToCloudinary($imageData, 'profile_pictures');
+
+        if (!$upload['success']) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $upload['message']]);
+            exit();
+        }
+
+        $updateFields[] = "profile_picture = :profile_picture";
+        $params[':profile_picture'] = $upload['url'];
     }
     
     if (empty($updateFields)) {
