@@ -152,12 +152,6 @@ const ContactMessages = () => {
         {/* Header */}
         <div className="reply-modal-header">
           <div className="reply-modal-header-main">
-            <span className="reply-modal-header-icon-box" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M3 10l9-7 9 7v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9 21V12h6v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
             <div>
               <h3 id="reply-modal-title" className="reply-modal-header-title">Reply to Message</h3>
               <p className="reply-modal-header-sub">
@@ -172,9 +166,7 @@ const ContactMessages = () => {
             disabled={isSendingReply}
             aria-label="Close reply modal"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
+            ×
           </button>
         </div>
 
