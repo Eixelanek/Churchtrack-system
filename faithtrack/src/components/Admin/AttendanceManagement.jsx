@@ -2,6 +2,7 @@
 import './AttendanceManagement.css';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { API_BASE_URL } from '../../config/api';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 import { offlineStorage } from '../../utils/offlineStorage';
 
 const AttendanceManagement = ({
@@ -2061,7 +2062,7 @@ const AttendanceManagement = ({
                                             <div className="attendee-avatar-small">
                                               {attendee.profile_picture ? (
                                                 <img 
-                                                  src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${attendee.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                                                  src={resolveProfilePicUrl(attendee.profile_picture)} 
                                                   alt={attendee.name} 
                                                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                                                   onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = attendee.initials; }}
@@ -2112,7 +2113,7 @@ const AttendanceManagement = ({
                                             <div className="attendee-avatar-small absentee-avatar">
                                               {absentee.profile_picture ? (
                                                 <img 
-                                                  src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${absentee.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                                                  src={resolveProfilePicUrl(absentee.profile_picture)} 
                                                   alt={absentee.name} 
                                                   style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                                                   onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = absentee.initials; }}

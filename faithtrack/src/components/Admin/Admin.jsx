@@ -7,6 +7,7 @@ import MembersManagement from './MembersManagement';
 import ContactMessages from './ContactMessages';
 import { updateFavicon } from '../../utils/churchSettings';
 import { API_BASE_URL } from '../../config/api';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 
 const LOGIN_HISTORY_PAGE_SIZE = 5;
 const SESSION_PAGE_SIZE = 5;
@@ -3138,9 +3139,7 @@ const Admin = () => {
                               ) : (
                                 upcomingBirthdays.map((birthday) => {
                                   const profilePath = birthday.profilePicture || birthday.profile_picture;
-                                  const avatarUrl = profilePath
-                                    ? `${window.location.origin}/api/uploads/get_profile_picture.php?path=${profilePath.replace('/uploads/profile_pictures/', '')}`
-                                    : null;
+                                  const avatarUrl = resolveProfilePicUrl(profilePath);
                                   return (
                                     <div key={birthday.id} className="birthday-item">
                                       <div className="birthday-avatar">

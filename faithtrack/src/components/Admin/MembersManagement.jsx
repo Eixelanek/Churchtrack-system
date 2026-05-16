@@ -3,6 +3,7 @@ import './MembersManagement.css';
 import { fetchFamilyTree } from '../../api/familyTree';
 import FamilyTreeChart from '../common/FamilyTreeChart';
 import { API_BASE_URL } from '../../config/api';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 import { offlineStorage } from '../../utils/offlineStorage';
 
 const MANAGER_REVIEW_STORAGE_KEY = 'managerMemberReview';
@@ -1475,12 +1476,7 @@ ChurchTrack System`;
     return relatives > 0 ? relatives + 1 : 0;
   };
 
-  const resolveFamilyProfileUrl = (storedPath) => {
-    if (!storedPath) return null;
-    if (storedPath.startsWith('http') || storedPath.startsWith('data:')) return storedPath;
-    const path = String(storedPath).replace('/uploads/profile_pictures/', '');
-    return `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${encodeURIComponent(path)}`;
-  };
+  const resolveFamilyProfileUrl = (storedPath) => resolveProfilePicUrl(storedPath);
 
   const mapTreePersonForChart = (node) => ({
     ...node,
@@ -1959,7 +1955,7 @@ ChurchTrack System`;
                   <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                     {member.profile_picture ? (
                       <img 
-                        src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                        src={resolveProfilePicUrl(member.profile_picture)} 
                         alt={member.name} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}
@@ -2426,7 +2422,7 @@ ChurchTrack System`;
                       <div className="member-avatar" onClick={() => toggleMemberExpand(member)}>
                         {member.profile_picture ? (
                           <img 
-                            src={`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture.replace('/uploads/profile_pictures/', '')}`} 
+                            src={resolveProfilePicUrl(member.profile_picture)} 
                             alt={member.name} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
                             onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}

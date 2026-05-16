@@ -14,6 +14,7 @@ import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/
 import { fetchFamilyTree, searchMembers, sendFamilyInvite, respondToInvite, removeFamilyRelationship } from '../../api/familyTree';
 import FamilyTreeChart from '../common/FamilyTreeChart';
 import { API_BASE_URL } from '../../config/api';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 
 /** Shrink base64 photos before POST (avoids post_max_size / memory issues on the API) */
 function compressDataUrlForProfile(dataUrl, maxSide = 1280, quality = 0.82) {
@@ -886,23 +887,7 @@ const Member = () => {
             
             // Set preview image if profile picture exists
             if (member.profile_picture) {
-              // Handle both full paths and relative paths
-              let imageUrl;
-              if (member.profile_picture.startsWith('http')) {
-                // Already a full URL
-                imageUrl = member.profile_picture;
-              } else if (member.profile_picture.startsWith('/uploads/')) {
-                // Relative path starting with /uploads/
-                const imagePath = member.profile_picture.replace('/uploads/profile_pictures/', '');
-                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
-              } else if (member.profile_picture.includes('profile_pictures/')) {
-                // Path contains profile_pictures/
-                const imagePath = member.profile_picture.split('profile_pictures/')[1];
-                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${imagePath}`;
-              } else {
-                // Just the filename
-                imageUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${member.profile_picture}`;
-              }
+              const imageUrl = resolveProfilePicUrl(member.profile_picture);
 
               setPreviewImage(imageUrl);
             }
@@ -1440,15 +1425,15 @@ const Member = () => {
         setProfileData(updatedProfileData);
         
         // Update original data
-        const savedImagePath = data.member?.profile_picture ? data.member.profile_picture.replace('/uploads/profile_pictures/', '') : null;
+        const savedPic = data.member?.profile_picture || null;
         setOriginalData({
           ...updatedProfileData,
-          previewImage: savedImagePath ? `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${savedImagePath}` : previewImage
+          previewImage: resolveProfilePicUrl(savedPic) || previewImage
         });
         
         // Update preview image with the saved path
-        if (savedImagePath) {
-          setPreviewImage(`${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${savedImagePath}`);
+        if (savedPic) {
+          setPreviewImage(resolveProfilePicUrl(savedPic));
         }
         
         setHasChanges(false);

@@ -4,6 +4,7 @@ import './AttendanceHistory.css';
 import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/memberAttendance';
 import { fetchFamilyTree } from '../../api/familyTree';
 import { API_BASE_URL } from '../../config/api';
+import { resolveProfilePicUrl } from '../../utils/profilePicture';
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -132,8 +133,7 @@ const AttendanceHistory = () => {
             const sd = await sr.json();
             const pic = sd?.member?.profile_picture;
             if (pic) {
-              const fn = pic.replace('/uploads/profile_pictures/', '').replace(/^\/+/, '');
-              selfPhotoUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${fn}`;
+              selfPhotoUrl = resolveProfilePicUrl(pic);
             }
           }
         } catch { /* ignore */ }
@@ -152,11 +152,7 @@ const AttendanceHistory = () => {
           const raw = m.profile_picture || m.photo || m.avatar || null;
           let photoUrl = null;
           if (raw) {
-            if (raw.startsWith('http') || raw.startsWith('data:')) photoUrl = raw;
-            else if (raw.includes('/uploads/profile_pictures/')) {
-              const fn = raw.replace('/uploads/profile_pictures/', '').replace(/^\/+/, '');
-              photoUrl = `${API_BASE_URL}/api/uploads/get_profile_picture.php?path=${fn}`;
-            } else photoUrl = `${API_BASE_URL}/${raw.replace(/^\//, '')}`;
+            photoUrl = resolveProfilePicUrl(raw);
           } else if (isYou && selfPhotoUrl) photoUrl = selfPhotoUrl;
           list.push({ key, name, role: relation, color: isYou ? '#3b82f6' : getRelationColor(relation), initials: getInitials(name), isYou, photoUrl });
         };
