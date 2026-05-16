@@ -70,7 +70,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 
 Quick summary:
 - Frontend: Deploy to Vercel (free)
-- Backend: Deploy to InfinityFree or similar PHP hosting (free)
+- Backend: Deploy to Render or similar PHP hosting
 - Database: MySQL on hosting provider
 
 ## Project Structure

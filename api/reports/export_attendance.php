@@ -649,7 +649,7 @@ try {
         $startDate = isset($data->startDate) ? $data->startDate : $startDate;
         $endDate = isset($data->endDate) ? $data->endDate : $endDate;
     } else {
-        // Form POST request (default for InfinityFree compatibility)
+        // Form POST request
         $format = isset($_POST['format']) ? strtolower($_POST['format']) : 'json';
         $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : $startDate;
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : $endDate;

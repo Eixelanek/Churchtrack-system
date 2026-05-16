@@ -1090,7 +1090,6 @@ const Admin = () => {
 
   const exportReportXlsx = async () => {
     try {
-      // Use form POST to bypass InfinityFree anti-bot protection
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = `${API_BASE_URL}/api/reports/export_attendance.php`;
@@ -1124,7 +1123,6 @@ const Admin = () => {
 
   const exportReportPdf = async () => {
     try {
-      // Use form POST to bypass InfinityFree anti-bot protection
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = `${API_BASE_URL}/api/reports/export_attendance.php`;
