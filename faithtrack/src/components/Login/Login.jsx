@@ -49,8 +49,12 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
-    if (localStorage.getItem('token') && localStorage.getItem('userType') === 'admin') {
-      navigate('/admin', { replace: true });
+    const token = localStorage.getItem('token');
+    const userType = localStorage.getItem('userType');
+    if (token) {
+      if (userType === 'admin') navigate('/admin', { replace: true });
+      else if (userType === 'member') navigate('/member', { replace: true });
+      else if (userType === 'manager') navigate('/manager', { replace: true });
     }
   }, [navigate]);
 
