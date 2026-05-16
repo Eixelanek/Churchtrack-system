@@ -1,5 +1,6 @@
 // COPY OF ADMIN.JSX, just renamed to Member.jsx for member dashboard mockup
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import jsQR from 'jsqr';
 import './Member.css';
 import './MemberDashboard.css';
@@ -1501,6 +1502,7 @@ const Member = () => {
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   const handleSignOutClick = () => {
+    setShowProfileMenu(false);
     setShowSignOutModal(true);
   };
 
@@ -2449,70 +2451,52 @@ const Member = () => {
       )}
 
       {/* Sign Out Confirmation Modal */}
-      {showSignOutModal && (
-        <div className="modal-overlay" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            width: '90%',
-            maxWidth: '400px'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: '20px'
-            }}>
-              <h3 style={{ margin: 0 }}>Sign Out</h3>
-            </div>
-            <p style={{ marginBottom: '20px', color: '#666', textAlign: 'center' }}>
+      {showSignOutModal && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10050,
+          }}
+          onClick={handleCancelSignOut}
+        >
+          <div
+            style={{
+              background: 'white',
+              padding: '28px 24px',
+              borderRadius: '14px',
+              width: '90%',
+              maxWidth: '380px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 10px', fontSize: '1.1rem', color: '#0f172a', textAlign: 'center' }}>Sign Out</h3>
+            <p style={{ margin: '0 0 24px', color: '#64748b', textAlign: 'center', fontSize: '0.95rem' }}>
               Are you sure you want to sign out?
             </p>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '10px'
-            }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
               <button
                 onClick={handleCancelSignOut}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  background: 'white',
-                  cursor: 'pointer'
-                }}
+                style={{ padding: '9px 18px', border: '1.5px solid #e2e8f0', borderRadius: '8px', background: 'white', cursor: 'pointer', fontWeight: 500, color: '#475569' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmSignOut}
-                style={{
-                  padding: '8px 16px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  background: '#10b981',
-                  color: 'white',
-                  cursor: 'pointer'
-                }}
+                style={{ padding: '9px 18px', border: 'none', borderRadius: '8px', background: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 600 }}
               >
-                Confirm
+                Sign Out
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {showProfileView ? (
