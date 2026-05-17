@@ -2,7 +2,8 @@
 .scan-qr-page {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 2rem;
+  grid-template-rows: auto 1fr;
+  gap: 1rem 2rem;
   padding: 1rem 2rem 2rem 2rem;
   background-color: #F2F7FF;
   min-height: calc(100vh - 72px);
@@ -13,7 +14,8 @@
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  margin-bottom: 0;
 }
 
 .scan-qr-header h1 {
