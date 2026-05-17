@@ -5,10 +5,6 @@ import FamilyTreeChart from '../common/FamilyTreeChart';
 import { API_BASE_URL } from '../../config/api';
 import { resolveProfilePicUrl } from '../../utils/profilePicture';
 import { offlineStorage } from '../../utils/offlineStorage';
-import { usePagination } from '../../hooks/usePagination';
-import Pagination from '../common/Pagination';
-
-const PAGE_SIZE = 10;
 
 const MANAGER_REVIEW_STORAGE_KEY = 'managerMemberReview';
 
@@ -744,13 +740,6 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     const bTime = getRejectionTimestamp(b) ? new Date(getRejectionTimestamp(b)).getTime() : 0;
     return bTime - aTime;
   });
-
-  // ── Pagination ──────────────────────────────────────────────────────────────
-  const membersPagination    = usePagination(sortedMembers,         PAGE_SIZE);
-  const inactivePagination   = usePagination(sortedInactiveMembers, PAGE_SIZE);
-  const requestsPagination   = usePagination(sortedRequests,        PAGE_SIZE);
-  const rejectedPagination   = usePagination(sortedRejected,        PAGE_SIZE);
-  const guestsPagination     = usePagination(sortedGuests,          PAGE_SIZE);
 
   // Global search results - combine all filtered results
   const globalSearchResults = searchQuery.trim() ? {
@@ -1946,7 +1935,7 @@ ChurchTrack System`;
             </div>
           )}
           <div className="members-cards-container">
-          {membersPagination.paginatedItems.map(member => {
+          {sortedMembers.map(member => {
             const familyRelativeCount = getFamilyRelativeCount(member);
             const familyPeopleCount = getFamilyTreePeopleCount(member);
             const showFamilyTreeSection =
@@ -2402,13 +2391,6 @@ ChurchTrack System`;
               )}
             </div>
           )}
-          <Pagination
-            currentPage={membersPagination.currentPage}
-            totalPages={membersPagination.totalPages}
-            totalItems={membersPagination.totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={membersPagination.goToPage}
-          />
           {sortedInactiveMembers.length === 0 ? (
             <div className="members-cards-container">
               <div className="empty-state">
@@ -2422,7 +2404,7 @@ ChurchTrack System`;
             </div>
           ) : (
             <div className="members-cards-container">
-              {inactivePagination.paginatedItems.map(member => {
+              {sortedInactiveMembers.map(member => {
                 const familyRelativeCount = getFamilyRelativeCount(member);
                 const familyPeopleCount = getFamilyTreePeopleCount(member);
                 const isExpanded = expandedMemberId === member.id;
@@ -2640,16 +2622,9 @@ ChurchTrack System`;
               )}
             </div>
           )}
-          <Pagination
-            currentPage={inactivePagination.currentPage}
-            totalPages={inactivePagination.totalPages}
-            totalItems={inactivePagination.totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={inactivePagination.goToPage}
-          />
         <div className="members-cards-container">
           {sortedGuests.length > 0 ? (
-            guestsPagination.paginatedItems.map((guest) => {
+            sortedGuests.map((guest) => {
               const membershipRemaining = Number.isFinite(guest.remaining_for_membership)
                 ? guest.remaining_for_membership
               : null;
@@ -2822,15 +2797,8 @@ ChurchTrack System`;
               )}
             </div>
           )}
-          <Pagination
-            currentPage={guestsPagination.currentPage}
-            totalPages={guestsPagination.totalPages}
-            totalItems={guestsPagination.totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={guestsPagination.goToPage}
-          />
         <div className="members-cards-container">
-          {rejectedPagination.paginatedItems.map(request => {
+          {sortedRejected.map(request => {
             const rejectedByManager = request.manager_status === 'rejected';
             const rejectedLabel = rejectedByManager ? 'Rejected by Manager' : 'Rejected by Admin';
             const reviewerTimestamp = request.manager_reviewed_at && rejectedByManager
@@ -2971,15 +2939,8 @@ ChurchTrack System`;
               )}
             </div>
           )}
-          <Pagination
-            currentPage={rejectedPagination.currentPage}
-            totalPages={rejectedPagination.totalPages}
-            totalItems={rejectedPagination.totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={rejectedPagination.goToPage}
-          />
         <div className="members-cards-container">
-          {requestsPagination.paginatedItems.map(request => {
+          {sortedRequests.map(request => {
             const awaitingManager = request.manager_status !== 'approved';
             const statusNote = !awaitingManager
               ? (isManagerScope ? null : null)
@@ -3072,13 +3033,6 @@ ChurchTrack System`;
               <p>New membership requests will appear here for approval</p>
             </div>
           )}
-          <Pagination
-            currentPage={requestsPagination.currentPage}
-            totalPages={requestsPagination.totalPages}
-            totalItems={requestsPagination.totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={requestsPagination.goToPage}
-          />
         </div>
         </>
       )}
