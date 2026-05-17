@@ -1727,6 +1727,51 @@
   animation: slideDown 0.3s ease;
 }
 
+/* Detail tab navigation */
+.detail-tab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+}
+
+.detail-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.detail-tab-btn:hover {
+  border-color: #0049af;
+  color: #0049af;
+  background: #eff6ff;
+}
+
+.detail-tab-btn.active {
+  background: linear-gradient(135deg, #0049af, #1095d2);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+
+.detail-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
