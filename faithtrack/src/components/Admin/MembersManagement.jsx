@@ -3070,7 +3070,16 @@ ChurchTrack System`;
                         
                         return (
                           <div key={member.id} className="member-card">
-                            <div className="member-avatar">{initials}</div>
+                            <div className="member-avatar" style={{ overflow: 'hidden' }}>
+                              {member.profile_picture ? (
+                                <img
+                                  src={resolveProfilePicUrl(member.profile_picture)}
+                                  alt={member.name}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                                  onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = initials; }}
+                                />
+                              ) : initials}
+                            </div>
                             <div className="member-details">
                               <div className="member-name">{member.name}</div>
                               <div className="member-email">{formatDate(member.birthday)}</div>
