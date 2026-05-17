@@ -2252,7 +2252,7 @@ ChurchTrack System`;
                                       <FamilyTreeChart
                                         parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
                                         centerRow={[
-                                          { id: `subject-${member.id}`, name: member.name, relation: 'Member' },
+                                          { id: `subject-${member.id}`, name: member.name, relation: 'Member', profile_picture: member.profile_picture || null },
                                           ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
                                         ]}
                                         siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}

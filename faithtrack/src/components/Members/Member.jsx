@@ -1686,7 +1686,7 @@ const Member = () => {
     if (!familyTreeData || !familyTreeData.tree) {
       return {
         parents: [],
-        couple: [{ name: displayName, relation: 'You' }],
+        couple: [{ name: displayName, relation: 'You', profile_picture: profileData.profilePicture || null }],
         siblings: [],
         children: [],
         other: [],
@@ -1696,7 +1696,7 @@ const Member = () => {
     return {
       parents: (familyTreeData.tree.parents || []).map(mapPerson),
       couple: [
-        { name: displayName, relation: 'You' },
+        { name: displayName, relation: 'You', profile_picture: profileData.profilePicture || null },
         ...(familyTreeData.tree.couple || []).map(mapPerson)
       ],
       siblings: (familyTreeData.tree.siblings || []).map(mapPerson),
