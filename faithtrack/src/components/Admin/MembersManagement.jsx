@@ -2243,44 +2243,32 @@ ChurchTrack System`;
                                     Family Tree{' '}
                                     {familyPeopleCount > 0 && `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
                                   </h4>
-                                `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
-                            </h4>
-
-                            {familyLoading[member.id] ? (
-                              <div className="family-loading">
-                                <p>Loading family tree...</p>
+                                  {familyLoading[member.id] ? (
+                                    <div className="family-loading"><p>Loading family tree...</p></div>
+                                  ) : familyErrors[member.id] ? (
+                                    <div className="family-error"><p>Error loading family tree</p></div>
+                                  ) : (
+                                    <div className="family-tree-visual-admin">
+                                      <FamilyTreeChart
+                                        parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
+                                        centerRow={[
+                                          { id: `subject-${member.id}`, name: member.name, relation: 'Member' },
+                                          ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
+                                        ]}
+                                        siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
+                                        children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
+                                        other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
+                                        getInitials={getInitials}
+                                        formatRelation={(r) => r || ''}
+                                        highlightRelation="Member"
+                                        theme="indigo"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            ) : familyErrors[member.id] ? (
-                              <div className="family-error">
-                                <p>Error loading family tree</p>
-                              </div>
-                            ) : (
-                              <div className="family-tree-visual-admin">
-                                <FamilyTreeChart
-                                  parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
-                                  centerRow={[
-                                    {
-                                      id: `subject-${member.id}`,
-                                      name: member.name,
-                                      relation: 'Member',
-                                    },
-                                    ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
-                                  ]}
-                                  siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
-                                  children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
-                                  other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
-                                  getInitials={getInitials}
-                                  formatRelation={(r) => r || ''}
-                                  highlightRelation="Member"
-                                  theme="indigo"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                        </div>
-                      )}
+                            </div>
+                          )}
                         </>
                       );
                     })()}
