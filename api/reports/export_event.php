@@ -160,10 +160,27 @@ try {
         require_once __DIR__ . '/simple_pdf.php';
         $churchLogo = $churchSettings['church_logo'] ?? null;
         $pdf = new SimplePDF($churchLogo);
-        if ($churchLogo) $pdf->addLogo();
 
-        $pdf->addTitle($churchName);
-        $pdf->addSubtitle('Event Attendance Report');
+        // Header: logo left, church name right (inline)
+        if ($churchLogo && strpos($churchLogo, 'data:image') === 0) {
+            $pdf->addRaw("
+                <table style='width:100%;border:none;margin-bottom:12px;'>
+                  <tr>
+                    <td style='width:80px;vertical-align:middle;border:none;'>
+                      <img src='" . $churchLogo . "' style='max-width:70px;max-height:70px;display:block;' />
+                    </td>
+                    <td style='vertical-align:middle;border:none;padding-left:16px;'>
+                      <div style='font-size:20px;font-weight:bold;color:#0f172a;'>" . htmlspecialchars($churchName) . "</div>
+                      <div style='font-size:13px;color:#64748b;margin-top:4px;'>Event Attendance Report</div>
+                    </td>
+                  </tr>
+                </table>
+                <hr style='border:none;border-top:2px solid #e2e8f0;margin-bottom:12px;'>
+            ");
+        } else {
+            $pdf->addTitle($churchName);
+            $pdf->addSubtitle('Event Attendance Report');
+        }
         $pdf->addText("Event: {$eventTitle}", 'center');
         $pdf->addText("Date: {$eventDate}" . ($eventTime ? "  |  Time: {$eventTime}" : '') . ($eventLoc ? "  |  Location: {$eventLoc}" : ''), 'center');
 
@@ -203,14 +220,14 @@ try {
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Event Report');
 
-        // Fixed column widths: A=6(#), B=35(Name), C=22(Check-in Time)
-        $sheet->getColumnDimension('A')->setWidth(6);
+        // Fixed column widths: A=14(label/#), B=35(Name), C=22(Check-in Time)
+        $sheet->getColumnDimension('A')->setWidth(14);
         $sheet->getColumnDimension('B')->setWidth(35);
         $sheet->getColumnDimension('C')->setWidth(22);
 
         $row = 1;
 
-        // ── Logo (if available as base64) ──
+        // ── Logo beside church name ──
         $churchLogo = $churchSettings['church_logo'] ?? null;
         if ($churchLogo && strpos($churchLogo, 'data:image') === 0) {
             try {
@@ -225,23 +242,23 @@ try {
                         $drawing->setName('Logo');
                         $drawing->setPath($tempFile);
                         $drawing->setCoordinates('A1');
-                        $drawing->setHeight(55);
+                        $drawing->setHeight(50);
                         $drawing->setWorksheet($sheet);
                         register_shutdown_function(function() use ($tempFile) { if (file_exists($tempFile)) @unlink($tempFile); });
-                        $sheet->getRowDimension(1)->setRowHeight(55);
-                        $row = 2; // start text after logo row
+                        $sheet->getRowDimension(1)->setRowHeight(50);
                     }
                 }
             } catch (Exception $e) { /* skip logo */ }
         }
 
-        // ── Church name ──
-        $sheet->mergeCells("A{$row}:C{$row}");
-        $sheet->setCellValue("A{$row}", strtoupper($churchName));
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(15);
-        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getRowDimension($row)->setRowHeight(22);
-        $row++;
+        // Church name in B1:C1 beside the logo
+        $sheet->mergeCells("B1:C1");
+        $sheet->setCellValue("B1", strtoupper($churchName));
+        $sheet->getStyle("B1")->getFont()->setBold(true)->setSize(15);
+        $sheet->getStyle("B1")->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+        $row = 2;
 
         // ── Report title ──
         $sheet->mergeCells("A{$row}:C{$row}");

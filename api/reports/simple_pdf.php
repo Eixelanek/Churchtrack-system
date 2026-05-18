@@ -17,6 +17,10 @@ class SimplePDF {
         $this->churchLogo = $churchLogo;
     }
     
+    public function addRaw(string $html): void {
+        $this->content .= $html;
+    }
+
     public function addLogo() {
         if ($this->churchLogo && strpos($this->churchLogo, 'data:image') === 0) {
             $this->content .= "<div style='text-align: center; margin-bottom: 20px;'>";
