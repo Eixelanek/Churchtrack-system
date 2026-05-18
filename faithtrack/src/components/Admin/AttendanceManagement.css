@@ -2494,10 +2494,46 @@
   font-size: 1.1rem;
   font-weight: 700;
   color: #0c4a6e;
-  margin: 0 0 1rem 0;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.summary-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.event-export-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.event-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1.5px solid #bae6fd;
+  background: #fff;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.event-export-btn:hover {
+  background: #0049af;
+  border-color: #0049af;
+  color: #fff;
 }
 
 .summary-stats-grid {

@@ -1993,7 +1993,51 @@ const AttendanceManagement = ({
                             {/* Event Summary Stats */}
                             {hasQrSessions && (
                               <div className="event-summary-stats">
-                                <h3 className="summary-title">Event Summary</h3>
+                                <div className="summary-title-row">
+                                  <h3 className="summary-title">Event Summary</h3>
+                                  <div className="event-export-btns">
+                                    <button
+                                      className="event-export-btn"
+                                      title="Export PDF"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const form = document.createElement('form');
+                                        form.method = 'POST';
+                                        form.action = `${API_BASE_URL}/api/reports/export_event.php`;
+                                        form.target = '_blank';
+                                        const fmtInput = document.createElement('input');
+                                        fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'pdf';
+                                        const idInput = document.createElement('input');
+                                        idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = event.id;
+                                        form.appendChild(fmtInput); form.appendChild(idInput);
+                                        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+                                      }}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                      PDF
+                                    </button>
+                                    <button
+                                      className="event-export-btn"
+                                      title="Export Excel"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const form = document.createElement('form');
+                                        form.method = 'POST';
+                                        form.action = `${API_BASE_URL}/api/reports/export_event.php`;
+                                        form.target = '_blank';
+                                        const fmtInput = document.createElement('input');
+                                        fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'xlsx';
+                                        const idInput = document.createElement('input');
+                                        idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = event.id;
+                                        form.appendChild(fmtInput); form.appendChild(idInput);
+                                        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+                                      }}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                                      Excel
+                                    </button>
+                                  </div>
+                                </div>
                                 <div className="summary-stats-grid">
                                   <div className="summary-stat-item">
                                     <div className="summary-stat-label">Total Attendees</div>
