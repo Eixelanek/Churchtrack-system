@@ -1993,7 +1993,7 @@ const AttendanceManagement = ({
                             {/* Event Summary Stats */}
                             {hasQrSessions && (
                               <div className="event-summary-stats">
-                                <h3 className="summary-title">≡ƒôè Event Summary</h3>
+                                <h3 className="summary-title">Event Summary</h3>
                                 <div className="summary-stats-grid">
                                   <div className="summary-stat-item">
                                     <div className="summary-stat-label">Total Attendees</div>
