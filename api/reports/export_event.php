@@ -69,7 +69,7 @@ try {
     // Church settings
     $churchSettings = null;
     try {
-        $cs = $db->query("SELECT church_name, church_address, church_phone, church_email FROM church_settings ORDER BY id LIMIT 1");
+        $cs = $db->query("SELECT church_name, church_address, church_phone, church_email, church_logo FROM church_settings ORDER BY id LIMIT 1");
         if ($cs->rowCount() > 0) $churchSettings = $cs->fetch(PDO::FETCH_ASSOC);
     } catch (Exception $e) {}
 
@@ -158,7 +158,9 @@ try {
         while (ob_get_level()) ob_end_clean();
 
         require_once __DIR__ . '/simple_pdf.php';
-        $pdf = new SimplePDF(null);
+        $churchLogo = $churchSettings['church_logo'] ?? null;
+        $pdf = new SimplePDF($churchLogo);
+        if ($churchLogo) $pdf->addLogo();
 
         $pdf->addTitle($churchName);
         $pdf->addSubtitle('Event Attendance Report');
@@ -201,97 +203,162 @@ try {
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Event Report');
 
+        // Fixed column widths: A=6(#), B=35(Name), C=22(Check-in Time)
+        $sheet->getColumnDimension('A')->setWidth(6);
+        $sheet->getColumnDimension('B')->setWidth(35);
+        $sheet->getColumnDimension('C')->setWidth(22);
+
         $row = 1;
 
-        // Church name
-        $sheet->mergeCells("A{$row}:D{$row}");
+        // ── Logo (if available as base64) ──
+        $churchLogo = $churchSettings['church_logo'] ?? null;
+        if ($churchLogo && strpos($churchLogo, 'data:image') === 0) {
+            try {
+                $logoData = explode(',', $churchLogo);
+                if (count($logoData) === 2) {
+                    $imageData = base64_decode($logoData[1]);
+                    $mimeType = strpos($churchLogo, 'data:image/png') === 0 ? 'png' : 'jpg';
+                    if ($imageData) {
+                        $tempFile = tempnam(sys_get_temp_dir(), 'logo_') . '.' . $mimeType;
+                        file_put_contents($tempFile, $imageData);
+                        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+                        $drawing->setName('Logo');
+                        $drawing->setPath($tempFile);
+                        $drawing->setCoordinates('A1');
+                        $drawing->setHeight(55);
+                        $drawing->setWorksheet($sheet);
+                        register_shutdown_function(function() use ($tempFile) { if (file_exists($tempFile)) @unlink($tempFile); });
+                        $sheet->getRowDimension(1)->setRowHeight(55);
+                        $row = 2; // start text after logo row
+                    }
+                }
+            } catch (Exception $e) { /* skip logo */ }
+        }
+
+        // ── Church name ──
+        $sheet->mergeCells("A{$row}:C{$row}");
         $sheet->setCellValue("A{$row}", strtoupper($churchName));
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(16);
-        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(15);
+        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension($row)->setRowHeight(22);
         $row++;
 
-        $sheet->mergeCells("A{$row}:D{$row}");
+        // ── Report title ──
+        $sheet->mergeCells("A{$row}:C{$row}");
         $sheet->setCellValue("A{$row}", 'Event Attendance Report');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(13);
+        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(12);
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $row++;
 
-        $sheet->mergeCells("A{$row}:D{$row}");
+        // ── Generated ──
+        $sheet->mergeCells("A{$row}:C{$row}");
         $sheet->setCellValue("A{$row}", 'Generated: ' . $generatedAt);
         $sheet->getStyle("A{$row}")->getFont()->setSize(9)->getColor()->setARGB('FF94A3B8');
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $row += 2;
 
-        // Event info
-        $sheet->setCellValue("A{$row}", 'Event:');   $sheet->setCellValue("B{$row}", $eventTitle);
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        $sheet->setCellValue("A{$row}", 'Date:');    $sheet->setCellValue("B{$row}", $eventDate);
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        if ($eventTime) {
-            $sheet->setCellValue("A{$row}", 'Time:'); $sheet->setCellValue("B{$row}", $eventTime);
+        // ── Event info block ──
+        $infoStart = $row;
+        $infoFields = [
+            'Event'    => $eventTitle,
+            'Date'     => $eventDate,
+            'Time'     => $eventTime ?: '—',
+            'Location' => $eventLoc  ?: '—',
+        ];
+        foreach ($infoFields as $label => $value) {
+            $sheet->setCellValue("A{$row}", $label . ':');
+            $sheet->mergeCells("B{$row}:C{$row}");
+            $sheet->setCellValue("B{$row}", $value);
             $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-            $row++;
-        }
-        if ($eventLoc) {
-            $sheet->setCellValue("A{$row}", 'Location:'); $sheet->setCellValue("B{$row}", $eventLoc);
-            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF8FAFC');
             $row++;
         }
         $row++;
 
-        // Summary
-        $sheet->setCellValue("A{$row}", 'Attended:'); $sheet->setCellValue("B{$row}", count($attendees));
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        $sheet->setCellValue("A{$row}", 'Absent:');   $sheet->setCellValue("B{$row}", count($absentees));
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+        // ── Summary ──
+        $total = count($attendees) + count($absentees);
+        $rate  = $total > 0 ? round((count($attendees) / $total) * 100) : 0;
+        $summaryData = [
+            ['Attended',        count($attendees), 'FF16A34A'],
+            ['Absent',          count($absentees), 'FFDC2626'],
+            ['Attendance Rate', $rate . '%',       'FF0049AF'],
+        ];
+        foreach ($summaryData as [$label, $value, $color]) {
+            $sheet->setCellValue("A{$row}", $label . ':');
+            $sheet->setCellValue("B{$row}", $value);
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("B{$row}")->getFont()->setBold(true)->getColor()->setARGB('FF' . ltrim($color, 'FF'));
+            $row++;
+        }
         $row += 2;
 
-        // Attendees section
+        // ── Attendees section ──
         $sheet->mergeCells("A{$row}:C{$row}");
         $sheet->setCellValue("A{$row}", 'ATTENDEES (' . count($attendees) . ')');
         $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0049AF');
+        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getRowDimension($row)->setRowHeight(18);
         $row++;
 
-        $sheet->setCellValue("A{$row}", '#');
-        $sheet->setCellValue("B{$row}", 'Name');
-        $sheet->setCellValue("C{$row}", 'Check-in Time');
-        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFEFF6FF');
+        // Column headers
+        foreach (['A' => '#', 'B' => 'Name', 'C' => 'Check-in Time'] as $col => $hdr) {
+            $sheet->setCellValue("{$col}{$row}", $hdr);
+        }
+        $sheet->getStyle("A{$row}:C{$row}")->getFont()->setBold(true)->getColor()->setARGB('FF0F172A');
+        $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFDBEAFE');
+        $sheet->getStyle("A{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $row++;
 
         foreach ($attendees as $i => $a) {
+            $bg = ($i % 2 === 0) ? 'FFFFFFFF' : 'FFF8FAFC';
             $sheet->setCellValue("A{$row}", $i + 1);
             $sheet->setCellValue("B{$row}", $a['name']);
             $sheet->setCellValue("C{$row}", $a['time']);
+            $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $row++;
+        }
+        if (empty($attendees)) {
+            $sheet->mergeCells("A{$row}:C{$row}");
+            $sheet->setCellValue("A{$row}", 'No attendees recorded');
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$row}")->getFont()->getColor()->setARGB('FF94A3B8');
             $row++;
         }
         $row += 2;
 
-        // Absentees section
-        $sheet->mergeCells("A{$row}:B{$row}");
+        // ── Absentees section ──
+        $sheet->mergeCells("A{$row}:C{$row}");
         $sheet->setCellValue("A{$row}", 'ABSENTEES (' . count($absentees) . ')');
         $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFDC2626');
+        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getRowDimension($row)->setRowHeight(18);
         $row++;
 
-        $sheet->setCellValue("A{$row}", '#');
-        $sheet->setCellValue("B{$row}", 'Name');
-        $sheet->getStyle("A{$row}:B{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("A{$row}:B{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFF1F2');
+        foreach (['A' => '#', 'B' => 'Name'] as $col => $hdr) {
+            $sheet->setCellValue("{$col}{$row}", $hdr);
+        }
+        $sheet->getStyle("A{$row}:B{$row}")->getFont()->setBold(true)->getColor()->setARGB('FF0F172A');
+        $sheet->getStyle("A{$row}:B{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFEE2E2');
+        $sheet->getStyle("A{$row}:B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $row++;
 
         foreach ($absentees as $i => $name) {
+            $bg = ($i % 2 === 0) ? 'FFFFFFFF' : 'FFFFF1F2';
             $sheet->setCellValue("A{$row}", $i + 1);
+            $sheet->mergeCells("B{$row}:C{$row}");
             $sheet->setCellValue("B{$row}", $name);
+            $sheet->getStyle("A{$row}:C{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $row++;
         }
-
-        foreach (['A','B','C','D'] as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        if (empty($absentees)) {
+            $sheet->mergeCells("A{$row}:C{$row}");
+            $sheet->setCellValue("A{$row}", 'All active members attended');
+            $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$row}")->getFont()->getColor()->setARGB('FF94A3B8');
         }
 
         $filename = 'Event_Report_' . preg_replace('/[^a-z0-9]/i', '_', $eventTitle) . '_' . date('Y-m-d') . '.xlsx';
