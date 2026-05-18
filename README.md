@@ -1,4 +1,4 @@
-# FaithTrack - Church Attendance Management System
+# ChurchTrack - Church Attendance Management System
 
 A comprehensive church management system for tracking attendance, managing members, and monitoring spiritual growth.
 
