@@ -157,77 +157,39 @@ try {
     if ($format === 'pdf') {
         while (ob_get_level()) ob_end_clean();
 
-        $mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8', 'format' => 'A4',
-            'margin_left' => 15, 'margin_right' => 15,
-            'margin_top' => 15, 'margin_bottom' => 15,
-        ]);
+        require_once __DIR__ . '/simple_pdf.php';
+        $pdf = new SimplePDF(null);
 
-        $html = '<html><head><style>
-            body { font-family: Arial, sans-serif; font-size: 11px; color: #1e293b; }
-            h1 { text-align:center; font-size:18px; margin:0 0 4px; }
-            h2 { text-align:center; font-size:14px; margin:0 0 4px; color:#334155; }
-            .meta { text-align:center; color:#64748b; font-size:10px; margin-bottom:16px; }
-            .info-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px; margin-bottom:16px; }
-            .info-row { display:flex; gap:24px; flex-wrap:wrap; }
-            .info-item { flex:1; min-width:120px; }
-            .info-label { font-size:9px; font-weight:bold; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
-            .info-value { font-size:11px; color:#0f172a; margin-top:2px; }
-            .section-title { font-size:12px; font-weight:bold; color:#0049af; margin:16px 0 6px; border-bottom:2px solid #0049af; padding-bottom:4px; }
-            table { width:100%; border-collapse:collapse; margin-bottom:12px; }
-            th { background:#0049af; color:#fff; padding:7px 8px; font-size:10px; text-align:left; }
-            td { padding:6px 8px; border-bottom:1px solid #e2e8f0; font-size:10px; }
-            tr:nth-child(even) td { background:#f8fafc; }
-            .absent-table td { color:#475569; }
-            .footer { text-align:center; font-size:9px; color:#94a3b8; margin-top:20px; }
-            .summary-row { display:flex; gap:16px; margin-bottom:16px; }
-            .summary-card { flex:1; background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:10px; text-align:center; }
-            .summary-num { font-size:22px; font-weight:bold; color:#0049af; }
-            .summary-lbl { font-size:9px; color:#64748b; margin-top:2px; }
-        </style></head><body>';
+        $pdf->addTitle($churchName);
+        $pdf->addSubtitle('Event Attendance Report');
+        $pdf->addText("Event: {$eventTitle}", 'center');
+        $pdf->addText("Date: {$eventDate}" . ($eventTime ? "  |  Time: {$eventTime}" : '') . ($eventLoc ? "  |  Location: {$eventLoc}" : ''), 'center');
 
-        $html .= '<h1>' . htmlspecialchars($churchName) . '</h1>';
-        $html .= '<h2>Event Attendance Report</h2>';
-        $html .= '<div class="meta">Generated: ' . $generatedAt . '</div>';
-
-        $html .= '<div class="info-box"><div class="info-row">';
-        $html .= '<div class="info-item"><div class="info-label">Event</div><div class="info-value">' . htmlspecialchars($eventTitle) . '</div></div>';
-        $html .= '<div class="info-item"><div class="info-label">Date</div><div class="info-value">' . $eventDate . '</div></div>';
-        if ($eventTime) $html .= '<div class="info-item"><div class="info-label">Time</div><div class="info-value">' . $eventTime . '</div></div>';
-        if ($eventLoc)  $html .= '<div class="info-item"><div class="info-label">Location</div><div class="info-value">' . htmlspecialchars($eventLoc) . '</div></div>';
-        $html .= '</div></div>';
-
-        $html .= '<div class="summary-row">';
-        $html .= '<div class="summary-card"><div class="summary-num">' . count($attendees) . '</div><div class="summary-lbl">Attended</div></div>';
-        $html .= '<div class="summary-card"><div class="summary-num">' . count($absentees) . '</div><div class="summary-lbl">Absent</div></div>';
         $total = count($attendees) + count($absentees);
         $rate  = $total > 0 ? round((count($attendees) / $total) * 100) : 0;
-        $html .= '<div class="summary-card"><div class="summary-num">' . $rate . '%</div><div class="summary-lbl">Attendance Rate</div></div>';
-        $html .= '</div>';
+        $pdf->addSummaryBox([
+            'Attended'        => count($attendees),
+            'Absent'          => count($absentees),
+            'Attendance Rate' => $rate . '%',
+        ]);
 
         // Attendees table
-        $html .= '<div class="section-title">✓ Attendees (' . count($attendees) . ')</div>';
-        $html .= '<table><thead><tr><th>#</th><th>Name</th><th>Check-in Time</th></tr></thead><tbody>';
+        $pdf->addSubtitle('Attendees (' . count($attendees) . ')', 12);
+        $attRows = [];
         foreach ($attendees as $i => $a) {
-            $html .= '<tr><td>' . ($i+1) . '</td><td>' . htmlspecialchars($a['name']) . '</td><td>' . $a['time'] . '</td></tr>';
+            $attRows[] = [$i + 1, $a['name'], $a['time']];
         }
-        if (empty($attendees)) $html .= '<tr><td colspan="3" style="text-align:center;color:#94a3b8;">No attendees recorded</td></tr>';
-        $html .= '</tbody></table>';
+        $pdf->addTable(['#', 'Name', 'Check-in Time'], $attRows ?: [['—', 'No attendees recorded', '']]);
 
         // Absentees table
-        $html .= '<div class="section-title">✗ Absentees (' . count($absentees) . ')</div>';
-        $html .= '<table class="absent-table"><thead><tr><th>#</th><th>Name</th></tr></thead><tbody>';
+        $pdf->addSubtitle('Absentees (' . count($absentees) . ')', 12);
+        $absRows = [];
         foreach ($absentees as $i => $name) {
-            $html .= '<tr><td>' . ($i+1) . '</td><td>' . htmlspecialchars($name) . '</td></tr>';
+            $absRows[] = [$i + 1, $name];
         }
-        if (empty($absentees)) $html .= '<tr><td colspan="2" style="text-align:center;color:#94a3b8;">All active members attended</td></tr>';
-        $html .= '</tbody></table>';
+        $pdf->addTable(['#', 'Name'], $absRows ?: [['—', 'All active members attended']]);
 
-        $html .= '<div class="footer">' . htmlspecialchars($churchName) . ' — ChurchTrack</div>';
-        $html .= '</body></html>';
-
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('Event_Report_' . preg_replace('/[^a-z0-9]/i', '_', $eventTitle) . '_' . date('Y-m-d') . '.pdf', 'D');
+        $pdf->output('Event_Report_' . preg_replace('/[^a-z0-9]/i', '_', $eventTitle) . '_' . date('Y-m-d') . '.pdf');
         exit();
     }
 
