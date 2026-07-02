@@ -57,9 +57,10 @@ try {
         exit();
     }
 
-    if (($member['member_created_via'] ?? 'registration') !== 'admin') {
+    $createdVia = (string)($member['member_created_via'] ?? 'registration');
+    if (!in_array($createdVia, ['admin', 'guest_conversion'], true)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Resend is only available for admin-created accounts.']);
+        echo json_encode(['success' => false, 'message' => 'Resend is only available for admin-created or guest-converted accounts.']);
         exit();
     }
 
