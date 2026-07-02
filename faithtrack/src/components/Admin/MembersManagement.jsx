@@ -183,7 +183,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       // Scroll card into view
       setTimeout(() => {
         const el = document.getElementById(`member-card-${memberId}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
     }
   };
