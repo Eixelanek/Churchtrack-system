@@ -459,6 +459,8 @@
   box-shadow: 0 25px 60px rgba(0, 70, 165, 0.2);
   padding: 0;
   max-width: 520px;
+  background-color: #f8fbff;
+  overflow: hidden;
 }
 
 /* Keep the attendance modal from scrolling outside */
@@ -2136,7 +2138,7 @@
 
 .modal-search-input {
   width: 100%;
-  padding: 8px 32px 8px 34px;
+  padding: 8px 32px 8px 36px;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.875rem;
