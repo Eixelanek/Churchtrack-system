@@ -371,6 +371,7 @@ const AttendanceManagement = ({
   const [expandedServiceId, setExpandedServiceId] = useState(null);
   const [showEventDetailsModal, setShowEventDetailsModal] = useState(false);
   const [selectedEventDetails, setSelectedEventDetails] = useState(null);
+  const [modalSearchTerm, setModalSearchTerm] = useState('');
 
   const INLINE_PREVIEW_LIMIT = 5;
 
@@ -3231,7 +3232,7 @@ const AttendanceManagement = ({
 
       {/* Event Details Modal */}
       {showEventDetailsModal && selectedEventDetails && (
-        <div className="modal-overlay" onClick={() => setShowEventDetailsModal(false)}>
+        <div className="modal-overlay" onClick={() => { setShowEventDetailsModal(false); setModalSearchTerm(''); }}>
           <div className="modal-content event-details-modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{selectedEventDetails.title}</h2>
@@ -3272,52 +3273,72 @@ const AttendanceManagement = ({
                 <button
                   type="button"
                   className={`full-list-tab ${selectedEventDetails.activeTab === 'attendees' ? 'active' : ''}`}
-                  onClick={() => setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' }))}
-                >
+                  onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' })); setModalSearchTerm(''); }}                >
                   Attendees ({selectedEventDetails.attendees.length})
                 </button>
                 <button
                   type="button"
                   className={`full-list-tab ${selectedEventDetails.activeTab === 'absentees' ? 'active' : ''}`}
-                  onClick={() => setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' }))}
-                >
+                  onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' })); setModalSearchTerm(''); }}                >
                   Absentees ({selectedEventDetails.absentees.length})
                 </button>
               </div>
 
-              <div className="full-list-container">
-                {(selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees).length === 0 ? (
-                  <div className="empty-state">{selectedEventDetails.activeTab === 'attendees' ? 'No QR attendees recorded yet.' : 'No absentees recorded.'}</div>
-                ) : (
-                  <ul className="full-list">
-                    {(selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees).map((person, idx) => {
-                      const { primary, secondary } = splitDisplayName(person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member'));
-                      const statusLabel = selectedEventDetails.activeTab === 'attendees'
-                        ? (person.status === 'Present' || person.status === 'present' ? 'CHECKED IN' : (person.status || 'Checked in').toUpperCase())
-                        : 'ABSENT';
-                      return (
-                        <li className={`full-list-item ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`} key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? idx}`}>
-                          <div className={`full-list-accent ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}></div>
-                          <div className={`full-list-avatar ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}>
-                            {person.initials || '??'}
-                          </div>
-                          <div className="full-list-main">
-                            <div className="full-list-name">
-                              <span className="full-list-primary">{primary}</span>
-                              {secondary && <span className="full-list-secondary">{secondary}</span>}
-                            </div>
-                            {selectedEventDetails.activeTab === 'attendees' && person.checkInTime && (
-                              <div className="full-list-subtext">
-                                Checked in at {formatModalCheckInClock(person.checkInTime)}
-                              </div>
-                            )}
-                          </div>
-                          <span className={`full-list-status ${selectedEventDetails.activeTab === 'attendees' ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+              {/* Search bar */}
+              <div className="modal-search-wrap">
+                <svg className="modal-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input
+                  className="modal-search-input"
+                  type="text"
+                  placeholder="Search by name…"
+                  value={modalSearchTerm}
+                  onChange={(e) => setModalSearchTerm(e.target.value)}
+                />
+                {modalSearchTerm && (
+                  <button className="modal-search-clear" onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
                 )}
+              </div>
+
+              <div className="full-list-container">
+                {(() => {
+                  const rawList = selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees;
+                  const filtered = modalSearchTerm.trim()
+                    ? rawList.filter(p => (p.name || '').toLowerCase().includes(modalSearchTerm.toLowerCase()))
+                    : rawList;
+                  if (filtered.length === 0) {
+                    return <div className="empty-state">{modalSearchTerm ? 'No results found.' : (selectedEventDetails.activeTab === 'attendees' ? 'No QR attendees recorded yet.' : 'No absentees recorded.')}</div>;
+                  }
+                  return (
+                    <ul className="full-list">
+                      {filtered.map((person, idx) => {
+                        const { primary, secondary } = splitDisplayName(person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member'));
+                        const statusLabel = selectedEventDetails.activeTab === 'attendees'
+                          ? (person.status === 'Present' || person.status === 'present' ? 'CHECKED IN' : (person.status || 'Checked in').toUpperCase())
+                          : 'ABSENT';
+                        return (
+                          <li className={`full-list-item ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`} key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? idx}`}>
+                            <div className={`full-list-accent ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}></div>
+                            <div className={`full-list-avatar ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}>
+                              {person.initials || '??'}
+                            </div>
+                            <div className="full-list-main">
+                              <div className="full-list-name">
+                                <span className="full-list-primary">{primary}</span>
+                                {secondary && <span className="full-list-secondary">{secondary}</span>}
+                              </div>
+                              {selectedEventDetails.activeTab === 'attendees' && person.checkInTime && (
+                                <div className="full-list-subtext">
+                                  Checked in at {formatModalCheckInClock(person.checkInTime)}
+                                </div>
+                              )}
+                            </div>
+                            <span className={`full-list-status ${selectedEventDetails.activeTab === 'attendees' ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  );
+                })()}
               </div>
             </div>
           </div>

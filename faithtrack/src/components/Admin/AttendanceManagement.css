@@ -1447,8 +1447,10 @@
   flex-direction: column;
   gap: 0.85rem;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 0.5rem;
+  max-height: 380px;
 }
 
 /* No Events Message */
@@ -2107,8 +2109,59 @@
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
 }
+
+/* Modal search bar */
+.modal-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0.25rem 0;
+  flex-shrink: 0;
+}
+
+.modal-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.modal-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 32px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.modal-search-input:focus {
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.modal-search-clear {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-search-clear:hover { color: #475569; }
 
 .event-summary-large {
   display: flex;
