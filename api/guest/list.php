@@ -51,6 +51,8 @@ try {
                   g.full_name,
                   g.contact_number,
                   g.email,
+                  g.birth_date,
+                  g.is_minor,
                   g.status,
                   g.first_visit_date,
                   g.last_visit_date,

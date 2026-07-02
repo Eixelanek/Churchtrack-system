@@ -587,6 +587,7 @@ const Admin = () => {
           title: n.type === 'pending_request' ? '👤 New Member Request' : 
                  n.type === 'password_reset_request' ? '🔐 Password Reset Request' :
                  n.type === 'birthday' ? '🎂 Birthday Today!' :
+                 n.type === 'guest_ready_for_conversion' ? '⭐ Guest Ready for Membership' :
                  n.type === 'event_reminder' ? '⏰ Event Reminder' :
                  n.type === 'attendance_needed' ? '✅ Attendance Needed' :
                  n.type === 'low_attendance' ? '⚠️ Low Attendance Alert' :
@@ -678,6 +679,18 @@ const Admin = () => {
         // Set tab to birthdays
         if (window.sessionStorage) {
           window.sessionStorage.setItem('activeTab', 'birthdays');
+        }
+        break;
+      case 'guest_ready_for_conversion':
+        setShowProfileView(false);
+        setShowSettingsView(false);
+        setShowAttendanceView(false);
+        setShowMembersView(true);
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem('activeTab', 'guests');
+          if (notification.member_id) {
+            window.sessionStorage.setItem('highlightGuestId', String(notification.member_id));
+          }
         }
         break;
       case 'family_circle_created':

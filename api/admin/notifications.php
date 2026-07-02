@@ -26,6 +26,9 @@ function insertNotification($db, $type, $message, $event_id = null, $member_id =
         $check_query .= " AND member_id = :member_id";
     } elseif ($type === 'pending_request' && $member_id) {
         $check_query .= " AND member_id = :member_id";
+    } elseif ($type === 'guest_ready_for_conversion' && $member_id) {
+        // member_id field is reused to store guest_id for this notification type
+        $check_query .= " AND member_id = :member_id";
     } elseif (in_array($type, ['attendance_needed', 'low_attendance']) && $event_id) {
         $check_query .= " AND event_id = :event_id";
     }
@@ -42,6 +45,8 @@ function insertNotification($db, $type, $message, $event_id = null, $member_id =
     } elseif ($type === 'birthday' && $member_id) {
         $check_stmt->bindParam(":member_id", $member_id);
     } elseif ($type === 'pending_request' && $member_id) {
+        $check_stmt->bindParam(":member_id", $member_id);
+    } elseif ($type === 'guest_ready_for_conversion' && $member_id) {
         $check_stmt->bindParam(":member_id", $member_id);
     } elseif (in_array($type, ['attendance_needed', 'low_attendance']) && $event_id) {
         $check_stmt->bindParam(":event_id", $event_id);
@@ -82,6 +87,45 @@ $stmt->execute();
 
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     insertNotification($db, 'birthday', "{$row['name']} is celebrating a birthday today!", null, $row['id']);
+}
+
+// Guests eligible for membership conversion (4 distinct preset Sunday Service attendances)
+// Note: notification "member_id" column is reused to store guest_id for this notification type.
+$query = "SELECT 
+            g.id,
+            COALESCE(NULLIF(TRIM(g.full_name), ''), TRIM(CONCAT(
+              COALESCE(NULLIF(TRIM(g.first_name), ''), ''),
+              CASE WHEN g.middle_name IS NOT NULL AND TRIM(g.middle_name) <> '' THEN CONCAT(' ', TRIM(g.middle_name)) ELSE '' END,
+              CASE WHEN g.surname IS NOT NULL AND TRIM(g.surname) <> '' THEN CONCAT(' ', TRIM(g.surname)) ELSE '' END,
+              CASE WHEN g.suffix IS NOT NULL AND TRIM(g.suffix) <> '' AND TRIM(g.suffix) <> 'None' THEN CONCAT(' ', TRIM(g.suffix)) ELSE '' END
+            ))) AS guest_name,
+            COUNT(DISTINCT CASE 
+              WHEN LOWER(TRIM(IFNULL(qs.service_name, ''))) = 'sunday service'
+               AND LOWER(TRIM(IFNULL(qs.event_type, ''))) = 'preset'
+               AND ga.status IN ('present','late')
+              THEN DATE(COALESCE(qs.event_datetime, ga.checkin_time)) 
+            END) AS sunday_visits
+          FROM guests g
+          INNER JOIN guest_attendance ga ON ga.guest_id = g.id
+          LEFT JOIN qr_sessions qs ON qs.id = ga.session_id
+          WHERE (g.status IS NULL OR g.status = 'active')
+          GROUP BY g.id
+          HAVING sunday_visits >= 4
+          ORDER BY MAX(ga.checkin_time) DESC
+          LIMIT 25";
+
+$stmt = $db->prepare($query);
+$stmt->execute();
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $guestId = (int)$row['id'];
+    $guestName = $row['guest_name'] ?? 'A guest';
+    insertNotification(
+        $db,
+        'guest_ready_for_conversion',
+        "{$guestName} is now eligible for membership conversion (4 Sunday Service visits).",
+        null,
+        $guestId
+    );
 }
 
 // Upcoming events today (1 hour before start)

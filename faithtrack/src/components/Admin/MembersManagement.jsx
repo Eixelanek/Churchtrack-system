@@ -129,6 +129,33 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [bulkDeleteType, setBulkDeleteType] = useState(null); // 'members' or 'guests'
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [showConvertGuestModal, setShowConvertGuestModal] = useState(false);
+  const [guestToConvert, setGuestToConvert] = useState(null);
+  const [convertGuestSaving, setConvertGuestSaving] = useState(false);
+  const [convertGuestError, setConvertGuestError] = useState('');
+  const [convertGuestForm, setConvertGuestForm] = useState({
+    guest_id: '',
+    surname: '',
+    firstName: '',
+    middleName: '',
+    suffix: 'None',
+    username: '',
+    password: '',
+    birthday: '',
+    email: '',
+    contactNumber: '',
+    gender: '',
+    street: '',
+    barangay: '',
+    city: '',
+    province: '',
+    zipCode: '',
+    guardianSurname: '',
+    guardianFirstName: '',
+    guardianMiddleName: '',
+    guardianSuffix: 'None',
+    relationshipToGuardian: ''
+  });
 
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
@@ -198,6 +225,121 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     setConfirmMessage(`Delete guest record for ${guest.name}? This cannot be undone.`);
     setUserToAction(guest);
     setShowConfirmModal(true);
+  };
+
+  const openConvertGuestModal = (guest) => {
+    if (!canManageGuests || !guest?.id) return;
+
+    const surname = guest?.surname || '';
+    const firstName = guest?.first_name || '';
+    const middleName = guest?.middle_name || '';
+    const suffix = guest?.suffix || 'None';
+    const email = guest?.email || '';
+    const contactNumber = guest?.contact_number || '';
+    const birthday = guest?.birth_date || '';
+
+    setGuestToConvert(guest);
+    setConvertGuestError('');
+    setConvertGuestForm({
+      guest_id: String(guest.id),
+      surname,
+      firstName,
+      middleName,
+      suffix: suffix || 'None',
+      username: '',
+      password: '',
+      birthday,
+      email,
+      contactNumber,
+      gender: '',
+      street: '',
+      barangay: '',
+      city: '',
+      province: '',
+      zipCode: '',
+      guardianSurname: '',
+      guardianFirstName: '',
+      guardianMiddleName: '',
+      guardianSuffix: 'None',
+      relationshipToGuardian: ''
+    });
+    setShowConvertGuestModal(true);
+  };
+
+  const closeConvertGuestModal = () => {
+    setShowConvertGuestModal(false);
+    setGuestToConvert(null);
+    setConvertGuestSaving(false);
+    setConvertGuestError('');
+  };
+
+  const handleConvertGuestFieldChange = (field, value) => {
+    setConvertGuestForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const shouldShowConvertGuardian = (() => {
+    try {
+      if (!convertGuestForm?.birthday) return false;
+      const age = calculateAge(convertGuestForm.birthday);
+      return Number.isFinite(age) && age <= 17;
+    } catch {
+      return false;
+    }
+  })();
+
+  const submitGuestConversion = async (e) => {
+    e?.preventDefault?.();
+    if (!canManageGuests) return;
+
+    setConvertGuestSaving(true);
+    setConvertGuestError('');
+
+    try {
+      const payload = {
+        guest_id: Number(convertGuestForm.guest_id),
+        surname: convertGuestForm.surname,
+        firstName: convertGuestForm.firstName,
+        middleName: convertGuestForm.middleName,
+        suffix: convertGuestForm.suffix,
+        username: convertGuestForm.username,
+        password: convertGuestForm.password,
+        birthday: convertGuestForm.birthday,
+        email: convertGuestForm.email,
+        contactNumber: convertGuestForm.contactNumber || null,
+        gender: convertGuestForm.gender,
+        street: convertGuestForm.street,
+        barangay: convertGuestForm.barangay,
+        city: convertGuestForm.city,
+        province: convertGuestForm.province,
+        zipCode: convertGuestForm.zipCode,
+        guardianSurname: convertGuestForm.guardianSurname,
+        guardianFirstName: convertGuestForm.guardianFirstName,
+        guardianMiddleName: convertGuestForm.guardianMiddleName,
+        guardianSuffix: convertGuestForm.guardianSuffix,
+        relationshipToGuardian: convertGuestForm.relationshipToGuardian
+      };
+
+      const res = await fetch(`${backendBaseUrl}/api/guest/convert_to_member.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.success) {
+        setConvertGuestError(data?.message || 'Failed to convert guest to member.');
+        setConvertGuestSaving(false);
+        return;
+      }
+
+      showCustomAlert(`Converted ${guestToConvert?.name || 'guest'} to member successfully.`);
+      closeConvertGuestModal();
+      fetchData();
+    } catch (error) {
+      setConvertGuestError(error?.message || 'Network error. Please try again.');
+    } finally {
+      setConvertGuestSaving(false);
+    }
   };
 
   // Multi-select handlers
@@ -726,6 +868,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
 
   const filteredGuestsRaw = guests.map(remapGuest).filter(searchInData);
   const sortedGuests = sortItems(filteredGuestsRaw);
+  const eligibleGuestsCount = filteredGuestsRaw.filter((g) => {
+    const remaining = Number.isFinite(g?.remaining_for_membership) ? Number(g.remaining_for_membership) : null;
+    const status = String(g?.status || 'active').toLowerCase();
+    return status === 'active' && remaining === 0;
+  }).length;
   
   // Sort filtered requests
   const sortedRequests = sortItems(filteredRequests);
@@ -1763,6 +1910,7 @@ ChurchTrack System`;
             onClick={() => setActiveTab('guests')}
           >
             Guests
+            {eligibleGuestsCount > 0 && <span className="tab-badge">{eligibleGuestsCount}</span>}
           </button>
           <button 
             className={`new-tab ${activeTab === 'pending_requests' ? 'active' : ''}`}
@@ -2618,6 +2766,25 @@ ChurchTrack System`;
                       <span className="guest-visit-badge">
                         Visits: {guest.total_visits || 0}
                       </span>
+                      {canManageGuests && membershipRemaining === 0 && (
+                        <button
+                          type="button"
+                          className="guest-visit-badge"
+                          style={{
+                            border: '1px solid #bbf7d0',
+                            background: '#dcfce7',
+                            color: '#166534',
+                            cursor: 'pointer'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openConvertGuestModal(guest);
+                          }}
+                          title="Convert this guest to a member account"
+                        >
+                          Convert to Member
+                        </button>
+                      )}
                       {canManageGuests && (
                         <button
                           type="button"
@@ -3368,6 +3535,187 @@ ChurchTrack System`;
                 </button>
                 <button type="submit" className="btn-submit-new" disabled={editSaving}>
                   {editSaving ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showConvertGuestModal && (
+        <div className="modal-overlay-new" onClick={handleModalClose}>
+          <div className="modal-content-new" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '720px', maxHeight: '92vh', overflowY: 'auto' }}>
+            <div className="modal-header-new">
+              <h2>Convert Guest to Member</h2>
+              <button type="button" className="modal-close-btn-new" onClick={closeConvertGuestModal}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {convertGuestError && (
+              <div className="add-user-message-new error" style={{ margin: '0 1.5rem' }}>
+                {convertGuestError}
+              </div>
+            )}
+
+            <form className="add-member-form" onSubmit={submitGuestConversion}>
+              <div className="form-section">
+                <h3 className="section-title">Account</h3>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Username <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.username} onChange={(e) => handleConvertGuestFieldChange('username', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Password <span className="required">*</span></label>
+                    <input type="password" value={convertGuestForm.password} onChange={(e) => handleConvertGuestFieldChange('password', e.target.value)} required />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Personal</h3>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Surname <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.surname} onChange={(e) => handleConvertGuestFieldChange('surname', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>First name <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.firstName} onChange={(e) => handleConvertGuestFieldChange('firstName', e.target.value)} required />
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Middle name</label>
+                    <input type="text" value={convertGuestForm.middleName} onChange={(e) => handleConvertGuestFieldChange('middleName', e.target.value)} />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Suffix</label>
+                    <select value={convertGuestForm.suffix} onChange={(e) => handleConvertGuestFieldChange('suffix', e.target.value)}>
+                      <option value="None">None</option>
+                      <option value="Jr.">Jr.</option>
+                      <option value="Sr.">Sr.</option>
+                      <option value="II">II</option>
+                      <option value="III">III</option>
+                      <option value="IV">IV</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Birthday <span className="required">*</span></label>
+                    <input
+                      type="date"
+                      min={minAllowedBirthday.toISOString().split('T')[0]}
+                      max={maxAllowedBirthday.toISOString().split('T')[0]}
+                      value={convertGuestForm.birthday}
+                      onChange={(e) => handleConvertGuestFieldChange('birthday', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Gender <span className="required">*</span></label>
+                    <select value={convertGuestForm.gender} onChange={(e) => handleConvertGuestFieldChange('gender', e.target.value)} required>
+                      <option value="">—</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Contact</h3>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Email <span className="required">*</span></label>
+                    <input type="email" value={convertGuestForm.email} onChange={(e) => handleConvertGuestFieldChange('email', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>Phone</label>
+                    <input type="text" value={convertGuestForm.contactNumber} onChange={(e) => handleConvertGuestFieldChange('contactNumber', e.target.value)} placeholder="Optional" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3 className="section-title">Address</h3>
+                <div className="form-group-new">
+                  <label>Street <span className="required">*</span></label>
+                  <input type="text" value={convertGuestForm.street} onChange={(e) => handleConvertGuestFieldChange('street', e.target.value)} required />
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Barangay <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.barangay} onChange={(e) => handleConvertGuestFieldChange('barangay', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>City <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.city} onChange={(e) => handleConvertGuestFieldChange('city', e.target.value)} required />
+                  </div>
+                </div>
+                <div className="form-row-two">
+                  <div className="form-group-new">
+                    <label>Province <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.province} onChange={(e) => handleConvertGuestFieldChange('province', e.target.value)} required />
+                  </div>
+                  <div className="form-group-new">
+                    <label>ZIP <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.zipCode} onChange={(e) => handleConvertGuestFieldChange('zipCode', e.target.value)} required />
+                    <small className="field-hint">Must be 4 digits.</small>
+                  </div>
+                </div>
+              </div>
+
+              {shouldShowConvertGuardian && (
+                <div className="form-section">
+                  <h3 className="section-title">Guardian (required for minors)</h3>
+                  <div className="form-row-two">
+                    <div className="form-group-new">
+                      <label>Guardian surname <span className="required">*</span></label>
+                      <input type="text" value={convertGuestForm.guardianSurname} onChange={(e) => handleConvertGuestFieldChange('guardianSurname', e.target.value)} required />
+                    </div>
+                    <div className="form-group-new">
+                      <label>Guardian first name <span className="required">*</span></label>
+                      <input type="text" value={convertGuestForm.guardianFirstName} onChange={(e) => handleConvertGuestFieldChange('guardianFirstName', e.target.value)} required />
+                    </div>
+                  </div>
+                  <div className="form-row-two">
+                    <div className="form-group-new">
+                      <label>Guardian middle name</label>
+                      <input type="text" value={convertGuestForm.guardianMiddleName} onChange={(e) => handleConvertGuestFieldChange('guardianMiddleName', e.target.value)} />
+                    </div>
+                    <div className="form-group-new">
+                      <label>Guardian suffix</label>
+                      <select value={convertGuestForm.guardianSuffix} onChange={(e) => handleConvertGuestFieldChange('guardianSuffix', e.target.value)}>
+                        <option value="None">None</option>
+                        <option value="Jr.">Jr.</option>
+                        <option value="Sr.">Sr.</option>
+                        <option value="II">II</option>
+                        <option value="III">III</option>
+                        <option value="IV">IV</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-group-new">
+                    <label>Relationship to guardian <span className="required">*</span></label>
+                    <input type="text" value={convertGuestForm.relationshipToGuardian} onChange={(e) => handleConvertGuestFieldChange('relationshipToGuardian', e.target.value)} required />
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-actions-new">
+                <button type="button" className="btn-cancel-new" onClick={closeConvertGuestModal} disabled={convertGuestSaving}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit-new" disabled={convertGuestSaving}>
+                  {convertGuestSaving ? 'Converting…' : 'Convert to Member'}
                 </button>
               </div>
             </form>
