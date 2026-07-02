@@ -3108,7 +3108,7 @@ const Admin = () => {
                           <div className="stat-content">
                             <div className="stat-title">This Week</div>
                             <div className="stat-number">{stats.weekAttendance}</div>
-                            <div className="stat-subtitle">Total</div>
+                            <div className="stat-subtitle">Check-ins</div>
                           </div>
                         </div>
                       </div>
