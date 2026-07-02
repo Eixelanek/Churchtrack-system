@@ -94,7 +94,9 @@ const Member = () => {
   const passwordRequirements = 'Password must be at least 8 characters long.';
   const navigate = useNavigate();
 
-  /** After forced password change (or on load), detect admin-created + unverified from API — not only login JSON flag. */
+  /** After forced password change (or on load), keep the email gate accurate.
+   * This must NOT dismiss the gate if the session says email setup is required.
+   */
   const refreshAdminEmailVerificationGate = useCallback(async (newPasswordForSession) => {
     const memberId = localStorage.getItem('userId');
     if (!memberId) return;
@@ -104,23 +106,32 @@ const Member = () => {
       if (!res.ok || !data.success || !data.member) return;
       const m = data.member;
       const via = (m.member_created_via != null ? String(m.member_created_via) : '').trim();
+      const isAdminOrGuestConversion = via === 'admin' || via === 'guest_conversion';
       const hasEmail = m.email != null && String(m.email).trim() !== '';
       const verified = m.email_verified_at != null && String(m.email_verified_at).trim() !== '';
-      if (via === 'admin' && !verified) {
-        localStorage.setItem('requiresEmailVerification', 'true');
-        setEmailGateNeedsAddress(!hasEmail);
+
+      // If the account has no email, always keep the gate open until one is provided + verified.
+      if (!hasEmail) {
+        localStorage.setItem('requiresEmailSetup', 'true');
+        setEmailGateNeedsAddress(true);
         if (newPasswordForSession && typeof window !== 'undefined') {
           window.sessionStorage.setItem('memberLastLoginPassword', newPasswordForSession);
         }
         setShowEmailVerificationGate(true);
-      } else {
-        localStorage.removeItem('requiresEmailVerification');
-        setEmailGateNeedsAddress(false);
-        if (typeof window !== 'undefined') {
-          window.sessionStorage.removeItem('memberLastLoginPassword');
-        }
-        setShowEmailVerificationGate(false);
+        return;
       }
+
+      // Accounts with email but unverified are blocked at login by the API,
+      // so dashboard email gate should only remain for "no email yet" setup cases.
+      localStorage.removeItem('requiresEmailVerification');
+      if (hasEmail) {
+        localStorage.removeItem('requiresEmailSetup');
+      }
+      setEmailGateNeedsAddress(false);
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('memberLastLoginPassword');
+      }
+      setShowEmailVerificationGate(false);
     } catch {
       /* ignore */
     }

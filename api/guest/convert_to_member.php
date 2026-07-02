@@ -185,12 +185,12 @@ try {
             (surname, first_name, middle_name, suffix, gender, birthday, email, email_verified_at, email_verification_token, email_verification_expires_at, contact_number,
              guardian_surname, guardian_first_name, guardian_middle_name, guardian_suffix, relationship_to_guardian,
              street, barangay, city, province, zip_code, referrer_id, referrer_name, relationship_to_referrer,
-             username, password, status, member_created_via, created_at) 
+             username, password, status, must_change_password, member_created_via, created_at) 
             VALUES 
             (:surname, :first_name, :middle_name, :suffix, :gender, :birthday, :email, :email_verified_at, :email_verification_token, :email_verification_expires_at, :contact_number,
              :guardian_surname, :guardian_first_name, :guardian_middle_name, :guardian_suffix, :relationship_to_guardian,
              :street, :barangay, :city, :province, :zip_code, :referrer_id, :referrer_name, :relationship_to_referrer,
-             :username, :password, 'active', 'guest_conversion', NOW())";
+             :username, :password, 'active', 1, 'guest_conversion', NOW())";
         
         $memberStmt = $db->prepare($memberQuery);
         $memberStmt->bindParam(':surname', $surname);

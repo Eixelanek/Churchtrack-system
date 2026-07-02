@@ -39,8 +39,9 @@ try {
             $emailTrimmed = $email !== null ? trim((string)$email) : '';
             $hasEmail = $emailTrimmed !== '';
             $emailVerified = $emailVerifiedAt !== null && trim((string)$emailVerifiedAt) !== '';
-            // Unverified email + email on file: cannot log in (public, guest_conversion, and admin if email was set at creation).
-            // Admin with no email yet may log in to complete email in-app.
+            // If an email exists but is not verified, block login for all account origins.
+            // (Admin-created/guest-converted users with email verify from login flow too.)
+            $isAdminOrGuestConversion = in_array($createdVia, ['admin', 'guest_conversion'], true);
             $needsEmailVerify = $hasEmail && !$emailVerified;
 
             if(password_verify($data->password, $hashed_password)) {
@@ -87,12 +88,14 @@ try {
                     }
                 }
 
-                $requiresEmailVerification = ($createdVia === 'admin' && !$hasEmail);
+                // Verification gate inside member dashboard is not needed when email exists
+                // because unverified emails are blocked at login page.
+                $requiresEmailVerification = false;
 
                 // Email setup gate:
                 // If a member has no email on file, allow login but require them to set one in-app.
                 // (This applies to admin-created accounts and guest conversions, and keeps the flow consistent.)
-                $requiresEmailSetup = !$hasEmail;
+                $requiresEmailSetup = $isAdminOrGuestConversion && !$hasEmail;
                 $isAdultEmailSetup = false;
                 if ($birthday) {
                     try {
