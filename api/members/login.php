@@ -55,11 +55,19 @@ try {
 
                 if ($status !== 'active') {
                     http_response_code(403);
-                    echo json_encode(array(
-                        "message" => "Your account is not yet approved by admin.",
-                        "code" => "ACCOUNT_NOT_APPROVED",
-                        "status" => $status
-                    ));
+                    if ($status === 'rejected') {
+                        echo json_encode(array(
+                            "message" => "Your membership request was not approved. Please contact the church for more information.",
+                            "code" => "ACCOUNT_REJECTED",
+                            "status" => $status
+                        ));
+                    } else {
+                        echo json_encode(array(
+                            "message" => "Your account is not yet approved by admin.",
+                            "code" => "ACCOUNT_NOT_APPROVED",
+                            "status" => $status
+                        ));
+                    }
                     exit();
                 }
 
