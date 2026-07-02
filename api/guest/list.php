@@ -105,6 +105,8 @@ try {
             'suffix' => $row['suffix'] ?? '',
             'contact_number' => $row['contact_number'] ?? null,
             'email' => $row['email'] ?? null,
+            'birth_date' => $row['birth_date'] ?? null,
+            'is_minor' => isset($row['is_minor']) ? (int)$row['is_minor'] : null,
             'status' => $row['status'] ?? 'active',
             'first_visit_date' => $row['first_visit_date'] ?? null,
             'last_visit_date' => $row['last_visit_date'] ?? null,
