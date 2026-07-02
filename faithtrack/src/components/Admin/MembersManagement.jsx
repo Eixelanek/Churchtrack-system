@@ -180,6 +180,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       // Fetch referred members and family when expanding
       fetchReferredMembers(memberId);
       fetchFamilyMembers(member);
+      // Scroll card into view
+      setTimeout(() => {
+        const el = document.getElementById(`member-card-${memberId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   };
 
@@ -1943,7 +1948,7 @@ ChurchTrack System`;
               !!familyLoading[member.id] || !!familyErrors[member.id] || familyRelativeCount > 0;
             const isExpanded = expandedMemberId === member.id;
             return (
-              <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
+              <div key={member.id} id={`member-card-${member.id}`} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
                 <div className="member-card">
                   {multiSelectMode && allowMemberMutations && (
                     <input 
@@ -2376,7 +2381,7 @@ ChurchTrack System`;
                 const familyPeopleCount = getFamilyTreePeopleCount(member);
                 const isExpanded = expandedMemberId === member.id;
                 return (
-                  <div key={member.id} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                  <div key={member.id} id={`member-card-${member.id}`} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
                     <div className="member-card">
                       {multiSelectMode && allowMemberMutations && (
                         <input 
