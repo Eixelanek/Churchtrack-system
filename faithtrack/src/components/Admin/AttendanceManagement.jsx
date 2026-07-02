@@ -3244,7 +3244,7 @@ const AttendanceManagement = ({
               </button>
             </div>
 
-            <div className="modal-body">
+            <div className="modal-body" style={{ padding: '0.6rem 0.85rem 0.85rem', background: '#f8fbff', display: 'flex', flexDirection: 'column', gap: '0.35rem', overflowY: 'auto', flex: 1, minHeight: 0 }}>
               <div className="event-summary-large redesigned">
                 <div className="summary-block schedule">
                   <div className="summary-heading">Schedule</div>
@@ -3285,17 +3285,17 @@ const AttendanceManagement = ({
               </div>
 
               {/* Search bar */}
-              <div className="modal-search-wrap">
-                <svg className="modal-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none', zIndex: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input
-                  className="modal-search-input"
+                  style={{ width: '100%', padding: '8px 32px 8px 34px', border: '1.5px solid #e2e8f0', borderRadius: '8px', fontSize: '0.875rem', color: '#1e293b', background: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
                   type="text"
                   placeholder="Search by name…"
                   value={modalSearchTerm}
                   onChange={(e) => setModalSearchTerm(e.target.value)}
                 />
                 {modalSearchTerm && (
-                  <button className="modal-search-clear" onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
+                  <button style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1, padding: 0 }} onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
                 )}
               </div>
 
