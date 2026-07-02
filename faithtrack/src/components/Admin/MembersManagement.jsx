@@ -2503,15 +2503,6 @@ ChurchTrack System`;
                               <span className="status-dot"></span>
                               Inactive Member
                             </div>
-                            <button
-                              className="primary-action"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleConfirmAction('activate', member);
-                              }}
-                            >
-                              Reinstate Member
-                            </button>
                           </div>
                         </div>
                       </div>
