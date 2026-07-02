@@ -93,6 +93,45 @@ if ($managerStatus === 'rejected') {
 }
 
 if ($stmt->execute()) {
+    // Send email notification via Resend
+    try {
+        require_once __DIR__ . '/resend_transport.php';
+        $fetchStmt = $db->prepare("SELECT email, full_name AS name FROM members WHERE id = :id");
+        $fetchStmt->bindParam(':id', $input->id);
+        $fetchStmt->execute();
+        $member = $fetchStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($member && !empty($member['email'])) {
+            $orgName = trim((string)(getenv('CHURCH_NAME') ?: 'Christ-Like Christian Church'));
+            $displayName = $member['name'];
+
+            if ($managerStatus === 'rejected') {
+                $subject = 'Your membership request was not approved';
+                $reasonText = $sanitizedNote ? "Reason: {$sanitizedNote}\n\n" : '';
+                $textBody = "Hello {$displayName},\n\nThank you for your interest in joining us. After careful review, your membership request was not approved at this time.\n\n{$reasonText}If you have questions, feel free to contact us.\n\nBest regards,\n{$orgName}";
+                $reasonHtml = $sanitizedNote ? '<p style="margin:0 0 16px;background:#fef2f2;padding:12px;border-radius:8px;color:#991b1b;"><strong>Reason:</strong> ' . htmlspecialchars($sanitizedNote) . '</p>' : '';
+                $htmlBody = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#f1f5f9;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;"><tr><td align="center">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
+                    <tr><td style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:28px 24px;text-align:center;">
+                    <div style="font-size:13px;color:rgba(255,255,255,0.9);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Membership Update</div>
+                    <div style="font-size:20px;font-weight:700;color:#fff;">' . htmlspecialchars($orgName) . '</div>
+                    </td></tr>
+                    <tr><td style="padding:32px 28px;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:#334155;">
+                    <p style="margin:0 0 16px;font-size:18px;color:#0f172a;"><strong>Hello ' . htmlspecialchars($displayName) . ',</strong></p>
+                    <p style="margin:0 0 16px;">Thank you for your interest in joining ' . htmlspecialchars($orgName) . '. After careful review, your membership request was not approved at this time.</p>
+                    ' . $reasonHtml . '
+                    <p style="margin:0;">If you have any questions, feel free to reach out to us.</p>
+                    </td></tr>
+                    <tr><td style="padding:16px 28px 28px;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;text-align:center;">' . htmlspecialchars($orgName) . '</td></tr>
+                    </table></td></tr></table></body></html>';
+                sendEmailViaResendApi($member['email'], $displayName, $subject, $htmlBody, $textBody);
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('update_manager_status email error: ' . $e->getMessage());
+    }
+
     echo json_encode([
         "message" => "Manager review status updated successfully.",
         "manager_status" => $managerStatus
