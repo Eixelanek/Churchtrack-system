@@ -133,6 +133,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [guestToConvert, setGuestToConvert] = useState(null);
   const [convertGuestSaving, setConvertGuestSaving] = useState(false);
   const [convertGuestError, setConvertGuestError] = useState('');
+  const [convertGeneratePassword, setConvertGeneratePassword] = useState(true);
+  const [convertUsernameAvailable, setConvertUsernameAvailable] = useState(null);
+  const [convertUsernameCheckMessage, setConvertUsernameCheckMessage] = useState('');
+  const [convertCheckingUsername, setConvertCheckingUsername] = useState(false);
   const [convertGuestForm, setConvertGuestForm] = useState({
     guest_id: '',
     surname: '',
@@ -240,6 +244,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
 
     setGuestToConvert(guest);
     setConvertGuestError('');
+    setConvertGeneratePassword(true);
+    setConvertUsernameAvailable(null);
+    setConvertUsernameCheckMessage('');
+    setConvertCheckingUsername(false);
     setConvertGuestForm({
       guest_id: String(guest.id),
       surname,
@@ -277,6 +285,89 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     setConvertGuestForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleConvertPasswordToggle = () => {
+    setConvertGeneratePassword((prev) => !prev);
+  };
+
+  const checkConvertUsernameAvailability = async (username) => {
+    if (!username.trim()) {
+      setConvertUsernameAvailable(null);
+      setConvertUsernameCheckMessage('');
+      return;
+    }
+    setConvertCheckingUsername(true);
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/members/check_username.php?username=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      setConvertUsernameAvailable(data.available);
+      setConvertUsernameCheckMessage(data.message);
+    } catch (err) {
+      setConvertUsernameAvailable(null);
+      setConvertUsernameCheckMessage('Error checking username');
+    }
+    setConvertCheckingUsername(false);
+  };
+
+  const slugifyUsernameBase = (value = '') => {
+    return String(value)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '')
+      .slice(0, 20);
+  };
+
+  const suggestUniqueUsernameForGuest = async (guest) => {
+    const fn = guest?.first_name || guest?.firstName || '';
+    const sn = guest?.surname || '';
+    const base = slugifyUsernameBase(`${fn}${sn}`) || slugifyUsernameBase(fn) || slugifyUsernameBase(sn) || `guest${guest?.id || ''}`;
+
+    // Try base, then base + 2..50
+    const candidates = [base, ...Array.from({ length: 49 }, (_, idx) => `${base}${idx + 2}`)];
+    for (const candidate of candidates) {
+      try {
+        const res = await fetch(`${backendBaseUrl}/api/members/check_username.php?username=${encodeURIComponent(candidate)}`);
+        const data = await res.json().catch(() => ({}));
+        if (data?.available) {
+          setConvertGuestForm((prev) => ({ ...prev, username: candidate }));
+          setConvertUsernameAvailable(true);
+          setConvertUsernameCheckMessage('Username is available');
+          return;
+        }
+      } catch {
+        // ignore and fall back
+      }
+    }
+
+    // Fallback: set base and let admin adjust
+    setConvertGuestForm((prev) => ({ ...prev, username: base }));
+    checkConvertUsernameAvailability(base);
+  };
+
+  // When modal opens, auto-suggest a username based on guest name
+  useEffect(() => {
+    if (!showConvertGuestModal || !guestToConvert?.id) return;
+    suggestUniqueUsernameForGuest(guestToConvert);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showConvertGuestModal, guestToConvert?.id]);
+
+  // Debounced username check for convert modal (when user edits it)
+  useEffect(() => {
+    if (!showConvertGuestModal) return;
+    if (!convertGuestForm.username?.trim()) {
+      setConvertUsernameAvailable(null);
+      setConvertUsernameCheckMessage('');
+      setConvertCheckingUsername(false);
+      return;
+    }
+    setConvertCheckingUsername(true);
+    const handler = setTimeout(() => {
+      checkConvertUsernameAvailability(convertGuestForm.username);
+    }, 800);
+    return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convertGuestForm.username, showConvertGuestModal]);
+
   const shouldShowConvertGuardian = (() => {
     try {
       if (!convertGuestForm?.birthday) return false;
@@ -295,6 +386,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     setConvertGuestError('');
 
     try {
+      const passwordToUse = convertGeneratePassword || !convertGuestForm.password
+        ? generateRandomPassword()
+        : convertGuestForm.password;
+
       const payload = {
         guest_id: Number(convertGuestForm.guest_id),
         surname: convertGuestForm.surname,
@@ -302,16 +397,16 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         middleName: convertGuestForm.middleName,
         suffix: convertGuestForm.suffix,
         username: convertGuestForm.username,
-        password: convertGuestForm.password,
+        password: passwordToUse,
         birthday: convertGuestForm.birthday,
-        email: convertGuestForm.email,
+        email: convertGuestForm.email || null,
         contactNumber: convertGuestForm.contactNumber || null,
         gender: convertGuestForm.gender,
-        street: convertGuestForm.street,
-        barangay: convertGuestForm.barangay,
-        city: convertGuestForm.city,
-        province: convertGuestForm.province,
-        zipCode: convertGuestForm.zipCode,
+        street: convertGuestForm.street || null,
+        barangay: convertGuestForm.barangay || null,
+        city: convertGuestForm.city || null,
+        province: convertGuestForm.province || null,
+        zipCode: convertGuestForm.zipCode || null,
         guardianSurname: convertGuestForm.guardianSurname,
         guardianFirstName: convertGuestForm.guardianFirstName,
         guardianMiddleName: convertGuestForm.guardianMiddleName,
@@ -333,6 +428,13 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       }
 
       showCustomAlert(`Converted ${guestToConvert?.name || 'guest'} to member successfully.`);
+      setNewUserCredentials({
+        name: guestToConvert?.name || `${convertGuestForm.firstName} ${convertGuestForm.surname}`.trim(),
+        username: convertGuestForm.username,
+        email: convertGuestForm.email || '',
+        password: passwordToUse
+      });
+      setShowCredentialsModal(true);
       closeConvertGuestModal();
       fetchData();
     } catch (error) {
@@ -1413,6 +1515,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       setShowAddUserModal(false);
       setShowCredentialsModal(false);
       setShowConfirmModal(false);
+      setShowConvertGuestModal(false);
+      setGuestToConvert(null);
+      setConvertGuestSaving(false);
+      setConvertGuestError('');
       setNewUserCredentials(null);
       setAddUserMessage('');
       setAddUserMessageType('');
@@ -3567,11 +3673,36 @@ ChurchTrack System`;
                 <div className="form-row-two">
                   <div className="form-group-new">
                     <label>Username <span className="required">*</span></label>
-                    <input type="text" value={convertGuestForm.username} onChange={(e) => handleConvertGuestFieldChange('username', e.target.value)} required />
+                    <input
+                      type="text"
+                      value={convertGuestForm.username}
+                      onChange={(e) => handleConvertGuestFieldChange('username', e.target.value)}
+                      required
+                    />
+                    {convertCheckingUsername && <div className="field-status-new checking">Checking...</div>}
+                    {!convertCheckingUsername && convertUsernameAvailable === true && <div className="field-status-new available">✓ Available</div>}
+                    {!convertCheckingUsername && convertUsernameAvailable === false && <div className="field-status-new unavailable">✗ Already taken</div>}
                   </div>
                   <div className="form-group-new">
-                    <label>Password <span className="required">*</span></label>
-                    <input type="password" value={convertGuestForm.password} onChange={(e) => handleConvertGuestFieldChange('password', e.target.value)} required />
+                    <div className="password-header-new">
+                      <label>Password <span className="required">*</span></label>
+                      <label className="password-toggle-new">
+                        <input
+                          type="checkbox"
+                          checked={convertGeneratePassword}
+                          onChange={handleConvertPasswordToggle}
+                        />
+                        <span>Auto-generate secure password</span>
+                      </label>
+                    </div>
+                    <input
+                      type="password"
+                      value={convertGuestForm.password}
+                      onChange={(e) => handleConvertGuestFieldChange('password', e.target.value)}
+                      placeholder={convertGeneratePassword ? 'Will be auto-generated' : 'Enter password (min. 8 characters)'}
+                      disabled={convertGeneratePassword}
+                      required={!convertGeneratePassword}
+                    />
                   </div>
                 </div>
               </div>
@@ -3634,8 +3765,8 @@ ChurchTrack System`;
                 <h3 className="section-title">Contact</h3>
                 <div className="form-row-two">
                   <div className="form-group-new">
-                    <label>Email <span className="required">*</span></label>
-                    <input type="email" value={convertGuestForm.email} onChange={(e) => handleConvertGuestFieldChange('email', e.target.value)} required />
+                    <label>Email</label>
+                    <input type="email" value={convertGuestForm.email} onChange={(e) => handleConvertGuestFieldChange('email', e.target.value)} placeholder="Optional" />
                   </div>
                   <div className="form-group-new">
                     <label>Phone</label>
@@ -3647,27 +3778,27 @@ ChurchTrack System`;
               <div className="form-section">
                 <h3 className="section-title">Address</h3>
                 <div className="form-group-new">
-                  <label>Street <span className="required">*</span></label>
-                  <input type="text" value={convertGuestForm.street} onChange={(e) => handleConvertGuestFieldChange('street', e.target.value)} required />
+                  <label>Street</label>
+                  <input type="text" value={convertGuestForm.street} onChange={(e) => handleConvertGuestFieldChange('street', e.target.value)} placeholder="Optional" />
                 </div>
                 <div className="form-row-two">
                   <div className="form-group-new">
-                    <label>Barangay <span className="required">*</span></label>
-                    <input type="text" value={convertGuestForm.barangay} onChange={(e) => handleConvertGuestFieldChange('barangay', e.target.value)} required />
+                    <label>Barangay</label>
+                    <input type="text" value={convertGuestForm.barangay} onChange={(e) => handleConvertGuestFieldChange('barangay', e.target.value)} placeholder="Optional" />
                   </div>
                   <div className="form-group-new">
-                    <label>City <span className="required">*</span></label>
-                    <input type="text" value={convertGuestForm.city} onChange={(e) => handleConvertGuestFieldChange('city', e.target.value)} required />
+                    <label>City</label>
+                    <input type="text" value={convertGuestForm.city} onChange={(e) => handleConvertGuestFieldChange('city', e.target.value)} placeholder="Optional" />
                   </div>
                 </div>
                 <div className="form-row-two">
                   <div className="form-group-new">
-                    <label>Province <span className="required">*</span></label>
-                    <input type="text" value={convertGuestForm.province} onChange={(e) => handleConvertGuestFieldChange('province', e.target.value)} required />
+                    <label>Province</label>
+                    <input type="text" value={convertGuestForm.province} onChange={(e) => handleConvertGuestFieldChange('province', e.target.value)} placeholder="Optional" />
                   </div>
                   <div className="form-group-new">
-                    <label>ZIP <span className="required">*</span></label>
-                    <input type="text" value={convertGuestForm.zipCode} onChange={(e) => handleConvertGuestFieldChange('zipCode', e.target.value)} required />
+                    <label>ZIP</label>
+                    <input type="text" value={convertGuestForm.zipCode} onChange={(e) => handleConvertGuestFieldChange('zipCode', e.target.value)} placeholder="Optional" />
                     <small className="field-hint">Must be 4 digits.</small>
                   </div>
                 </div>

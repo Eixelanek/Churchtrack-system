@@ -31,23 +31,17 @@ try {
         exit();
     }
     
-    // Validate required fields
+    // Validate required fields (align with admin add member flow)
+    // Note: email and address are optional here.
     if (
         empty($data->surname) ||
         empty($data->firstName) ||
         empty($data->username) ||
         empty($data->password) ||
-        empty($data->birthday) ||
-        empty($data->email) ||
-        empty($data->gender) ||
-        empty($data->street) ||
-        empty($data->barangay) ||
-        empty($data->city) ||
-        empty($data->province) ||
-        empty($data->zipCode)
+        empty($data->birthday)
     ) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'All required fields must be filled']);
+        echo json_encode(['success' => false, 'message' => 'Incomplete data. Surname, first name, username, password, and birthday are required.']);
         exit();
     }
     
@@ -95,13 +89,15 @@ try {
         }
     }
 
-    $emailCheck = $db->prepare("SELECT id FROM members WHERE email = :email AND email IS NOT NULL AND email != '' AND status != 'rejected'");
-    $emailCheck->bindParam(':email', $data->email);
-    $emailCheck->execute();
-    if ($emailCheck->rowCount() > 0) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Email is already registered']);
-        exit();
+    if (!empty($data->email)) {
+        $emailCheck = $db->prepare("SELECT id FROM members WHERE email = :email AND email IS NOT NULL AND email != '' AND status != 'rejected'");
+        $emailCheck->bindParam(':email', $data->email);
+        $emailCheck->execute();
+        if ($emailCheck->rowCount() > 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Email is already registered']);
+            exit();
+        }
     }
     
     // Hash password
@@ -130,9 +126,9 @@ try {
         $first_name = htmlspecialchars(strip_tags($data->firstName ?? $guest['first_name']));
         $middle_name = !empty($data->middleName) ? htmlspecialchars(strip_tags($data->middleName)) : ($guest['middle_name'] ?? null);
         $suffix = !empty($data->suffix) ? htmlspecialchars(strip_tags($data->suffix)) : ($guest['suffix'] ?? 'None');
-        $gender = htmlspecialchars(strip_tags($data->gender));
+        $gender = !empty($data->gender) ? htmlspecialchars(strip_tags($data->gender)) : 'Prefer not to say';
         $birthday = htmlspecialchars(strip_tags($data->birthday));
-        $email = htmlspecialchars(strip_tags($data->email));
+        $email = !empty($data->email) ? htmlspecialchars(strip_tags($data->email)) : null;
         $contact_number = !empty($data->contactNumber)
             ? htmlspecialchars(strip_tags($data->contactNumber))
             : null;
@@ -144,14 +140,14 @@ try {
         $guardian_suffix = ($age <= 17 && !empty($data->guardianSuffix)) ? htmlspecialchars(strip_tags($data->guardianSuffix)) : 'None';
         $relationship_to_guardian = ($age <= 17 && !empty($data->relationshipToGuardian)) ? htmlspecialchars(strip_tags($data->relationshipToGuardian)) : null;
         
-        // Address fields
-        $street = htmlspecialchars(strip_tags($data->street));
-        $barangay = htmlspecialchars(strip_tags($data->barangay));
-        $city = htmlspecialchars(strip_tags($data->city));
-        $province = htmlspecialchars(strip_tags($data->province));
-        $zip_code = htmlspecialchars(strip_tags($data->zipCode));
+        // Address fields (optional)
+        $street = !empty($data->street) ? htmlspecialchars(strip_tags($data->street)) : null;
+        $barangay = !empty($data->barangay) ? htmlspecialchars(strip_tags($data->barangay)) : null;
+        $city = !empty($data->city) ? htmlspecialchars(strip_tags($data->city)) : null;
+        $province = !empty($data->province) ? htmlspecialchars(strip_tags($data->province)) : null;
+        $zip_code = !empty($data->zipCode) ? htmlspecialchars(strip_tags($data->zipCode)) : null;
         
-        if (!preg_match('/^\d{4}$/', $zip_code)) {
+        if ($zip_code !== null && $zip_code !== '' && !preg_match('/^\d{4}$/', $zip_code)) {
             throw new Exception('Please enter a valid 4-digit ZIP code');
         }
         
@@ -177,8 +173,12 @@ try {
         }
         $relationship_to_referrer = !empty($guest['invited_by_text']) ? htmlspecialchars(strip_tags($guest['invited_by_text'])) : null;
 
-        $verificationToken = generateEmailVerificationToken();
-        $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+        $verificationToken = null;
+        $verificationExpiresAt = null;
+        if ($email !== null && trim($email) !== '') {
+            $verificationToken = generateEmailVerificationToken();
+            $verificationExpiresAt = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+        }
         
         // Insert member record with status 'active' (they've already attended 4 times)
         $memberQuery = "INSERT INTO members 
@@ -199,10 +199,19 @@ try {
         $memberStmt->bindParam(':suffix', $suffix);
         $memberStmt->bindParam(':gender', $gender);
         $memberStmt->bindParam(':birthday', $birthday);
-        $memberStmt->bindParam(':email', $email);
+        if ($email !== null) {
+            $memberStmt->bindParam(':email', $email);
+        } else {
+            $memberStmt->bindValue(':email', null, PDO::PARAM_NULL);
+        }
         $memberStmt->bindValue(':email_verified_at', null, PDO::PARAM_NULL);
-        $memberStmt->bindParam(':email_verification_token', $verificationToken);
-        $memberStmt->bindParam(':email_verification_expires_at', $verificationExpiresAt);
+        if ($verificationToken !== null) {
+            $memberStmt->bindParam(':email_verification_token', $verificationToken);
+            $memberStmt->bindParam(':email_verification_expires_at', $verificationExpiresAt);
+        } else {
+            $memberStmt->bindValue(':email_verification_token', null, PDO::PARAM_NULL);
+            $memberStmt->bindValue(':email_verification_expires_at', null, PDO::PARAM_NULL);
+        }
         if ($contact_number !== null) {
             $memberStmt->bindParam(':contact_number', $contact_number);
         } else {
@@ -235,8 +244,10 @@ try {
         
         $db->commit();
 
-        $displayName = trim($first_name . ' ' . $surname);
-        sendEmailVerificationLink($db, $email, $displayName !== '' ? $displayName : $email, $verificationToken);
+        if ($email !== null && trim($email) !== '' && $verificationToken !== null) {
+            $displayName = trim($first_name . ' ' . $surname);
+            sendEmailVerificationLink($db, $email, $displayName !== '' ? $displayName : $email, $verificationToken);
+        }
         
         http_response_code(200);
         echo json_encode([
