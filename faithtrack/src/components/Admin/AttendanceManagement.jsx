@@ -1692,9 +1692,9 @@ const AttendanceManagement = ({
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-label-small">This Week</div>
+            <div className="stat-label-small">Total Events</div>
             <div className="stat-value-large">{loading ? '...' : attendanceStats.totalRecords}</div>
-            <div className="stat-sublabel">Total Records</div>
+            <div className="stat-sublabel">All Records</div>
           </div>
         </div>
 
