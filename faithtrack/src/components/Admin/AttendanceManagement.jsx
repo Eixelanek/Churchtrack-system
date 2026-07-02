@@ -1,9 +1,18 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './AttendanceManagement.css';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { API_BASE_URL } from '../../config/api';
 import { resolveProfilePicUrl } from '../../utils/profilePicture';
 import { offlineStorage } from '../../utils/offlineStorage';
+
+const DEFAULT_ATTENDANCE_STATS = {
+  totalRecords: 0,
+  averagePerService: 0,
+  attendanceRate: 0
+};
+
+let cachedAttendanceStats = null;
+let cachedAttendanceHasLoaded = false;
 
 const AttendanceManagement = ({
   dateFormat = 'mm/dd/yyyy',
@@ -155,15 +164,14 @@ const AttendanceManagement = ({
   
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cachedAttendanceHasLoaded);
+  const hasLoadedOnceRef = useRef(cachedAttendanceHasLoaded);
   const [error, setError] = useState('');
   const [attendanceEvents, setAttendanceEvents] = useState([]);
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('all');
-  const [attendanceStats, setAttendanceStats] = useState({
-    totalRecords: 0,
-    averagePerService: 0,
-    attendanceRate: 0
-  });
+  const [attendanceStats, setAttendanceStats] = useState(
+    () => cachedAttendanceStats || DEFAULT_ATTENDANCE_STATS
+  );
 
   // Load events and members on component mount
   useEffect(() => {
@@ -218,7 +226,9 @@ const AttendanceManagement = ({
     }
 
     if (!Number.isFinite(averagePerService) || averagePerService < 0) {
-      setAttendanceStats({ totalRecords, averagePerService: 0, attendanceRate: 0 });
+      const nextStats = { totalRecords, averagePerService: 0, attendanceRate: 0 };
+      cachedAttendanceStats = nextStats;
+      setAttendanceStats(nextStats);
       return;
     }
 
@@ -228,11 +238,13 @@ const AttendanceManagement = ({
 
     attendanceRate = Math.min(attendanceRate, 100);
 
-    setAttendanceStats({
+    const nextStats = {
       totalRecords,
       averagePerService,
       attendanceRate
-    });
+    };
+    cachedAttendanceStats = nextStats;
+    setAttendanceStats(nextStats);
   };
 
   const filteredAttendanceEvents = useMemo(() => {
@@ -295,6 +307,8 @@ const AttendanceManagement = ({
         const cachedEvents = await offlineStorage.getAllData('events');
         if (cachedEvents && cachedEvents.length > 0) {
           setEvents(cachedEvents);
+          cachedAttendanceHasLoaded = true;
+          hasLoadedOnceRef.current = true;
           setLoading(false);
           return;
         }
@@ -328,9 +342,13 @@ const AttendanceManagement = ({
 
       setEvents([]); // Set empty array instead of error
     } finally {
+      cachedAttendanceHasLoaded = true;
+      hasLoadedOnceRef.current = true;
       setLoading(false);
     }
   };
+
+  const showStatsLoading = loading && !hasLoadedOnceRef.current;
 
   const loadMembers = async () => {
     try {
@@ -1693,7 +1711,7 @@ const AttendanceManagement = ({
           </div>
           <div className="stat-content">
             <div className="stat-label-small">Total Events</div>
-            <div className="stat-value-large">{loading ? '...' : attendanceStats.totalRecords}</div>
+            <div className="stat-value-large">{showStatsLoading ? '...' : attendanceStats.totalRecords}</div>
             <div className="stat-sublabel">All Records</div>
           </div>
         </div>
@@ -1709,7 +1727,7 @@ const AttendanceManagement = ({
           </div>
           <div className="stat-content">
             <div className="stat-label-small">Average</div>
-            <div className="stat-value-large">{loading ? '...' : (attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService)}</div>
+            <div className="stat-value-large">{showStatsLoading ? '...' : (attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService)}</div>
             <div className="stat-sublabel">Per Service</div>
           </div>
         </div>
@@ -1722,7 +1740,7 @@ const AttendanceManagement = ({
           </div>
           <div className="stat-content">
             <div className="stat-label-small">Rate</div>
-            <div className="stat-value-large">{loading ? '...' : (attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate)}%</div>
+            <div className="stat-value-large">{showStatsLoading ? '...' : (attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate)}%</div>
             <div className="stat-sublabel">Attendance</div>
           </div>
         </div>

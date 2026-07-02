@@ -1503,6 +1503,7 @@ const Manager = () => {
     const [qrMessageType, setQrMessageType] = useState('success');
     const [qrSessions, setQrSessions] = useState([]);
     const [sessionsLoading, setSessionsLoading] = useState(false);
+    const hasSessionsLoadedOnceRef = useRef(false);
     const [sessionsError, setSessionsError] = useState('');
     const [sessionsMessage, setSessionsMessage] = useState('');
     const [sessionsMessageType, setSessionsMessageType] = useState('success');
@@ -1691,7 +1692,9 @@ const Manager = () => {
     }, []);
 
     const fetchSessions = useCallback(async () => {
-      setSessionsLoading(true);
+      if (!hasSessionsLoadedOnceRef.current) {
+        setSessionsLoading(true);
+      }
       setSessionsError('');
       setSessionsMessage('');
 
@@ -1720,6 +1723,7 @@ const Manager = () => {
       } catch (error) {
         setSessionsError(error.message || 'Unable to load sessions');
       } finally {
+        hasSessionsLoadedOnceRef.current = true;
         setSessionsLoading(false);
       }
     }, [backendBaseUrl, sessionStatusFilter]);
@@ -2201,7 +2205,7 @@ const Manager = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {sessionsLoading ? (
+                    {sessionsLoading && qrSessions.length === 0 ? (
                       <tr>
                         <td colSpan={multiSelectMode ? 5 : 4} style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
                           Loading sessions...

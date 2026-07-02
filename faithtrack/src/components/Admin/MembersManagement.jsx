@@ -57,6 +57,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [rejectedRequests, setRejectedRequests] = useState([]);
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true); // Start with true to show loading initially
+  const hasLoadedOnceRef = useRef(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
   const [addUserMessage, setAddUserMessage] = useState('');
@@ -636,7 +637,9 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
       return;
     }
 
-    setLoading(true);
+    if (!hasLoadedOnceRef.current) {
+      setLoading(true);
+    }
     const pendingScope = isManagerScope ? 'manager' : 'admin';
     const apiBase = `${backendBaseUrl}/api/members`;
     const guestApiBase = `${backendBaseUrl}/api/guest`;
@@ -650,6 +653,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         const cachedMembers = await offlineStorage.getAllData('members');
         if (cachedMembers && cachedMembers.length > 0) {
           setMembers(cachedMembers);
+          hasLoadedOnceRef.current = true;
           setLoading(false);
           return;
         }
@@ -728,7 +732,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         setRejectedRequests([]);
         setGuests([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        hasLoadedOnceRef.current = true;
+        setLoading(false);
+      });
   };
 
   useEffect(() => {
