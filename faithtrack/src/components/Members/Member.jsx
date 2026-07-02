@@ -110,10 +110,25 @@ const Member = () => {
       const hasEmail = m.email != null && String(m.email).trim() !== '';
       const verified = m.email_verified_at != null && String(m.email_verified_at).trim() !== '';
 
-      // If the account has no email, always keep the gate open until one is provided + verified.
+      // If the account has no email, keep the gate open until one is provided.
       if (!hasEmail) {
-        localStorage.setItem('requiresEmailSetup', 'true');
-        setEmailGateNeedsAddress(true);
+        if (isAdminOrGuestConversion) {
+          localStorage.setItem('requiresEmailSetup', 'true');
+          localStorage.removeItem('requiresEmailVerification');
+          setEmailGateNeedsAddress(true);
+          if (newPasswordForSession && typeof window !== 'undefined') {
+            window.sessionStorage.setItem('memberLastLoginPassword', newPasswordForSession);
+          }
+          setShowEmailVerificationGate(true);
+        }
+        return;
+      }
+
+      // Admin-created / guest-converted: keep gate open until email is verified.
+      if (isAdminOrGuestConversion && !verified) {
+        localStorage.setItem('requiresEmailVerification', 'true');
+        localStorage.removeItem('requiresEmailSetup');
+        setEmailGateNeedsAddress(false);
         if (newPasswordForSession && typeof window !== 'undefined') {
           window.sessionStorage.setItem('memberLastLoginPassword', newPasswordForSession);
         }
@@ -121,12 +136,9 @@ const Member = () => {
         return;
       }
 
-      // Accounts with email but unverified are blocked at login by the API,
-      // so dashboard email gate should only remain for "no email yet" setup cases.
+      // Email verified (or not a staff-created account): clear gate.
       localStorage.removeItem('requiresEmailVerification');
-      if (hasEmail) {
-        localStorage.removeItem('requiresEmailSetup');
-      }
+      localStorage.removeItem('requiresEmailSetup');
       setEmailGateNeedsAddress(false);
       if (typeof window !== 'undefined') {
         window.sessionStorage.removeItem('memberLastLoginPassword');
@@ -990,6 +1002,7 @@ const Member = () => {
       const verified = ev != null && String(ev).trim() !== '';
       if (verified) {
         localStorage.removeItem('requiresEmailVerification');
+        localStorage.removeItem('requiresEmailSetup');
         setEmailGateNeedsAddress(false);
         if (typeof window !== 'undefined') {
           window.sessionStorage.removeItem('memberLastLoginPassword');
@@ -1088,10 +1101,14 @@ const Member = () => {
       }
       localStorage.setItem('memberEmail', email);
       localStorage.removeItem('isAdultEmailSetup');
+      localStorage.removeItem('requiresEmailSetup');
+      localStorage.setItem('requiresEmailVerification', 'true');
       setUser((prev) => ({ ...prev, email }));
       setEmailGateNewEmail('');
       setEmailGateResendPassword('');
-      triggerToast(data.message || 'Verification email sent.', 'success');
+      setEmailGateNeedsAddress(false);
+      setShowEmailVerificationGate(true);
+      triggerToast(data.message || 'Verification email sent. Open the link, then tap "I\'ve verified my email".', 'success');
       await refreshAdminEmailVerificationGate(null);
     } catch (error) {
       setEmailGateError(error.message || 'Unable to save email.');
@@ -1848,7 +1865,7 @@ const Member = () => {
                 ) : (
                   <>
                     <p>
-                      Your account was created by an administrator. We sent a verification link to your email.
+                      We sent a verification link to your email.
                       Open that link, then tap &quot;I&apos;ve verified my email&quot; below.
                     </p>
                     <p className="forced-password-requirements">
