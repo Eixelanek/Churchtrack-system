@@ -89,18 +89,21 @@ try {
 
                 $requiresEmailVerification = ($createdVia === 'admin' && !$hasEmail);
 
-                // Check if member is 18+ and doesn't have a unique email (shared parent email)
-                $requiresEmailSetup = false;
+                // Email setup gate:
+                // If a member has no email on file, allow login but require them to set one in-app.
+                // (This applies to admin-created accounts and guest conversions, and keeps the flow consistent.)
+                $requiresEmailSetup = !$hasEmail;
                 $isAdultEmailSetup = false;
                 if ($birthday) {
-                    $birthDate = new DateTime($birthday);
-                    $today = new DateTime();
-                    $age = $today->diff($birthDate)->y;
-                    
-                    // If 18+ and email is empty or shared (created via admin), require email setup
-                    if ($age >= 18 && !$hasEmail) {
-                        $requiresEmailSetup = true;
-                        $isAdultEmailSetup = true;
+                    try {
+                        $birthDate = new DateTime($birthday);
+                        $today = new DateTime();
+                        $age = $today->diff($birthDate)->y;
+                        if ($age >= 18) {
+                            $isAdultEmailSetup = true;
+                        }
+                    } catch (Exception $e) {
+                        $isAdultEmailSetup = false;
                     }
                 }
 
