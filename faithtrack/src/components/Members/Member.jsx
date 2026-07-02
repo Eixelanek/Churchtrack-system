@@ -1911,16 +1911,19 @@ const Member = () => {
                   </>
                 ) : (
                   <>
-                    <label htmlFor="email-gate-resend-password">Password (to resend the email)</label>
+                    <label htmlFor="email-gate-resend-password">Password</label>
                     <input
                       id="email-gate-resend-password"
                       type="password"
                       value={emailGateResendPassword}
                       onChange={(e) => setEmailGateResendPassword(e.target.value)}
-                      placeholder="Leave blank if you just logged in with this password"
+                      placeholder="Current password"
                       disabled={emailGateBusyKey !== null}
                       autoComplete="current-password"
                     />
+                    <p className="forced-password-field-hint">
+                      Optional if you just logged in with this password.
+                    </p>
                     <button
                       type="button"
                       className="forced-password-submit"

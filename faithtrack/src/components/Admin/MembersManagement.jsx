@@ -233,6 +233,8 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
 
   const openConvertGuestModal = (guest) => {
     if (!canManageGuests || !guest?.id) return;
+    if (String(guest.status || 'active').toLowerCase() !== 'active') return;
+    if (convertGuestSaving) return;
 
     const surname = guest?.surname || '';
     const firstName = guest?.first_name || '';
@@ -934,7 +936,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const activeMembersCount = members.filter(member => member.status === 'active').length;
   const inactiveMembers = members.filter(member => member.status === 'inactive');
   const inactiveMembersCount = inactiveMembers.length;
-  const guestCount = guests.length;
+  const guestCount = guests.filter((g) => String(g.status || 'active').toLowerCase() === 'active').length;
 
   // Filter members based on search query and referral filter
   const filteredMembers = members.filter(member => {
@@ -968,7 +970,10 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     status: guest.status || 'active'
   });
 
-  const filteredGuestsRaw = guests.map(remapGuest).filter(searchInData);
+  const filteredGuestsRaw = guests
+    .filter((g) => String(g.status || 'active').toLowerCase() === 'active')
+    .map(remapGuest)
+    .filter(searchInData);
   const sortedGuests = sortItems(filteredGuestsRaw);
   const eligibleGuestsCount = filteredGuestsRaw.filter((g) => {
     const remaining = Number.isFinite(g?.remaining_for_membership) ? Number(g.remaining_for_membership) : null;
@@ -2846,7 +2851,10 @@ ChurchTrack System`;
                 ? guest.remaining_for_membership
               : null;
               const statusLabel = guest.status ? guest.status.charAt(0).toUpperCase() + guest.status.slice(1) : 'Active';
+              const isGuestActive = String(guest.status || 'active').toLowerCase() === 'active';
+              const isReadyForConversion = isGuestActive && membershipRemaining === 0;
               const isExpanded = expandedGuestId === guest.id;
+              const isConvertingThisGuest = convertGuestSaving && guestToConvert?.id === guest.id;
               return (
                 <div key={guest.id || guest.full_name} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
                   <div className="member-card guest-card" onClick={() => toggleGuestExpand(guest.id)}>
@@ -2872,24 +2880,10 @@ ChurchTrack System`;
                       <span className="guest-visit-badge">
                         Visits: {guest.total_visits || 0}
                       </span>
-                      {canManageGuests && membershipRemaining === 0 && (
-                        <button
-                          type="button"
-                          className="guest-visit-badge"
-                          style={{
-                            border: '1px solid #bbf7d0',
-                            background: '#dcfce7',
-                            color: '#166534',
-                            cursor: 'pointer'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConvertGuestModal(guest);
-                          }}
-                          title="Convert this guest to a member account"
-                        >
-                          Convert to Member
-                        </button>
+                      {isReadyForConversion && (
+                        <span className="guest-ready-badge" title="Eligible for membership conversion">
+                          Ready for membership
+                        </span>
                       )}
                       {canManageGuests && (
                         <button
@@ -2948,6 +2942,24 @@ ChurchTrack System`;
                           )}
                         </div>
                       </div>
+                      {canManageGuests && isReadyForConversion && (
+                        <div className="guest-convert-actions">
+                          <button
+                            type="button"
+                            className="guest-convert-btn"
+                            disabled={isConvertingThisGuest}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openConvertGuestModal(guest);
+                            }}
+                          >
+                            {isConvertingThisGuest ? 'Converting…' : 'Convert to Member'}
+                          </button>
+                          <p className="guest-convert-note">
+                            After conversion, this guest moves to All Members and is removed from this list.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -2960,8 +2972,8 @@ ChurchTrack System`;
                 <circle cx="8.5" cy="7" r="4"></circle>
                 <polyline points="17 11 19 13 23 9"></polyline>
               </svg>
-              <h3>No Guest Members</h3>
-              <p>Guest members and visitors will be listed here</p>
+              <h3>No Guests</h3>
+              <p>Active visitors appear here until they are converted to members.</p>
             </div>
           )}
         </div>

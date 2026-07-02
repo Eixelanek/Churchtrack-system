@@ -98,6 +98,14 @@
 
 .forced-password-form input::placeholder {
   color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.forced-password-field-hint {
+  margin: -0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #64748b;
 }
 
 .forced-password-form input:focus {

@@ -868,6 +868,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .status-badge-new {
@@ -915,6 +916,54 @@
   border-radius: 999px;
   font-weight: 600;
   font-size: 0.8rem;
+}
+
+.guest-ready-badge {
+  background: rgba(34, 197, 94, 0.16);
+  color: #166534;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.guest-convert-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed #dbeafe;
+}
+
+.guest-convert-btn {
+  align-self: flex-start;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.guest-convert-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.guest-convert-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.guest-convert-note {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #64748b;
 }
 
 .guest-details-expanded {

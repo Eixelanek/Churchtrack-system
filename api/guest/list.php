@@ -69,6 +69,7 @@ try {
                   ) AS inviter_name
               FROM guests g
               LEFT JOIN members inviter ON inviter.id = g.invited_by_member_id
+              WHERE (g.status IS NULL OR LOWER(TRIM(g.status)) = 'active')
               ORDER BY COALESCE(g.last_visit_date, g.created_at) DESC, g.full_name ASC";
 
     $stmt = $db->prepare($query);
