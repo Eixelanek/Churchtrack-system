@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Manila');
+
 /**
  * Export a single event's attendance report (attendees + absentees).
  * Supports: pdf, xlsx
