@@ -54,7 +54,7 @@ try {
                     exit();
                 }
 
-                if ($status !== 'active') {
+                if ($status !== 'active' && $status !== 'inactive') {
                     http_response_code(403);
                     if ($status === 'rejected') {
                         echo json_encode(array(

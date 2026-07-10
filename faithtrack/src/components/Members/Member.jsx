@@ -3234,6 +3234,16 @@ const Member = () => {
               {activeView === 'dashboard' ? (
                 <div className="dashboard-content">
                   <div className="member-new-dashboard">
+                    {/* Inactive Member Notice */}
+                    {localStorage.getItem('memberStatus') === 'inactive' && (
+                      <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                        <div>
+                          <strong style={{ color: '#92400e', display: 'block' }}>Your account is currently inactive.</strong>
+                          <span style={{ color: '#b45309', fontSize: '0.875rem' }}>Attend a Sunday Service to reactivate your account automatically.</span>
+                        </div>
+                      </div>
+                    )}
                     {/* Welcome Header */}
                     <div className="welcome-header">
                       <h1>Welcome back, {user && user.firstName ? user.firstName : 'Juan'}!</h1>

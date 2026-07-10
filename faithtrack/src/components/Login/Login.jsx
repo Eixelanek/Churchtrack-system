@@ -166,6 +166,7 @@ const Login = () => {
           localStorage.removeItem('sessionId');
         }
         localStorage.setItem('memberName', memberData.name);
+        localStorage.setItem('memberStatus', memberData.status || 'active');
         if (memberData.email != null && String(memberData.email).trim() !== '') {
           localStorage.setItem('memberEmail', memberData.email);
         } else {
