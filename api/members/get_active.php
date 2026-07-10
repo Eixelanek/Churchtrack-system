@@ -13,7 +13,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Get all active members for referral selection
+    // Get all active and inactive members for manual attendance
     $query = "SELECT 
                 id, 
                 CONCAT(first_name, ' ', 
@@ -22,9 +22,10 @@ try {
                        CASE WHEN suffix != 'None' THEN CONCAT(' ', suffix) ELSE '' END) as name,
                 username, 
                 email, 
-                birthday 
+                birthday,
+                status
               FROM members 
-              WHERE status = 'active' 
+              WHERE status IN ('active', 'inactive')
               ORDER BY surname, first_name";
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -36,7 +37,8 @@ try {
             'name' => $row['name'],
             'username' => $row['username'],
             'email' => $row['email'],
-            'birthday' => $row['birthday']
+            'birthday' => $row['birthday'],
+            'status' => $row['status']
         ];
     }
 

@@ -2944,7 +2944,12 @@ const AttendanceManagement = ({
                         filteredMembers.map(member => (
                           <div key={member.id} className="member-item">
                             <div className="member-info">
-                              <span className="member-name">{member.name}</span>
+                              <span className="member-name">
+                                {member.name}
+                                {member.status === 'inactive' && (
+                                  <span style={{ marginLeft: '6px', fontSize: '0.7rem', background: '#fef3c7', color: '#92400e', borderRadius: '4px', padding: '1px 6px', fontWeight: 600 }}>INACTIVE</span>
+                                )}
+                              </span>
                               <span className="member-email">{member.email}</span>
                             </div>
                             <div className="status-options">

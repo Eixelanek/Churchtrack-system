@@ -98,15 +98,25 @@ try {
                     
                     $status = strtolower($status);
 
-                    // Check if member exists and is active
-                    $member_query = "SELECT id FROM members WHERE id = :member_id AND status = 'active'";
+                    // Check if member exists (active or inactive)
+                    $member_query = "SELECT id, status FROM members WHERE id = :member_id AND status IN ('active', 'inactive')";
                     $member_stmt = $db->prepare($member_query);
                     $member_stmt->bindParam(":member_id", $member_id);
                     $member_stmt->execute();
 
                     if ($member_stmt->rowCount() == 0) {
-                        $errors[] = "Member ID $member_id not found or not active";
+                        $errors[] = "Member ID $member_id not found";
                         continue;
+                    }
+
+                    $member_row = $member_stmt->fetch(PDO::FETCH_ASSOC);
+
+                    // Auto-reactivate inactive member when marked present/late
+                    if (strtolower($member_row['status']) === 'inactive') {
+                        $reactivate_query = "UPDATE members SET status = 'active', updated_at = NOW() WHERE id = :member_id";
+                        $reactivate_stmt = $db->prepare($reactivate_query);
+                        $reactivate_stmt->bindParam(":member_id", $member_id);
+                        $reactivate_stmt->execute();
                     }
 
                     // Insert attendance for main event
