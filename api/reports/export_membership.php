@@ -567,7 +567,7 @@ try {
                 m.created_at
               FROM members m
               {$whereClause}
-              ORDER BY m.created_at DESC";
+              ORDER BY m.surname ASC, m.first_name ASC";
 
     $stmt = $db->prepare($query);
     $stmt->execute();
