@@ -103,13 +103,16 @@ const Login = () => {
           navigate('/admin', { replace: true });
           return;
         }
-        // If no ID but response is OK, check if it's "User not found" - if so, continue to member login
-        // Otherwise it's a malformed response
-        if (!adminData.message || !adminData.message.includes('not found')) {
-          setError('Invalid login response. Please check your credentials and try again.');
+      } else {
+        // Non-OK response from admin login
+        const adminData = await adminResponse.json().catch(() => ({}));
+        // If password was wrong (user exists but wrong password), stop here
+        if (adminData.message && adminData.message.toLowerCase().includes('invalid password')) {
+          setError('Incorrect password. Please try again.');
+          setIsLoading(false);
           return;
         }
-        // User not found in admin, continue to try manager and member
+        // "User not found" in admin — continue to try manager and member
       }
 
       const managerResponse = await fetch(`${apiBaseUrl}/api/manager/login.php`, {
@@ -140,6 +143,16 @@ const Login = () => {
           return;
         }
         // If no ID, continue to member login (user not found as manager)
+      } else {
+        // Non-OK response from manager login
+        const managerData = await managerResponse.json().catch(() => ({}));
+        // If password was wrong (user exists as manager but wrong password), stop here
+        if (managerData.message && managerData.message.toLowerCase().includes('invalid')) {
+          setError('Incorrect password. Please try again.');
+          setIsLoading(false);
+          return;
+        }
+        // Not found as manager — continue to member login
       }
 
       const memberResponse = await fetch(`${apiBaseUrl}/api/members/login.php`, {
