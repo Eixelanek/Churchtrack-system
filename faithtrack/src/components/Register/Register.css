@@ -2051,6 +2051,23 @@ html, body {
   flex-direction: column !important;
 }
 
+/* Override for terms/privacy modals specifically */
+.modal-overlay .terms-modal,
+.modal-overlay .privacy-modal {
+  max-width: 780px !important;
+  width: 92% !important;
+  max-height: 88vh !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: white !important;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 12px 24px rgba(0, 0, 0, 0.15) !important;
+  animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -2199,9 +2216,11 @@ html, body {
   }
 
   .terms-modal,
-  .privacy-modal {
-    width: 96%;
-    max-width: none;
+  .privacy-modal,
+  .modal-overlay .terms-modal,
+  .modal-overlay .privacy-modal {
+    width: 96% !important;
+    max-width: none !important;
   }
 
   .modal-content {
