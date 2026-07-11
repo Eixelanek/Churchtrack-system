@@ -2016,8 +2016,8 @@ html, body {
 /* Terms and Conditions / Privacy Policy Modal Styles */
 .terms-modal,
 .privacy-modal {
-  max-width: 700px;
-  width: 90%;
+  max-width: 780px;
+  width: 92%;
 }
 
 .modal-overlay {
@@ -2042,9 +2042,9 @@ html, body {
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.25),
     0 12px 24px rgba(0, 0, 0, 0.15);
-  max-width: 600px;
-  width: 100%;
-  max-height: 85vh;
+  max-width: 780px;
+  width: 92%;
+  max-height: 88vh;
   overflow: hidden;
   animation: modalSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex !important;
@@ -2055,28 +2055,28 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 28px;
-  border-bottom: 2px solid rgba(148, 163, 184, 0.1);
-  background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+  padding: 28px 36px;
+  border-bottom: 2px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   flex-shrink: 0 !important;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: #1e293b;
+  color: #ffffff;
   font-family: 'Poppins', sans-serif;
 }
 
 .modal-close {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  font-size: 32px;
-  color: #64748b;
+  font-size: 28px;
+  color: #ffffff;
   cursor: pointer;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 50%;
   transition: all 0.3s ease;
   width: 40px;
   height: 40px;
@@ -2087,13 +2087,13 @@ html, body {
 }
 
 .modal-close:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
   transform: scale(1.1);
 }
 
 .modal-body {
-  padding: 28px;
+  padding: 32px 36px;
   overflow-y: auto !important;
   overflow-x: hidden;
   flex: 1 1 auto !important;
@@ -2200,31 +2200,32 @@ html, body {
 
   .terms-modal,
   .privacy-modal {
-    width: 95%;
+    width: 96%;
     max-width: none;
   }
 
   .modal-content {
     border-radius: 20px;
-    max-height: 90vh;
+    max-height: 92vh;
+    width: 96%;
   }
 
   .modal-header {
-    padding: 20px 20px;
+    padding: 22px 24px;
   }
 
   .modal-header h3 {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .modal-close {
-    font-size: 28px;
+    font-size: 24px;
     width: 36px;
     height: 36px;
   }
 
   .modal-body {
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto !important;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
