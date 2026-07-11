@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logoImage from '../../assets/logo.png';
 import './Home.css';
@@ -16,8 +16,6 @@ import img6 from '../../assets/floating6.png';
 function Home() {
   const navigate = useNavigate();
   const [isExiting, setIsExiting] = useState(false);
-  const buttonRef = useRef(null);
-  const mobileMenuRef = useRef(null);
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const [churchName, setChurchName] = useState('Christ-Like Christian Church');
   const [homepageImages, setHomepageImages] = useState([img1, img2, img3, img4, img5, img6]);
@@ -98,21 +96,6 @@ function Home() {
     };
   }, []);
   
-  useEffect(() => {
-    // Add event listener to the entire document to capture clicks outside our component
-    const handleClickOutside = (event) => {
-      if (isExiting && buttonRef.current && !buttonRef.current.contains(event.target)) {
-        // If we're exiting and click is outside our button, cancel the transition
-        setIsExiting(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isExiting]);
-  
   const handleJoinUsClick = (e) => {
     e.preventDefault();
     setIsExiting(true);
@@ -120,7 +103,7 @@ function Home() {
     // Delay navigation to allow transition to complete
     setTimeout(() => {
       navigate('/login');
-    }, 600);
+    }, 300);
   };
   
   return (
@@ -178,7 +161,6 @@ function Home() {
             <p className="minimal-subtext">{homepageHeroSubtitle}</p>
             <NavLink 
               to="/login" 
-              ref={buttonRef}
               className="minimal-cta-btn"
               onClick={handleJoinUsClick}
             >
