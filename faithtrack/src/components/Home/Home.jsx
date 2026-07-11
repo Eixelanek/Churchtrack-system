@@ -122,6 +122,7 @@ function Home() {
         <div className="nav-links desktop-nav">
           <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
           <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+          <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
           <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
         </div>
         {/* Mobile Hamburger Menu */}
@@ -133,6 +134,7 @@ function Home() {
           <div className="mobile-menu">
             <NavLink to="/" end>Home</NavLink>
             <NavLink to="/about">About</NavLink>
+            <NavLink to="/guides">Guides</NavLink>
             <NavLink to="/contact">Contact</NavLink>
           </div>
         </div>

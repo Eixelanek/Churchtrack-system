@@ -170,6 +170,7 @@ const App = () => {
                 <div className="nav-links desktop-nav">
                   <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
                   <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+                  <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
                   <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
                 </div>
                 <div className="hamburger-menu">
@@ -180,6 +181,7 @@ const App = () => {
                   <div className="mobile-menu">
                     <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
                     <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
+                    <NavLink to="/guides" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Guides</NavLink>
                     <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
                   </div>
                 </div>
@@ -203,6 +205,7 @@ const App = () => {
                 <div className="nav-links desktop-nav">
                   <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
                   <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
+                  <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
                   <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
                 </div>
                 <div className="hamburger-menu">
@@ -213,6 +216,7 @@ const App = () => {
                   <div className="mobile-menu">
                     <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
                     <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
+                    <NavLink to="/guides" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Guides</NavLink>
                     <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
                   </div>
                 </div>
