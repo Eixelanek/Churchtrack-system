@@ -19,7 +19,7 @@ try {
     $data = json_decode(file_get_contents("php://input"));
 
     if(!empty($data->username) && !empty($data->password)) {
-        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, must_change_password, password_temp_expires_at, email_verified_at, member_created_via FROM members WHERE username = :username LIMIT 1";
+        $query = "SELECT id, full_name AS name, username, email, birthday, status, password, email_verified_at, member_created_via FROM members WHERE username = :username LIMIT 1";
         $stmt = $db->prepare($query);
         $stmt->bindParam(":username", $data->username);
         $stmt->execute();
@@ -70,22 +70,6 @@ try {
                         ));
                     }
                     exit();
-                }
-
-                if ((int)($row['must_change_password'] ?? 0) === 1) {
-                    $expiresAt = $row['password_temp_expires_at'];
-                    if ($expiresAt) {
-                        $expiryDate = new DateTime($expiresAt);
-                        $now = new DateTime();
-                        if ($expiryDate < $now) {
-                            http_response_code(403);
-                            echo json_encode(array(
-                                "message" => "Temporary password has expired. Please request a new reset to continue.",
-                                "code" => "TEMP_PASSWORD_EXPIRED"
-                            ));
-                            exit();
-                        }
-                    }
                 }
 
                 // Verification gate inside member dashboard is not needed when email exists
@@ -155,8 +139,6 @@ try {
                     "token" => $sessionToken,
                     "session_id" => $sessionToken,
                     "warning" => $status !== 'active' ? 'Account is currently marked as ' . $status . '.' : null,
-                    "must_change_password" => (int)($row['must_change_password'] ?? 0) === 1,
-                    "temp_password_expires_at" => $row['password_temp_expires_at'],
                     "requires_email_verification" => $requiresEmailVerification,
                     "requires_email_setup" => $requiresEmailSetup,
                     "is_adult_email_setup" => $isAdultEmailSetup,

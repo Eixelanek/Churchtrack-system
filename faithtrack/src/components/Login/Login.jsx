@@ -187,24 +187,6 @@ const Login = () => {
         }
         localStorage.setItem('memberBirthday', memberData.birthday);
 
-        if (memberData.must_change_password) {
-          localStorage.setItem('mustChangePassword', 'true');
-          if (memberData.temp_password_expires_at) {
-            localStorage.setItem('tempPasswordExpiresAt', memberData.temp_password_expires_at);
-          } else {
-            localStorage.removeItem('tempPasswordExpiresAt');
-          }
-          if (typeof window !== 'undefined') {
-            window.sessionStorage.setItem('memberLastLoginPassword', password);
-          }
-        } else {
-          localStorage.removeItem('mustChangePassword');
-          localStorage.removeItem('tempPasswordExpiresAt');
-          if (typeof window !== 'undefined') {
-            window.sessionStorage.removeItem('memberLastLoginPassword');
-          }
-        }
-
         if (memberData.requires_email_verification) {
           localStorage.setItem('requiresEmailVerification', 'true');
           if (typeof window !== 'undefined') {
@@ -212,7 +194,7 @@ const Login = () => {
           }
         } else {
           localStorage.removeItem('requiresEmailVerification');
-          if (!memberData.must_change_password && typeof window !== 'undefined') {
+          if (typeof window !== 'undefined') {
             window.sessionStorage.removeItem('memberLastLoginPassword');
           }
         }

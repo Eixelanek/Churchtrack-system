@@ -70,8 +70,8 @@ try {
     // Hash new password
     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-    // Update member password
-    $updateQuery = $db->prepare("UPDATE members SET password = :password WHERE id = :member_id");
+    // Update member password and clear any must_change_password flag
+    $updateQuery = $db->prepare("UPDATE members SET password = :password, must_change_password = 0, password_temp_expires_at = NULL WHERE id = :member_id");
     $updateQuery->bindParam(':password', $hashedPassword);
     $updateQuery->bindParam(':member_id', $memberId, PDO::PARAM_INT);
     $updateQuery->execute();

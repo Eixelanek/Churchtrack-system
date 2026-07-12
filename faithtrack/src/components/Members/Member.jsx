@@ -81,17 +81,12 @@ const Member = () => {
   const [showScannerPanel, setShowScannerPanel] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState('');
-  const [showForcePasswordModal, setShowForcePasswordModal] = useState(false);
-  const [forcePasswordError, setForcePasswordError] = useState('');
-  const [forcePasswordLoading, setForcePasswordLoading] = useState(false);
-  const [forcePasswordForm, setForcePasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [showEmailVerificationGate, setShowEmailVerificationGate] = useState(false);
   const [emailGateError, setEmailGateError] = useState('');
   const [emailGateBusyKey, setEmailGateBusyKey] = useState(null);
   const [emailGateResendPassword, setEmailGateResendPassword] = useState('');
   const [emailGateNeedsAddress, setEmailGateNeedsAddress] = useState(false);
   const [emailGateNewEmail, setEmailGateNewEmail] = useState('');
-  const passwordRequirements = 'Password must be at least 8 characters long.';
   const navigate = useNavigate();
 
   /** After forced password change (or on load), keep the email gate accurate.
@@ -176,85 +171,16 @@ const Member = () => {
   }, []);
 
   useEffect(() => {
-    const mustChange = localStorage.getItem('mustChangePassword') === 'true';
     const needsEmail = localStorage.getItem('requiresEmailVerification') === 'true';
     const needsEmailSetup = localStorage.getItem('requiresEmailSetup') === 'true';
-    if (mustChange) {
-      setShowForcePasswordModal(true);
-    } else if (needsEmailSetup) {
+    if (needsEmailSetup) {
       setShowEmailVerificationGate(true);
       setEmailGateNeedsAddress(true);
     } else if (needsEmail) {
       setShowEmailVerificationGate(true);
     }
-    if (!mustChange) {
-      void refreshAdminEmailVerificationGate();
-    }
+    void refreshAdminEmailVerificationGate();
   }, [refreshAdminEmailVerificationGate]);
-
-  const handleForcePasswordChange = (field, value) => {
-    setForcePasswordForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleForcePasswordSubmit = async (event) => {
-    event.preventDefault();
-    setForcePasswordError('');
-
-    const trimmedNew = forcePasswordForm.newPassword.trim();
-    const trimmedConfirm = forcePasswordForm.confirmPassword.trim();
-
-    if (trimmedNew.length < 8) {
-      setForcePasswordError('Your new password must be at least 8 characters long.');
-      return;
-    }
-
-    if (trimmedNew !== trimmedConfirm) {
-      setForcePasswordError('New password and confirmation do not match.');
-      return;
-    }
-
-    const memberId = localStorage.getItem('userId');
-    const sessionPassword = typeof window !== 'undefined' ? window.sessionStorage.getItem('memberLastLoginPassword') : null;
-
-    if (!memberId || !sessionPassword) {
-      setForcePasswordError('Unable to verify your session. Please log in again.');
-      return;
-    }
-
-    try {
-      setForcePasswordLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/members/change_password.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          member_id: memberId,
-          current_password: sessionPassword,
-          new_password: trimmedNew
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Password update failed.');
-      }
-
-      localStorage.removeItem('mustChangePassword');
-      localStorage.removeItem('tempPasswordExpiresAt');
-
-      setShowForcePasswordModal(false);
-      setForcePasswordForm({ newPassword: '', confirmPassword: '' });
-      triggerToast('Password updated successfully. You can continue.', 'success');
-      await refreshAdminEmailVerificationGate(trimmedNew);
-    } catch (error) {
-
-      setForcePasswordError(error.message || 'Unable to update password.');
-    } finally {
-      setForcePasswordLoading(false);
-    }
-  };
 
   // Fetch member notifications
   useEffect(() => {
@@ -1127,8 +1053,6 @@ const Member = () => {
     localStorage.removeItem('memberBirthday');
     localStorage.removeItem('requiresEmailVerification');
     localStorage.removeItem('requiresEmailSetup');
-    localStorage.removeItem('mustChangePassword');
-    localStorage.removeItem('tempPasswordExpiresAt');
     setEmailGateNeedsAddress(false);
     setEmailGateNewEmail('');
     setEmailGateResendPassword('');
@@ -1786,57 +1710,6 @@ const Member = () => {
 
   return (
     <div className="member-root">
-      {showForcePasswordModal && (
-        <div className="modal-overlay forced-password-modal" onClick={(e) => {
-          e.stopPropagation();
-        }}>
-          <div className="forced-password-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="forced-password-header">
-              <h2>Update Your Password</h2>
-            </div>
-            <div className="forced-password-body">
-              <div className="forced-password-description">
-                <p>A temporary password was used to log in. Please set a permanent password before proceeding.</p>
-                <p className="forced-password-requirements">{passwordRequirements}</p>
-              </div>
-              {forcePasswordError && (
-                <div className="forced-password-error">{forcePasswordError}</div>
-              )}
-              <form onSubmit={handleForcePasswordSubmit} className="forced-password-form">
-                <label htmlFor="forced-new-password">New password</label>
-                <input
-                  id="forced-new-password"
-                  type="password"
-                  value={forcePasswordForm.newPassword}
-                  onChange={(e) => handleForcePasswordChange('newPassword', e.target.value)}
-                  minLength={8}
-                  placeholder="Enter new password"
-                  disabled={forcePasswordLoading}
-                  required
-                />
-                <label htmlFor="forced-confirm-password">Confirm password</label>
-                <input
-                  id="forced-confirm-password"
-                  type="password"
-                  value={forcePasswordForm.confirmPassword}
-                  onChange={(e) => handleForcePasswordChange('confirmPassword', e.target.value)}
-                  minLength={8}
-                  placeholder="Repeat new password"
-                  disabled={forcePasswordLoading}
-                  required
-                />
-                <button
-                  type="submit"
-                  className="forced-password-submit"
-                  disabled={forcePasswordLoading}
-                >
-                  {forcePasswordLoading ? 'Saving…' : 'Save New Password'}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
       {showEmailVerificationGate && (
         <div
           className="modal-overlay forced-password-modal email-verification-gate-modal"

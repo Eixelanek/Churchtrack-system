@@ -12,8 +12,6 @@ import { resolveProfilePicUrl } from '../../utils/profilePicture';
 const LOGIN_HISTORY_PAGE_SIZE = 5;
 const SESSION_PAGE_SIZE = 5;
 
-const TEMP_PASSWORD_STORAGE_KEY = 'adminGeneratedPasswords';
-
 const Admin = () => {
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -57,46 +55,6 @@ const Admin = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
-  const [passwordResetRequests, setPasswordResetRequests] = useState([]);
-  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
-  const [passwordResetError, setPasswordResetError] = useState('');
-  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
-  const [selectedPasswordReset, setSelectedPasswordReset] = useState(null);
-  const [isGeneratingTempPassword, setIsGeneratingTempPassword] = useState(false);
-  const [generatedTempPassword, setGeneratedTempPassword] = useState(null);
-  const [generatedTempExpiry, setGeneratedTempExpiry] = useState(null);
-  const [passwordResetModalError, setPasswordResetModalError] = useState('');
-  const manageUsersSectionRef = useRef(null);
-  const [passwordResetExpiryHours, setPasswordResetExpiryHours] = useState(24);
-  const [showAllPasswordResets, setShowAllPasswordResets] = useState(false);
-  const [generatedPasswordsMap, setGeneratedPasswordsMap] = useState(() => {
-    if (typeof window === 'undefined') return {};
-    try {
-      const stored = window.sessionStorage.getItem(TEMP_PASSWORD_STORAGE_KEY);
-      if (!stored) return {};
-      const parsed = JSON.parse(stored);
-      const now = new Date();
-      return Object.keys(parsed).reduce((acc, key) => {
-        const entry = parsed[key];
-        if (entry?.expiresAt && new Date(entry.expiresAt) > now && entry.password) {
-          acc[key] = entry;
-        }
-        return acc;
-      }, {});
-    } catch (error) {
-
-      return {};
-    }
-  });
-
-  const persistGeneratedPasswords = useCallback((map) => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.sessionStorage.setItem(TEMP_PASSWORD_STORAGE_KEY, JSON.stringify(map));
-    } catch (error) {
-
-    }
-  }, []);
 
   // Load profile data from backend
   useEffect(() => {
@@ -120,9 +78,6 @@ const Admin = () => {
     loadProfile();
   }, []);
 
-  useEffect(() => {
-    persistGeneratedPasswords(generatedPasswordsMap);
-  }, [generatedPasswordsMap, persistGeneratedPasswords]);
 
   // Load church settings from backend
   useEffect(() => {
@@ -243,140 +198,6 @@ const Admin = () => {
     loadLoginHistory();
   }, [activeTab, showProfileView]);
 
-  const fetchPasswordResetRequests = useCallback(async () => {
-    if (!isAdmin) return;
-
-    setPasswordResetLoading(true);
-    setPasswordResetError('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/get_password_reset_requests.php?status=all`);
-      const result = await response.json();
-      if (response.ok && result.success) {
-        setPasswordResetRequests(result.data || []);
-      } else {
-        setPasswordResetError(result.message || 'Failed to load password reset requests.');
-        setPasswordResetRequests([]);
-      }
-    } catch (error) {
-
-      setPasswordResetError('Unable to load password reset requests. Please try again.');
-      setPasswordResetRequests([]);
-    } finally {
-      setPasswordResetLoading(false);
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchPasswordResetRequests();
-    }
-  }, [isAdmin, fetchPasswordResetRequests]);
-
-  const openPasswordResetModal = (request) => {
-    setSelectedPasswordReset(request);
-    setPasswordResetExpiryHours(24);
-    setGeneratedTempPassword(null);
-    setGeneratedTempExpiry(null);
-    setPasswordResetModalError('');
-    const saved = generatedPasswordsMap[request.id];
-    if (saved && saved.expiresAt && new Date(saved.expiresAt) > new Date()) {
-      setGeneratedTempPassword(saved.password);
-      setGeneratedTempExpiry(saved.expiresAt);
-    }
-    setShowPasswordResetModal(true);
-  };
-
-  const closePasswordResetModal = () => {
-    setShowPasswordResetModal(false);
-    setSelectedPasswordReset(null);
-    setIsGeneratingTempPassword(false);
-    setGeneratedTempPassword(null);
-    setGeneratedTempExpiry(null);
-    setPasswordResetModalError('');
-  };
-
-  const handleGenerateTemporaryPassword = async () => {
-    if (!selectedPasswordReset) return;
-
-    setIsGeneratingTempPassword(true);
-    setPasswordResetModalError('');
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/reset_member_password.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          admin_id: profileData.id,
-          request_id: selectedPasswordReset.id,
-          expires_in_hours: passwordResetExpiryHours
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Failed to generate temporary password.');
-      }
-
-      setGeneratedTempPassword(result.temporary_password);
-      setGeneratedTempExpiry(result.expires_at);
-      setGeneratedPasswordsMap((prev) => {
-        const updated = {
-          ...prev,
-          [selectedPasswordReset.id]: {
-            password: result.temporary_password,
-            expiresAt: result.expires_at
-          }
-        };
-        persistGeneratedPasswords(updated);
-        return updated;
-      });
-      setSelectedPasswordReset((prev) => prev ? {
-        ...prev,
-        status: 'completed',
-        processed_at: result.expires_at,
-        processed_by_admin_id: profileData.id,
-        temporary_password_expires_at: result.expires_at
-      } : prev);
-      setShowToast(true);
-      setToastMessage('Temporary password generated successfully.');
-      setToastType('success');
-      setTimeout(() => setShowToast(false), 3000);
-
-      await fetchPasswordResetRequests();
-    } catch (error) {
-
-      setPasswordResetModalError(error.message || 'Unable to generate temporary password.');
-      setShowToast(true);
-      setToastMessage(error.message || 'Failed to generate temporary password.');
-      setToastType('error');
-      setTimeout(() => setShowToast(false), 4000);
-    } finally {
-      setIsGeneratingTempPassword(false);
-    }
-  };
-
-  const handleCopyTempPassword = async () => {
-    if (!generatedTempPassword) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(generatedTempPassword);
-      setToastMessage('Temporary password copied to clipboard.');
-      setToastType('success');
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
-    } catch (error) {
-
-      setToastMessage('Unable to copy password automatically.');
-      setToastType('error');
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    }
-  };
 
   useEffect(() => {
     const maxPage = Math.max(0, Math.ceil(loginHistory.length / LOGIN_HISTORY_PAGE_SIZE) - 1);
@@ -585,7 +406,6 @@ const Admin = () => {
         setNotifications(data.map((n) => ({
           id: n.id,
           title: n.type === 'pending_request' ? '👤 New Member Request' : 
-                 n.type === 'password_reset_request' ? '🔐 Password Reset Request' :
                  n.type === 'birthday' ? '🎂 Birthday Today!' :
                  n.type === 'guest_ready_for_conversion' ? '⭐ Guest Ready for Membership' :
                  n.type === 'event_reminder' ? '⏰ Event Reminder' :
@@ -643,9 +463,6 @@ const Admin = () => {
     
     // Navigate to the appropriate section based on notification type
     switch(notification.type) {
-      case 'password_reset_request':
-        handleManageUsers();
-        break;
       case 'pending_request':
         // Navigate to Members Management page with pending requests tab active
         setShowProfileView(false);
@@ -1978,27 +1795,6 @@ const Admin = () => {
     }
 
     return parsed.toLocaleString();
-  };
-
-  const handleManageUsers = () => {
-    if (!isAdmin) {
-      setShowToast(true);
-      setToastMessage('Only administrators can manage user password resets.');
-      setToastType('error');
-      setTimeout(() => setShowToast(false), 3000);
-      return;
-    }
-
-    setShowProfileView(false);
-    setShowAttendanceView(false);
-    setShowMembersView(false);
-    setShowSettingsView(true);
-
-    fetchPasswordResetRequests('pending');
-
-    setTimeout(() => {
-      manageUsersSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 200);
   };
 
   const handleResetSettings = () => {
@@ -3894,190 +3690,6 @@ const Admin = () => {
         </div>
       )}
 
-      {showAllPasswordResets && (
-        <div className="modal-overlay" onClick={() => setShowAllPasswordResets(false)}>
-          <div className="modal-content-large password-reset-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>All Password Reset Requests</h2>
-              <button className="modal-close" onClick={() => setShowAllPasswordResets(false)}>×</button>
-            </div>
-            <div className="password-reset-modal-body">
-              <div className="password-reset-list password-reset-list--modal">
-                {passwordResetRequests.length === 0 ? (
-                  <div className="password-reset-empty-card">
-                    {passwordResetLoading ? 'Loading requests…' : 'No password reset requests found.'}
-                  </div>
-                ) : (
-                  passwordResetRequests.map((request) => (
-                    <div key={request.id} className="password-reset-item">
-                      <div className="password-reset-item-header">
-                        <div className="password-reset-item-primary">
-                          <span className="password-reset-member-name">{request.member_name || `Member #${request.member_id}`}</span>
-                          {request.email && <span className="password-reset-member-email">{request.email}</span>}
-                        </div>
-                        <span className={`status-pill status-${request.status}`}>
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                        </span>
-                      </div>
-
-                      <div className="password-reset-item-details">
-                        <div>
-                          <span className="password-reset-detail-label">Username</span>
-                          <span className="password-reset-detail-value">{request.username}</span>
-                        </div>
-                        <div>
-                          <span className="password-reset-detail-label">Contact</span>
-                          <span className="password-reset-detail-value">{request.contact_number || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="password-reset-detail-label">Requested</span>
-                          <span className="password-reset-detail-value">{formatDateTime(request.requested_at)}</span>
-                        </div>
-                        <div>
-                          <span className="password-reset-detail-label">Processed</span>
-                          <span className="password-reset-detail-value">{request.processed_at ? formatDateTime(request.processed_at) : '—'}</span>
-                        </div>
-                      </div>
-
-                      <div className="password-reset-item-actions">
-                        {request.status === 'pending' ? (
-                          <button
-                            type="button"
-                            className="password-reset-primary"
-                            onClick={() => {
-                              setShowAllPasswordResets(false);
-                              openPasswordResetModal(request);
-                            }}
-                          >
-                            Generate Temp Password
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="password-reset-secondary"
-                            onClick={() => {
-                              setShowAllPasswordResets(false);
-                              openPasswordResetModal(request);
-                            }}
-                          >
-                            View Details
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPasswordResetModal && selectedPasswordReset && (
-        <div className="modal-overlay" onClick={closePasswordResetModal}>
-          <div className="modal-content-large password-reset-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Password Reset Request</h2>
-              <button className="modal-close" onClick={closePasswordResetModal}>×</button>
-            </div>
-            <div className="password-reset-modal-body">
-              {passwordResetModalError && (
-                <div className="password-reset-alert password-reset-alert--error">
-                  {passwordResetModalError}
-                </div>
-              )}
-
-              <section className="password-reset-section password-reset-section--request">
-                <div className="password-reset-request-header">
-                  <div className="password-reset-request-info">
-                    <span className="password-reset-chip">Member</span>
-                    <h3 className="password-reset-request-name">{selectedPasswordReset.member_name || `Member #${selectedPasswordReset.member_id}`}</h3>
-                    <span className="password-reset-request-username">@{selectedPasswordReset.username}</span>
-                  </div>
-                  <div className="password-reset-request-status">
-                    <span className={`status-pill status-${selectedPasswordReset.status}`}>
-                      {selectedPasswordReset.status.charAt(0).toUpperCase() + selectedPasswordReset.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="password-reset-meta-grid">
-                  <div className="password-reset-meta-item">
-                    <span className="password-reset-meta-label">Contact</span>
-                    <span className="password-reset-meta-value">{selectedPasswordReset.contact_number || '—'}</span>
-                  </div>
-                  <div className="password-reset-meta-item">
-                    <span className="password-reset-meta-label">Requested</span>
-                    <span className="password-reset-meta-value">{formatDateTime(selectedPasswordReset.requested_at)}</span>
-                  </div>
-                  <div className="password-reset-meta-item">
-                    <span className="password-reset-meta-label">Processed</span>
-                    <span className="password-reset-meta-value">{selectedPasswordReset.processed_at ? formatDateTime(selectedPasswordReset.processed_at) : '—'}</span>
-                  </div>
-                </div>
-              </section>
-
-              <section className="password-reset-section password-reset-section--response">
-                <div className="password-reset-section-header">
-                  <h3>Admin Response</h3>
-                  <p>Set how long the temporary password will remain valid.</p>
-                </div>
-
-                <div className="password-reset-field-group password-reset-field-group--inline">
-                  <label htmlFor="password-reset-expiry">Temporary password expiry (hours)</label>
-                  <input
-                    id="password-reset-expiry"
-                    type="number"
-                    min={1}
-                    max={168}
-                    value={passwordResetExpiryHours}
-                    onChange={(e) => setPasswordResetExpiryHours(Math.max(1, Number(e.target.value) || 1))}
-                  />
-                </div>
-              </section>
-
-              {generatedTempPassword && (
-                <section className="password-reset-section password-reset-section--generated">
-                  <div className="password-reset-generated-card">
-                    <div className="password-reset-generated-header">Temporary password generated</div>
-                    <div className="password-reset-generated-value">{generatedTempPassword}</div>
-                    <div className="password-reset-generated-meta">
-                      Expires at {generatedTempExpiry ? formatDateTime(generatedTempExpiry) : '—'}
-                    </div>
-                    <div className="password-reset-generated-actions">
-                      <button type="button" className="password-reset-primary" onClick={handleCopyTempPassword}>
-                        Copy password
-                      </button>
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {selectedPasswordReset.status !== 'pending' && (
-                <div className="password-reset-processed-note">
-                  This reset request has already been processed. Generate is disabled.
-                </div>
-              )}
-
-              <div className="password-reset-modal-actions">
-                <button type="button" className="cancel-btn" onClick={closePasswordResetModal}>
-                  Close
-                </button>
-                {selectedPasswordReset.status === 'pending' && (
-                  <button
-                    type="button"
-                    className="save-btn"
-                    onClick={handleGenerateTemporaryPassword}
-                    disabled={isGeneratingTempPassword}
-                  >
-                    {isGeneratingTempPassword ? 'Generating…' : 'Generate Temp Password'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showSignOutModal && (
         <div className="modal-overlay" style={{
