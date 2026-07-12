@@ -147,7 +147,7 @@ const Login = () => {
         // Non-OK response from manager login
         const managerData = await managerResponse.json().catch(() => ({}));
         // If password was wrong (user exists as manager but wrong password), stop here
-        if (managerData.message && managerData.message.toLowerCase().includes('invalid')) {
+        if (managerData.message && managerData.message.toLowerCase().includes('invalid password')) {
           setError('Invalid username or password.');
           setIsLoading(false);
           return;
