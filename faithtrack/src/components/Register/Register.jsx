@@ -7,6 +7,50 @@ import '../transitions.css';
 import { API_BASE_URL } from '../../config/api';
 import { findZipCode } from '../../utils/philippinesZipLookup';
 
+// SVG icons for step headers — no emojis
+const StepIcons = {
+  referrer: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  personal: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  ),
+  contact: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
+  ),
+  address: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+      <circle cx="12" cy="10" r="3"/>
+    </svg>
+  ),
+  security: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  ),
+  guardian: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+};
+
 const FAMILY_LINK_RELATIONSHIPS = [
   'Brother',
   'Sister',
@@ -882,7 +926,11 @@ const Register = () => {
         </p>
 
         <div className="data-notice">
-          <span className="data-notice-icon" aria-hidden="true">ℹ️</span>
+          <div className="data-notice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
           <div className="data-notice-text">
             <p>
               ChurchTrack uses your details for membership and attendance. See our{' '}
@@ -966,7 +1014,7 @@ const Register = () => {
             {hasReferral && (
               <div className={`step-content ${activeStep === 1 ? 'active' : ''}`}>
                 <div className="step-header">
-                  <div className="step-icon">🔍</div>
+                  <div className="step-icon-wrap">{StepIcons.referrer}</div>
                   <h2>Referrer Information</h2>
                   <p>Who referred you to ChurchTrack?</p>
                 </div>
@@ -1044,7 +1092,7 @@ const Register = () => {
             {/* Step 1/2: Personal Information */}
             <div className={`step-content ${activeStep === (hasReferral ? 2 : 1) ? 'active' : ''}`}>
               <div className="step-header">
-                <div className="step-icon">👤</div>
+                <div className="step-icon-wrap">{StepIcons.personal}</div>
                 <h2 className="step-title">Registrant Information</h2>
                 <p className="step-subtitle">Tell us about yourself</p>
               </div>
@@ -1197,7 +1245,7 @@ const Register = () => {
             {/* Step 2/3: Contact Information */}
             <div className={`step-content ${activeStep === (hasReferral ? 3 : 2) ? 'active' : ''}`}>
               <div className="step-header">
-                <div className="step-icon">📧</div>
+                <div className="step-icon-wrap">{StepIcons.contact}</div>
                 <h2 className="step-title">Contact Information</h2>
                 <p className="step-subtitle">How can we reach you?</p>
               </div>
@@ -1294,7 +1342,7 @@ const Register = () => {
               {parseInt(formData.age) <= 17 && (
                 <div className="guardian-section">
                   <div className="step-header">
-                    <div className="step-icon">👥</div>
+                    <div className="step-icon-wrap">{StepIcons.guardian}</div>
                     <h2 className="step-title">Guardian Information</h2>
                     <p className="step-subtitle">Please provide your guardian's details</p>
                   </div>
@@ -1494,7 +1542,7 @@ const Register = () => {
             {/* Step 3/4: Address Information */}
             <div className={`step-content ${activeStep === (hasReferral ? 4 : 3) ? 'active' : ''}`}>
               <div className="step-header">
-                <div className="step-icon">🏠</div>
+                <div className="step-icon-wrap">{StepIcons.address}</div>
                 <h2 className="step-title">Address Information</h2>
                 <p className="step-subtitle">Where do you currently live?</p>
               </div>
@@ -1601,7 +1649,7 @@ const Register = () => {
             {/* Step 4/5: Security Information */}
             <div className={`step-content ${activeStep === (hasReferral ? 5 : 4) ? 'active' : ''}`}>
               <div className="step-header">
-                <div className="step-icon">🔒</div>
+                <div className="step-icon-wrap">{StepIcons.security}</div>
                 <h2 className="step-title">Account Security</h2>
                 <p className="step-subtitle">Create your login credentials</p>
               </div>
@@ -1774,7 +1822,7 @@ const Register = () => {
         <div className="modal-overlay" onClick={() => setShowTermsModal(false)}>
           <div className="modal-content terms-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📋 Terms and Conditions</h3>
+              <h3>Terms and Conditions</h3>
               <button 
                 className="modal-close" 
                 onClick={() => setShowTermsModal(false)}
@@ -1847,7 +1895,7 @@ const Register = () => {
         <div className="modal-overlay" onClick={() => setShowPrivacyModal(false)}>
           <div className="modal-content privacy-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔒 Privacy Policy</h3>
+              <h3>Privacy Policy</h3>
               <button 
                 className="modal-close" 
                 onClick={() => setShowPrivacyModal(false)}
