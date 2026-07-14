@@ -335,16 +335,12 @@
   gap: 3px;
 }
 
-.stat-number {
-  font-size: 1.4rem;
-}
-
 .stat-label {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #5a6a85;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   white-space: nowrap;
 }
 
@@ -444,14 +440,20 @@
 }
 
 .feature-icon-wrap {
-  font-size: 2rem;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   background: linear-gradient(135deg, rgba(0, 73, 175, 0.08) 0%, rgba(16, 149, 210, 0.12) 100%);
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-icon-wrap svg {
+  width: 24px;
+  height: 24px;
+  stroke: #0049AF;
 }
 
 .feature-card h3 {
