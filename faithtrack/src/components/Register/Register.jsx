@@ -845,79 +845,38 @@ const Register = () => {
           onClose={() => setShowNotification(false)}
         />
       )}
-      
-      
+
+      {/* ── BLUE TOP BAR ── */}
+      <div className="reg-topbar">
+        <button onClick={navigateToLogin} className="reg-topbar-back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+        <div className="reg-topbar-brand">
+          <img src={logoImage} alt="Church Logo" />
+          <span>ChurchTrack</span>
+        </div>
+        <div className="reg-topbar-step">
+          Step {activeStep} of {hasReferral ? 5 : 4}
+        </div>
+      </div>
+
       <div className="register-box">
-        {/* Back button to referral selection - only show in Step 1 */}
-        {activeStep === 1 && (
-          <button 
-            onClick={navigateToLogin} 
+        {/* Single back button for steps 2+ */}
+        {activeStep > 1 && (
+          <button
+            onClick={goToPrevStep}
             className="back-link animate-fade-in"
-            aria-label="Back to referral selection"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             <span>Back</span>
           </button>
         )}
-        
-        {/* Back button for Personal section - only show in Step 2 when hasReferral */}
-        {activeStep === 2 && hasReferral && (
-          <button 
-            onClick={goToPrevStep} 
-            className="back-link animate-fade-in"
-            aria-label="Back to referrer information"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span>Back</span>
-          </button>
-        )}
-        
-        {/* Back button for Contact section */}
-        {activeStep === (hasReferral ? 3 : 2) && (
-          <button 
-            onClick={goToPrevStep} 
-            className="back-link animate-fade-in"
-            aria-label="Back to previous step"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span>Back</span>
-          </button>
-        )}
-        
-        {/* Back button for Address section */}
-        {activeStep === (hasReferral ? 4 : 3) && (
-          <button 
-            onClick={goToPrevStep} 
-            className="back-link animate-fade-in"
-            aria-label="Back to previous step"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span>Back</span>
-          </button>
-        )}
-        
-        {/* Back button for Security section */}
-        {activeStep === (hasReferral ? 5 : 4) && (
-          <button 
-            onClick={goToPrevStep} 
-            className="back-link animate-fade-in"
-            aria-label="Back to previous step"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span>Back</span>
-          </button>
-        )}
-        
+
         <div className="register-header">
           <h1>Create Your Account</h1>
         </div>
