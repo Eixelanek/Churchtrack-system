@@ -848,7 +848,10 @@ const Register = () => {
 
       {/* ── BLUE TOP BAR ── */}
       <div className="reg-topbar">
-        <button onClick={navigateToLogin} className="reg-topbar-back">
+        <button
+          onClick={activeStep === 1 ? navigateToLogin : goToPrevStep}
+          className="reg-topbar-back"
+        >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
           </svg>
@@ -864,18 +867,6 @@ const Register = () => {
       </div>
 
       <div className="register-box">
-        {/* Single back button for steps 2+ */}
-        {activeStep > 1 && (
-          <button
-            onClick={goToPrevStep}
-            className="back-link animate-fade-in"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            <span>Back</span>
-          </button>
-        )}
 
         <div className="register-header">
           <h1>Create Your Account</h1>
@@ -933,9 +924,16 @@ const Register = () => {
                 <div className="step-header">
                   <div className="step-icon-wrap">{StepIcons.referrer}</div>
                   <h2>Referrer Information</h2>
-                  <p>Who referred you to ChurchTrack?</p>
+                  <p>Tell us who invited you to join the church.</p>
                 </div>
-                
+
+                <div className="referrer-info-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <p>A referrer is an existing church member who personally invited or introduced you to Christ-Like Christian Church.</p>
+                </div>
+
                 <div className="form-group referrer-group">
                   <label htmlFor="referrerSearch">
                     Search Referrer Name
@@ -944,10 +942,10 @@ const Register = () => {
                   <input
                     type="text"
                     id="referrerSearch"
-                    placeholder="Start typing name..."
+                    placeholder="Type at least 2 characters to search..."
                     value={formData.referrerName}
                     onChange={(e) => {
-                      setFormData(prev => ({ ...prev, referrerName: e.target.value }));
+                      setFormData(prev => ({ ...prev, referrerName: e.target.value, referrerId: '' }));
                       searchReferrers(e.target.value);
                     }}
                     onFocus={() => {
@@ -960,7 +958,7 @@ const Register = () => {
                   {showReferrerResults && referrerSearchResults.length > 0 && (
                     <div className="search-results">
                       {referrerSearchResults.map((referrer) => (
-                        <div 
+                        <div
                           key={referrer.id}
                           className="search-result-item"
                           onClick={() => selectReferrer(referrer)}
@@ -971,6 +969,16 @@ const Register = () => {
                       ))}
                     </div>
                   )}
+                  {/* Selected referrer confirmation */}
+                  {formData.referrerId && (
+                    <div className="referrer-selected">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span>{formData.referrerName} selected as your referrer.</span>
+                    </div>
+                  )}
+                  <p className="field-hint">Search by full name or username. Select from the list to confirm your referrer.</p>
                 </div>
 
                 <div className="form-group">
