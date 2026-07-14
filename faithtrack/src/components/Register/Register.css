@@ -86,10 +86,11 @@
 .reg-topbar-step {
   font-size: 0.8rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255,255,255,0.9);
   background: rgba(255,255,255,0.15);
   border-radius: 50px;
-  padding: 4px 12px;
+  padding: 4px 14px;
+  letter-spacing: 0.3px;
 }
 
 /* ── MAIN BOX ── */

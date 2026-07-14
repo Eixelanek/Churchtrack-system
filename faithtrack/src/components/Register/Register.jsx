@@ -199,16 +199,7 @@ const Register = () => {
   
   // Function to navigate back to referral selection page
   const navigateToLogin = () => {
-    // Apply transition effect before navigation
-    setAnimateForm(false);
-    document.body.classList.add('page-transition-exit-active');
-    document.body.classList.add('page-transitioning');
-    
-    // Delay navigation to allow transition effect to complete
-    setTimeout(() => {
-      // Always go back to referral selection since register is only accessed from there
-      navigate('/referral-selection');
-    }, 300);
+    navigate('/referral-selection');
   };
   
   // Validation functions
@@ -828,13 +819,9 @@ const Register = () => {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+  const stepLabels = hasReferral
+    ? ['Referrer', 'Personal', 'Contact', 'Address', 'Security']
+    : ['Personal', 'Contact', 'Address', 'Security'];
 
   return (
     <div className="register-container">
@@ -862,7 +849,7 @@ const Register = () => {
           <span>ChurchTrack</span>
         </div>
         <div className="reg-topbar-step">
-          Step {activeStep} of {hasReferral ? 5 : 4}
+          {stepLabels[activeStep - 1]}
         </div>
       </div>
 
