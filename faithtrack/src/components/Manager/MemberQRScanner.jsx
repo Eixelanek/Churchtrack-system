@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { API_BASE_URL } from '../../config/api';
+import { useState, useEffect, useRef, useCallback } from 'react';import { API_BASE_URL } from '../../config/api';
 import './MemberQRScanner.css';
 
 // ── helpers ───────────────────────────────────────────────────
@@ -21,6 +20,16 @@ const MemberQRScanner = () => {
   const [eventsError, setEventsError]     = useState('');
   const [selectedEventId, setSelectedEventId] = useState('');
   const selectedEvent = events.find((e) => String(e.id) === String(selectedEventId)) || null;
+
+  // Reset scan list when event selection changes
+  const prevEventIdRef = useRef(selectedEventId);
+  useEffect(() => {
+    if (prevEventIdRef.current !== selectedEventId) {
+      setCheckedInList([]);
+      setLastResult(null);
+      prevEventIdRef.current = selectedEventId;
+    }
+  }, [selectedEventId]);
 
   // ── scanner ─────────────────────────────────────────────────
   const videoRef            = useRef(null);
@@ -213,7 +222,7 @@ const MemberQRScanner = () => {
   // ── handlers ─────────────────────────────────────────────────
   const handleStartScanning = () => {
     if (!selectedEventId) return;
-    setCheckedInList([]);
+    // Don't reset checkedInList — preserve scans across step transitions
     setLastResult(null);
     setStep('scanning');
   };

@@ -60,70 +60,117 @@ try {
     $formattedAttendees = [];
     $formattedAbsentees = [];
 
+    // Helper to derive display name and initials
+    $formatAttendee = function ($row) {
+        if (!empty($row['first_name']) && !empty($row['surname'])) {
+            $name = trim($row['first_name'] . ' ' . $row['surname']);
+            if (!empty($row['middle_name'])) {
+                $name = trim($row['first_name'] . ' ' . substr($row['middle_name'], 0, 1) . '. ' . $row['surname']);
+            }
+            if (!empty($row['suffix']) && strtolower($row['suffix']) !== 'none') {
+                $name .= ' ' . $row['suffix'];
+            }
+            $firstInitial = substr($row['first_name'], 0, 1);
+            $lastInitial  = substr($row['surname'], 0, 1);
+            $initials      = strtoupper($firstInitial . $lastInitial);
+        } else {
+            $name  = $row['member_name'] ?: 'Member';
+            $parts = preg_split('/\s+/', trim($name));
+            $firstInitial = substr($parts[0] ?? 'M', 0, 1);
+            $lastInitial  = substr(end($parts) ?: 'M', 0, 1);
+            $initials      = strtoupper($firstInitial . $lastInitial);
+        }
+
+        $statusRaw   = strtolower($row['att_status'] ?? 'present');
+        $statusLabel = match ($statusRaw) {
+            'late'    => 'Late',
+            'present' => 'Checked in',
+            default   => 'Checked in',
+        };
+
+        return [
+            'id'              => $row['member_id'] ? (int)$row['member_id'] : 0,
+            'memberId'        => $row['member_id'] ? (int)$row['member_id'] : null,
+            'name'            => $name,
+            'initials'        => $initials,
+            'status'          => $statusLabel,
+            'checkInTime'     => $row['check_in_time'] ?? null,
+            'profile_picture' => $row['profile_picture'] ?? null,
+        ];
+    };
+
+    // ── Source 1: new attendance table (member QR scans via manager) ─────
+    $directAttStmt = $db->prepare(
+        "SELECT
+             a.member_id,
+             a.status       AS att_status,
+             a.check_in_time,
+             m.first_name,
+             m.middle_name,
+             m.surname,
+             m.suffix,
+             m.profile_picture,
+             NULL           AS member_name
+         FROM attendance a
+         LEFT JOIN members m ON a.member_id = m.id
+         WHERE a.event_id = :event_id
+         ORDER BY a.check_in_time ASC"
+    );
+    $directAttStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $directAttStmt->execute();
+    $directRows = $directAttStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Track member IDs already counted from attendance table
+    $seenMemberIds = [];
+    foreach ($directRows as $row) {
+        $formattedAttendees[] = $formatAttendee($row);
+        if ($row['member_id']) {
+            $seenMemberIds[(int)$row['member_id']] = true;
+        }
+    }
+
     if (!empty($sessions)) {
-        // Get QR attendees (people who scanned)
-        $attendeesQuery = "SELECT 
-                                qa.member_id,
-                                qa.member_name,
-                                MIN(qa.checkin_datetime) AS first_checkin,
-                                MAX(qa.checkin_datetime) AS last_checkin,
-                                m.first_name,
-                                m.middle_name,
-                                m.surname,
-                                m.suffix,
-                                m.profile_picture
+        // ── Source 2: legacy qr_attendance table ─────────────────────────
+        $attendeesQuery = "SELECT
+                               qa.member_id,
+                               qa.member_name,
+                               MIN(qa.checkin_datetime) AS check_in_time,
+                               'present'                AS att_status,
+                               m.first_name,
+                               m.middle_name,
+                               m.surname,
+                               m.suffix,
+                               m.profile_picture
                            FROM qr_attendance qa
                            INNER JOIN qr_sessions qs ON qa.session_id = qs.id
-                           LEFT JOIN members m ON qa.member_id = m.id
+                           LEFT JOIN  members m ON qa.member_id = m.id
                            WHERE qs.event_id = :event_id
-                           GROUP BY qa.member_id, qa.member_name, m.first_name, m.middle_name, m.surname, m.suffix, m.profile_picture
-                           ORDER BY first_checkin ASC";
+                           GROUP BY qa.member_id, qa.member_name, m.first_name, m.middle_name,
+                                    m.surname, m.suffix, m.profile_picture
+                           ORDER BY check_in_time ASC";
 
         $attendeesStmt = $db->prepare($attendeesQuery);
         $attendeesStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $attendeesStmt->execute();
         $qrAttendees = $attendeesStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Helper to derive display name and initials
-        $formatAttendee = function ($row) {
-            if (!empty($row['first_name']) && !empty($row['surname'])) {
-                $name = trim($row['first_name'] . ' ' . $row['surname']);
-                if (!empty($row['middle_name'])) {
-                    $name = trim($row['first_name'] . ' ' . substr($row['middle_name'], 0, 1) . '. ' . $row['surname']);
-                }
-                if (!empty($row['suffix']) && strtolower($row['suffix']) !== 'none') {
-                    $name .= ' ' . $row['suffix'];
-                }
-                $firstInitial = substr($row['first_name'], 0, 1);
-                $lastInitial = substr($row['surname'], 0, 1);
-                $initials = strtoupper($firstInitial . $lastInitial);
-            } else {
-                $name = $row['member_name'] ?: 'Guest';
-                $parts = preg_split('/\s+/', trim($name));
-                $firstInitial = substr($parts[0] ?? 'G', 0, 1);
-                $lastInitial = substr(end($parts) ?: 'T', 0, 1);
-                $initials = strtoupper($firstInitial . $lastInitial);
+        foreach ($qrAttendees as $row) {
+            // Skip if already counted from attendance table
+            if ($row['member_id'] && isset($seenMemberIds[(int)$row['member_id']])) {
+                continue;
             }
+            $formattedAttendees[] = $formatAttendee($row);
+            if ($row['member_id']) {
+                $seenMemberIds[(int)$row['member_id']] = true;
+            }
+        }
 
-            return [
-                'id' => $row['member_id'] ? (int)$row['member_id'] : 0,
-                'memberId' => $row['member_id'] ? (int)$row['member_id'] : null,
-                'name' => $name,
-                'initials' => $initials,
-                'status' => 'Checked in',
-                'checkInTime' => $row['first_checkin'],
-                'profile_picture' => $row['profile_picture'] ?? null
-            ];
-        };
-
-        $formattedAttendees = array_map($formatAttendee, $qrAttendees);
-
-        // Fetch guest attendees linked to this event (directly or via QR session)
-        $guestQuery = "SELECT 
-                            ga.guest_id,
-                            ga.checkin_time,
-                            ga.status,
-                            COALESCE(g.full_name, CONCAT_WS(' ', g.first_name, g.surname)) AS name
+        // ── Guests ────────────────────────────────────────────────────────
+        $guestQuery = "SELECT
+                           ga.guest_id,
+                           ga.checkin_time,
+                           ga.status,
+                           COALESCE(g.full_name, CONCAT_WS(' ', g.first_name, g.surname)) AS name
                        FROM guest_attendance ga
                        LEFT JOIN guests g ON ga.guest_id = g.id
                        LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
@@ -138,114 +185,95 @@ try {
 
         $formatGuestAttendee = function ($row) {
             $name = trim($row['name'] ?? 'Guest Attendee');
-            if ($name === '') {
-                $name = 'Guest Attendee';
-            }
+            if ($name === '') $name = 'Guest Attendee';
 
-            $parts = preg_split('/\s+/', $name);
+            $parts        = preg_split('/\s+/', $name);
             $firstInitial = substr($parts[0] ?? 'G', 0, 1);
-            $lastInitial = substr(end($parts) ?: 'T', 0, 1);
-            $initials = strtoupper($firstInitial . $lastInitial);
+            $lastInitial  = substr(end($parts) ?: 'T', 0, 1);
+            $initials      = strtoupper($firstInitial . $lastInitial);
 
-            $status = strtolower($row['status'] ?? 'present');
+            $status      = strtolower($row['status'] ?? 'present');
             $statusLabel = match ($status) {
                 'present' => 'Checked in',
-                'late' => 'Checked in',
-                'absent' => 'Absent',
-                default => ucfirst($status)
+                'late'    => 'Late',
+                'absent'  => 'Absent',
+                default   => ucfirst($status),
             };
 
-            // Keep full datetime string — JS cannot parse time-only values like "15:41"
-            $checkInTime = $row['checkin_time'] ?? null;
-
             return [
-                'id' => 'guest-' . ($row['guest_id'] ?? uniqid()),
-                'memberId' => null,
-                'name' => $name,
-                'initials' => $initials,
-                'status' => $statusLabel,
-                'checkInTime' => $checkInTime,
-                'isGuest' => true
+                'id'          => 'guest-' . ($row['guest_id'] ?? uniqid()),
+                'memberId'    => null,
+                'name'        => $name,
+                'initials'    => $initials,
+                'status'      => $statusLabel,
+                'checkInTime' => $row['checkin_time'] ?? null,
+                'isGuest'     => true,
             ];
         };
 
-        $guestAttendees = array_map($formatGuestAttendee, $guestRows);
-        $formattedAttendees = array_merge($formattedAttendees, $guestAttendees);
-
-        usort($formattedAttendees, function ($a, $b) {
-            $timeA = $a['checkInTime'] ?? '';
-            $timeB = $b['checkInTime'] ?? '';
-
-            if ($timeA === $timeB) {
-                return strcmp($a['name'], $b['name']);
-            }
-
-            if (empty($timeA)) {
-                return 1;
-            }
-
-            if (empty($timeB)) {
-                return -1;
-            }
-
-            return strcmp($timeA, $timeB);
-        });
-
-        // Compute absentees = active members who did not scan
-        $absenteesQuery = "SELECT 
-                                m.id,
-                                m.first_name,
-                                m.middle_name,
-                                m.surname,
-                                m.suffix,
-                                m.profile_picture
-                           FROM members m
-                           WHERE m.status = 'active'
-                             AND NOT EXISTS (
-                                 SELECT 1
-                                 FROM qr_attendance qa
-                                 INNER JOIN qr_sessions qs ON qa.session_id = qs.id
-                                 WHERE qs.event_id = :abs_event_id
-                                   AND qa.member_id = m.id
-                             )
-                           ORDER BY m.surname ASC, m.first_name ASC";
-
-        $absenteesStmt = $db->prepare($absenteesQuery);
-        $absenteesStmt->bindParam(':abs_event_id', $eventId, PDO::PARAM_INT);
-        $absenteesStmt->execute();
-        $absentees = $absenteesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $formatAbsentee = function ($row) {
-            $nameParts = [];
-            if (!empty($row['first_name'])) {
-                $nameParts[] = $row['first_name'];
-            }
-            if (!empty($row['middle_name'])) {
-                $nameParts[] = substr($row['middle_name'], 0, 1) . '.';
-            }
-            if (!empty($row['surname'])) {
-                $nameParts[] = $row['surname'];
-            }
-            if (!empty($row['suffix']) && strtolower($row['suffix']) !== 'none') {
-                $nameParts[] = $row['suffix'];
-            }
-            $name = trim(implode(' ', $nameParts)) ?: 'Unknown Member';
-
-            $firstInitial = substr($row['first_name'] ?? 'U', 0, 1);
-            $lastInitial = substr($row['surname'] ?? 'M', 0, 1);
-            $initials = strtoupper($firstInitial . $lastInitial);
-
-            return [
-                'id' => (int)$row['id'],
-                'name' => $name,
-                'initials' => $initials,
-                'status' => 'Absent',
-                'profile_picture' => $row['profile_picture'] ?? null
-            ];
-        };
-
-        $formattedAbsentees = array_map($formatAbsentee, $absentees);
+        foreach ($guestRows as $gr) {
+            $formattedAttendees[] = $formatGuestAttendee($gr);
+        }
     }
+
+    // Sort all attendees by check-in time
+    usort($formattedAttendees, function ($a, $b) {
+        $tA = $a['checkInTime'] ?? '';
+        $tB = $b['checkInTime'] ?? '';
+        if ($tA === $tB) return strcmp($a['name'], $b['name']);
+        if (empty($tA)) return 1;
+        if (empty($tB)) return -1;
+        return strcmp($tA, $tB);
+    });
+
+    // Absentees = active members not in either attendance source
+    $absenteesQuery = "SELECT
+                           m.id,
+                           m.first_name,
+                           m.middle_name,
+                           m.surname,
+                           m.suffix,
+                           m.profile_picture
+                       FROM members m
+                       WHERE m.status = 'active'
+                         AND NOT EXISTS (
+                             SELECT 1 FROM attendance a
+                             WHERE a.event_id = :abs_event_id AND a.member_id = m.id
+                         )
+                         AND NOT EXISTS (
+                             SELECT 1 FROM qr_attendance qa
+                             INNER JOIN qr_sessions qs ON qa.session_id = qs.id
+                             WHERE qs.event_id = :abs_event_id AND qa.member_id = m.id
+                         )
+                       ORDER BY m.surname ASC, m.first_name ASC";
+
+    $absenteesStmt = $db->prepare($absenteesQuery);
+    $absenteesStmt->bindParam(':abs_event_id', $eventId, PDO::PARAM_INT);
+    $absenteesStmt->execute();
+    $absentees = $absenteesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $formatAbsentee = function ($row) {
+        $nameParts = [];
+        if (!empty($row['first_name'])) $nameParts[] = $row['first_name'];
+        if (!empty($row['middle_name'])) $nameParts[] = substr($row['middle_name'], 0, 1) . '.';
+        if (!empty($row['surname'])) $nameParts[] = $row['surname'];
+        if (!empty($row['suffix']) && strtolower($row['suffix']) !== 'none') $nameParts[] = $row['suffix'];
+        $name = trim(implode(' ', $nameParts)) ?: 'Unknown Member';
+
+        $firstInitial = substr($row['first_name'] ?? 'U', 0, 1);
+        $lastInitial  = substr($row['surname'] ?? 'M', 0, 1);
+        $initials      = strtoupper($firstInitial . $lastInitial);
+
+        return [
+            'id'              => (int)$row['id'],
+            'name'            => $name,
+            'initials'        => $initials,
+            'status'          => 'Absent',
+            'profile_picture' => $row['profile_picture'] ?? null,
+        ];
+    };
+
+    $formattedAbsentees = array_map($formatAbsentee, $absentees);
 
     echo json_encode([
         'success' => true,
