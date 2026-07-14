@@ -4,6 +4,8 @@ header("Content-Type: application/json; charset=UTF-8");
 
 include_once '../config/database.php';
 require_once __DIR__ . '/resend_transport.php';
+require_once __DIR__ . '/email_verification_utils.php';
+require_once __DIR__ . '/send_qr_email.php';
 
 $data = json_decode(file_get_contents("php://input"));
 
@@ -124,6 +126,14 @@ if (!empty($data->id) && !empty($data->status)) {
 
             if ($subject) {
                 sendEmailViaResendApi($member['email'], $member['name'], $subject, $htmlBody, $textBody);
+            }
+        }
+
+        // Send QR code email when member is activated and has a verified email
+        if ($data->status === 'active') {
+            $qrSend = sendMemberQrEmail($db, (int)$data->id);
+            if (!$qrSend['success']) {
+                error_log("QR email failed for member {$data->id}: " . ($qrSend['message'] ?? 'unknown'));
             }
         }
 

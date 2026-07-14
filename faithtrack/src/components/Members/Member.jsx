@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import logoImage from '../../assets/logo2.png';
 import AttendanceHistory from './AttendanceHistory';
 import SpiritualGrowth from './SpiritualGrowth';
-import ScanQR from './ScanQR';
+import MyQRCode from './MyQRCode';
 import { loadChurchSettingsFromAPI, updateFavicon } from '../../utils/churchSettings';
 import { fetchMemberAttendanceSummary, fetchMonthlyAttendance } from '../../api/memberAttendance';
 import { fetchFamilyTree, searchMembers, sendFamilyInvite, respondToInvite, removeFamilyRelationship } from '../../api/familyTree';
@@ -307,46 +307,10 @@ const Member = () => {
     }
   }, []);
 
-  const handleScanResult = useCallback((rawValue) => {
-    if (!rawValue) {
-      return;
-    }
-
-    let sessionToken = '';
-
-    try {
-      const parsedUrl = new URL(rawValue);
-      sessionToken = parsedUrl.searchParams.get('session') || '';
-    } catch (err) {
-      const match = rawValue.match(/session=([a-zA-Z0-9]+)/);
-      if (match && match[1]) {
-        sessionToken = match[1];
-      } else if (/^[a-f0-9]{16,}$/i.test(rawValue)) {
-        sessionToken = rawValue;
-      }
-    }
-
-    if (!sessionToken) {
-      setScanError('Scanned code is not a valid ChurchTrack QR. Please try again.');
-      return;
-    }
-
-    stopScanner();
-    setScanError('');
-    setShowScannerPanel(false);
-
-    const params = new URLSearchParams();
-    params.set('session', sessionToken);
-
-    const storedMemberId = localStorage.getItem('userId');
-    if (storedMemberId) {
-      params.set('member', storedMemberId);
-    } else if (user?.id) {
-      params.set('member', String(user.id));
-    }
-
-    navigate(`/checkin?${params.toString()}`);
-  }, [navigate, stopScanner, user?.id]);
+  // handleScanResult kept as no-op — old event QR scanning removed (member now shows personal QR)
+  const handleScanResult = useCallback((_rawValue) => {
+    // No-op: members no longer scan event QR codes
+  }, []);
 
   const scanLoop = useCallback(() => {
     if (!isScanningRef.current) {
@@ -2850,7 +2814,7 @@ const Member = () => {
                 className={`nav-item ${activeView === 'scan' ? 'active' : ''}`} 
                 onClick={() => handleNavigation('scan')}
               >
-                Scan QR
+                My QR Code
               </button>
               <button 
                 className={`nav-item ${activeView === 'attendance' ? 'active' : ''}`} 
@@ -3082,11 +3046,12 @@ const Member = () => {
                     onClick={() => handleNavigation('scan')}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                      <line x1="3" y1="9" x2="21" y2="9"></line>
-                      <line x1="9" y1="21" x2="9" y2="9"></line>
+                      <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                      <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                      <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                      <rect x="3" y="14" width="7" height="7" rx="1"></rect>
                     </svg>
-                    Scan QR
+                    My QR Code
                   </button>
                   <button 
                     className={`nav-item ${activeView === 'attendance' ? 'active' : ''}`}
@@ -3146,14 +3111,16 @@ const Member = () => {
                         {/* Mark Attendance Card */}
                         <div className="mark-attendance-card">
                           <div className="mark-attendance-content">
-                            <h2>Mark Your Attendance</h2>
-                            <p>Scan the QR code displayed at the service</p>
+                            <h2>Your QR Code</h2>
+                            <p>Show your personal QR code to the staff to mark your attendance</p>
                             <button className="scan-qr-btn" onClick={() => handleNavigation('scan')}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                                <circle cx="12" cy="13" r="4"></circle>
+                                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
                               </svg>
-                              Scan QR Code
+                              Show My QR Code
                             </button>
                           </div>
                           <div className="qr-illustration">
@@ -3236,8 +3203,7 @@ const Member = () => {
                   </div>
                 </div>
               ) : activeView === 'scan' ? (
-                <ScanQR 
-                  onOpenScanner={startScanner}
+                <MyQRCode
                   dashboardStats={dashboardStats}
                   recentAttendance={recentAttendance}
                 />

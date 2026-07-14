@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import Home from './components/Home/Home';
@@ -13,7 +13,6 @@ import ReferralSelection from './components/ReferralSelection/ReferralSelection'
 import Member from './components/Members/Member';
 import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
-import CheckIn from './components/CheckIn/CheckIn';
 import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
@@ -126,7 +125,7 @@ const App = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/checkin" element={<CheckIn />} />
+        <Route path="/checkin" element={<Navigate to="/" replace />} />
         <Route path="/guest-checkin" element={<GuestCheckIn />} />
         <Route 
           path="/admin" 

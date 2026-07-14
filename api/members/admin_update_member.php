@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 include_once '../config/database.php';
 require_once __DIR__ . '/email_verification_utils.php';
+require_once __DIR__ . '/send_qr_email.php';
 
 $data = json_decode(file_get_contents('php://input'));
 if (!$data || empty($data->member_id)) {
@@ -69,6 +70,7 @@ try {
     $sets = [];
     $params = [':mid' => $memberId];
     $verificationMail = null;
+    $wasActivated = false; // track pending → active transition
 
     $strOrNull = static function ($v) {
         if ($v === null || $v === '') {
@@ -192,6 +194,10 @@ try {
         }
         $sets[] = 'status = :mem_status';
         $params[':mem_status'] = $st;
+        // Detect activation: was pending/inactive, now becoming active
+        if ($st === 'active' && in_array($row['status'], ['pending', 'inactive'], true)) {
+            $wasActivated = true;
+        }
         $colMgr = $db->query("SHOW COLUMNS FROM members LIKE 'manager_status'");
         if ($colMgr && $colMgr->rowCount() > 0) {
             $sets[] = "manager_status = 'approved'";
@@ -227,6 +233,25 @@ try {
                 'email_send_ok' => false,
             ]);
             exit();
+        }
+    }
+
+    // Send QR code email when member is activated and has a verified email
+    if ($wasActivated) {
+        $freshStmt = $db->prepare("SELECT email, email_verified_at FROM members WHERE id = :id LIMIT 1");
+        $freshStmt->bindValue(':id', $memberId, PDO::PARAM_INT);
+        $freshStmt->execute();
+        $fresh = $freshStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (
+            $fresh &&
+            !empty($fresh['email']) &&
+            !empty($fresh['email_verified_at'])
+        ) {
+            $qrSend = sendMemberQrEmail($db, $memberId);
+            if (!$qrSend['success']) {
+                error_log("QR email failed for member {$memberId}: " . ($qrSend['message'] ?? 'unknown'));
+            }
         }
     }
 

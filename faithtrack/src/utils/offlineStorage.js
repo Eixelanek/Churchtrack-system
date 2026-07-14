@@ -170,24 +170,6 @@ class OfflineStorage {
     });
   }
 
-  // Save member check-in offline (for members scanning event QR)
-  async saveMemberCheckinOffline(checkinData) {
-    return await this.saveData('attendance', {
-      eventId: checkinData.event_id,
-      data: {
-        session_token: checkinData.session_token,
-        member_id: checkinData.member_id,
-        member_name: checkinData.member_name,
-        member_contact: checkinData.member_contact,
-        checked_in_by: checkinData.checked_in_by,
-        family_members: checkinData.family_members || []
-      },
-      timestamp: Date.now(),
-      synced: false,
-      type: 'member_checkin'
-    });
-  }
-
   // Get unsynced attendance
   async getUnsyncedAttendance() {
     if (!this.db) await this.init();

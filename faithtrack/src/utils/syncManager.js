@@ -58,79 +58,24 @@ class SyncManager {
 
       for (const record of unsyncedRecords) {
         try {
-          // Check record type and use appropriate API endpoint
-          if (record.type === 'member_checkin') {
-            // Member check-in via QR scan
-            // Convert timestamp to datetime format for API
-            const checkinDatetime = new Date(record.timestamp).toISOString().slice(0, 19).replace('T', ' ');
-            
-            // First, check in the primary member
-            const response = await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                session_token: record.data.session_token,
-                member_id: record.data.member_id,
-                member_name: record.data.member_name,
-                member_contact: record.data.member_contact,
-                checkin_datetime: checkinDatetime // Send original check-in time
-              })
-            });
+          // All offline records are admin attendance marking
+          const response = await fetch(`${API_BASE_URL}/api/attendance/record.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event_id: record.eventId,
+              attendance_data: record.data.attendance_data || record.data
+            })
+          });
 
-            if (response.ok) {
-              // Check in family members if any
-              if (record.data.family_members && record.data.family_members.length > 0) {
-                for (const familyMember of record.data.family_members) {
-                  try {
-                    await fetch(`${API_BASE_URL}/api/qr_sessions/checkin.php`, {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        ...familyMember,
-                        session_token: record.data.session_token // Ensure session token is included
-                      })
-                    });
-                  } catch (error) {
-                    console.error(`Failed to sync family member:`, error);
-                  }
-                }
-              }
-              
-              await offlineStorage.markAttendanceSynced(record.id);
-              syncedCount++;
-              console.log(`Synced member check-in ${record.id}`);
-            } else {
-              const errorText = await response.text();
-              failedCount++;
-              failedRecords.push(record);
-              console.error(`Failed to sync member check-in ${record.id}:`, response.status, errorText);
-            }
+          if (response.ok) {
+            await offlineStorage.markAttendanceSynced(record.id);
+            syncedCount++;
+            console.log(`Synced record ${record.id}`);
           } else {
-            // Admin marking attendance
-            const response = await fetch(`${API_BASE_URL}/api/attendance/record.php`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                event_id: record.eventId,
-                attendance_data: record.data.attendance_data || record.data
-              })
-            });
-
-            if (response.ok) {
-              await offlineStorage.markAttendanceSynced(record.id);
-              syncedCount++;
-              console.log(`Synced record ${record.id}`);
-            } else {
-              failedCount++;
-              failedRecords.push(record);
-              console.error(`Failed to sync record ${record.id}:`, response.status);
-            }
+            failedCount++;
+            failedRecords.push(record);
+            console.error(`Failed to sync record ${record.id}:`, response.status);
           }
         } catch (error) {
           failedCount++;

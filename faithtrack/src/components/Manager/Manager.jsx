@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import AttendanceManagement from '../Admin/AttendanceManagement';
 import MembersManagement from '../Admin/MembersManagement';
+import MemberQRScanner from './MemberQRScanner';
 import './Manager.css';
 import logoImage from '../../assets/logo2.png';
 import { loadChurchSettingsFromAPI } from '../../utils/churchSettings';
@@ -830,6 +831,7 @@ const Manager = () => {
 
   const navItems = [
     { key: 'dashboard', label: 'Dashboard' },
+    { key: 'scan-attendance', label: 'Scan Attendance' },
     { key: 'generate-qr', label: 'Generate QR' },
     { key: 'attendance', label: 'Attendance' },
     { key: 'members', label: 'Members' }
@@ -3789,6 +3791,7 @@ const Manager = () => {
 
   const activeContent = {
     dashboard: renderDashboard(),
+    'scan-attendance': <MemberQRScanner />,
     'generate-qr': renderGenerateQr(),
     attendance: renderAttendance(),
     members: renderMembers()
