@@ -412,8 +412,10 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 24px;
-    gap: 16px;
+    padding: 0 20px;
+    gap: 0;
+    height: 60px;
+    min-height: 60px;
   }
 
   .login-left::before,
@@ -421,31 +423,33 @@
     display: none;
   }
 
+  .login-back-btn {
+    position: static;
+    flex-shrink: 0;
+    order: 0;
+  }
+
   .login-left-content {
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
+    justify-content: center;
   }
 
   .login-logo {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
   }
 
   .login-brand {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .login-brand-desc,
   .login-left-badges,
   .login-left-footer {
     display: none;
-  }
-
-  .login-back-btn {
-    order: -1;
-    flex-shrink: 0;
   }
 
   .login-right {
