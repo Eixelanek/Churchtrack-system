@@ -12,7 +12,8 @@ body {
 .home-wrapper,
 .about-section,
 .contact-section,
-.guides-section {
+.guides-section,
+.login-page {
   animation: pageEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
