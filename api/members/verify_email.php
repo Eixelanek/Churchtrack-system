@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 include_once '../config/database.php';
 require_once __DIR__ . '/email_verification_utils.php';
+require_once __DIR__ . '/send_qr_email.php';
 
 try {
     $database = new Database();
@@ -81,6 +82,18 @@ try {
                             WHERE id = :id");
     $update->bindParam(':id', $member['id'], PDO::PARAM_INT);
     $update->execute();
+
+    // If member is already active (approved before verifying), send QR email now
+    $statusStmt = $db->prepare("SELECT status FROM members WHERE id = :id LIMIT 1");
+    $statusStmt->bindParam(':id', $member['id'], PDO::PARAM_INT);
+    $statusStmt->execute();
+    $statusRow = $statusStmt->fetch(PDO::FETCH_ASSOC);
+    if ($statusRow && $statusRow['status'] === 'active') {
+        $qrSend = sendMemberQrEmail($db, (int)$member['id']);
+        if (!$qrSend['success']) {
+            error_log("QR email failed after email verification for member {$member['id']}: " . ($qrSend['message'] ?? 'unknown'));
+        }
+    }
 
     echo json_encode([
         "success" => true,

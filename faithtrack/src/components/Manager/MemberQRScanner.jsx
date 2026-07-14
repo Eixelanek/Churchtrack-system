@@ -21,14 +21,14 @@ const MemberQRScanner = () => {
   const [selectedEventId, setSelectedEventId] = useState('');
   const selectedEvent = events.find((e) => String(e.id) === String(selectedEventId)) || null;
 
-  // Reset scan list when event selection changes
+  // Reset scan list only when a different event is selected
   const prevEventIdRef = useRef(selectedEventId);
   useEffect(() => {
-    if (prevEventIdRef.current !== selectedEventId) {
+    if (prevEventIdRef.current !== selectedEventId && selectedEventId !== '') {
       setCheckedInList([]);
       setLastResult(null);
-      prevEventIdRef.current = selectedEventId;
     }
+    prevEventIdRef.current = selectedEventId;
   }, [selectedEventId]);
 
   // ── scanner ─────────────────────────────────────────────────

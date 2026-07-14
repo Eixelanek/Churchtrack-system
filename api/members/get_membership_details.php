@@ -51,74 +51,77 @@ try {
     $lastAttended = null;
     $thisMonthCount = 0;
 
-    // Try to pull data from qr_attendance table (primary source for member scans)
+    // ── Source 1: new attendance table (manager QR scans) ────────────────
+    try {
+        $attQuery = "SELECT 
+                         COUNT(*) AS total_visits,
+                         MAX(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) AS last_attended
+                     FROM attendance
+                     WHERE member_id = :member_id";
+        $attStmt = $db->prepare($attQuery);
+        $attStmt->bindParam(':member_id', $memberId);
+        $attStmt->execute();
+        $attResult = $attStmt->fetch(PDO::FETCH_ASSOC);
+        if ($attResult) {
+            $totalVisits += (int)($attResult['total_visits'] ?? 0);
+            if (!empty($attResult['last_attended'])) {
+                $lastAttended = $attResult['last_attended'];
+            }
+        }
+    } catch (Exception $attEx) { /* ignore */ }
+
+    // Month visits from attendance table
+    try {
+        $attMonthQuery = "SELECT COUNT(*) AS month_visits
+                          FROM attendance
+                          WHERE member_id = :member_id
+                            AND YEAR(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) = YEAR(CONVERT_TZ(NOW(), '+00:00', '+08:00'))
+                            AND MONTH(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) = MONTH(CONVERT_TZ(NOW(), '+00:00', '+08:00'))";
+        $attMonthStmt = $db->prepare($attMonthQuery);
+        $attMonthStmt->bindParam(':member_id', $memberId);
+        $attMonthStmt->execute();
+        $attMonthResult = $attMonthStmt->fetch(PDO::FETCH_ASSOC);
+        if ($attMonthResult) {
+            $thisMonthCount += (int)($attMonthResult['month_visits'] ?? 0);
+        }
+    } catch (Exception $e) { /* ignore */ }
+
+    // ── Source 2: legacy qr_attendance table ─────────────────────────────
     try {
         $qrAttendanceQuery = "SELECT 
                                 COUNT(*) AS total_visits,
-                                MAX(checkin_datetime) AS last_attended
+                                MAX(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) AS last_attended
                               FROM qr_attendance
                               WHERE member_id = :member_id";
-
         $qrStmt = $db->prepare($qrAttendanceQuery);
         $qrStmt->bindParam(':member_id', $memberId);
         $qrStmt->execute();
         $qrResult = $qrStmt->fetch(PDO::FETCH_ASSOC);
-
         if ($qrResult) {
-            $totalVisits = max($totalVisits, (int)($qrResult['total_visits'] ?? 0));
+            $totalVisits += (int)($qrResult['total_visits'] ?? 0);
             if (!empty($qrResult['last_attended'])) {
-                $lastAttended = $qrResult['last_attended'];
+                if (empty($lastAttended) || strtotime($qrResult['last_attended']) > strtotime($lastAttended)) {
+                    $lastAttended = $qrResult['last_attended'];
+                }
             }
         }
-    } catch (Exception $qrEx) {
-        // Table might not exist yet; ignore and fall back to other sources
-    }
+    } catch (Exception $qrEx) { /* ignore */ }
 
-    // Count attendance for current month from qr_attendance
+    // Month visits from qr_attendance
     try {
         $thisMonthQuery = "SELECT COUNT(*) AS month_visits
                             FROM qr_attendance
                             WHERE member_id = :member_id
-                              AND YEAR(checkin_datetime) = YEAR(CURRENT_DATE)
-                              AND MONTH(checkin_datetime) = MONTH(CURRENT_DATE)";
-
+                              AND YEAR(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) = YEAR(CONVERT_TZ(NOW(), '+00:00', '+08:00'))
+                              AND MONTH(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) = MONTH(CONVERT_TZ(NOW(), '+00:00', '+08:00'))";
         $monthStmt = $db->prepare($thisMonthQuery);
         $monthStmt->bindParam(':member_id', $memberId);
         $monthStmt->execute();
         $monthResult = $monthStmt->fetch(PDO::FETCH_ASSOC);
         if ($monthResult) {
-            $thisMonthCount = (int)($monthResult['month_visits'] ?? 0);
+            $thisMonthCount += (int)($monthResult['month_visits'] ?? 0);
         }
-    } catch (Exception $monthEx) {
-        // Ignore if table not present
-    }
-
-    // Optional legacy attendance_records table (if exists)
-    try {
-        $legacyTotalQuery = "SELECT COUNT(*) as total_visits,
-                                     MAX(attendance_date) as last_attended
-                             FROM attendance_records
-                              WHERE member_id = :member_id";
-
-        $legacyStmt = $db->prepare($legacyTotalQuery);
-        $legacyStmt->bindParam(':member_id', $memberId);
-        $legacyStmt->execute();
-        $legacyResult = $legacyStmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($legacyResult) {
-            $legacyVisits = (int)($legacyResult['total_visits'] ?? 0);
-            $totalVisits = max($totalVisits, $legacyVisits);
-
-            if (!empty($legacyResult['last_attended'])) {
-                $legacyLast = $legacyResult['last_attended'];
-                if (empty($lastAttended) || strtotime($legacyLast) > strtotime($lastAttended)) {
-                    $lastAttended = $legacyLast;
-                }
-            }
-        }
-    } catch (Exception $legacyEx) {
-        // Ignore if legacy table is not present
-    }
+    } catch (Exception $monthEx) { /* ignore */ }
 
     // Calculate attendance rate
     // Get total number of Sundays since join date
@@ -145,11 +148,14 @@ try {
     $recentScans = [];
 
     try {
-        $streakQuery = "SELECT DATE(checkin_datetime) as attendance_date
-                         FROM qr_attendance
-                         WHERE member_id = :member_id
-                         GROUP BY DATE(checkin_datetime)
-                         ORDER BY DATE(checkin_datetime) DESC";
+        $streakQuery = "
+            SELECT DATE(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) AS attendance_date
+            FROM attendance WHERE member_id = :member_id
+            UNION
+            SELECT DATE(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) AS attendance_date
+            FROM qr_attendance WHERE member_id = :member_id
+            GROUP BY attendance_date
+            ORDER BY attendance_date DESC";
 
         $streakStmt = $db->prepare($streakQuery);
         $streakStmt->bindParam(':member_id', $memberId);
@@ -189,15 +195,28 @@ try {
 
     // Recent scans (latest check-ins)
     try {
-        $recentQuery = "SELECT 
-                            qa.id,
-                            COALESCE(qs.service_name, 'QR Attendance') AS service_name,
-                            qa.checkin_datetime
-                        FROM qr_attendance qa
-                        LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
-                        WHERE qa.member_id = :member_id
-                        ORDER BY qa.checkin_datetime DESC
-                        LIMIT 5";
+        $recentQuery = "
+            SELECT id, service_name,
+                   CONVERT_TZ(checkin_datetime, '+00:00', '+08:00') AS checkin_datetime
+            FROM (
+                SELECT a.id,
+                       COALESCE(e.title, 'Service') AS service_name,
+                       a.check_in_time AS checkin_datetime
+                FROM attendance a
+                LEFT JOIN events e ON e.id = a.event_id
+                WHERE a.member_id = :member_id
+
+                UNION ALL
+
+                SELECT qa.id,
+                       COALESCE(qs.service_name, 'QR Attendance') AS service_name,
+                       qa.checkin_datetime
+                FROM qr_attendance qa
+                LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
+                WHERE qa.member_id = :member_id
+            ) combined
+            ORDER BY checkin_datetime DESC
+            LIMIT 5";
 
         $recentStmt = $db->prepare($recentQuery);
         $recentStmt->bindParam(':member_id', $memberId, PDO::PARAM_INT);
@@ -222,16 +241,33 @@ try {
     ];
 
     try {
-        $recordsQuery = "SELECT 
-                                qa.id,
-                                COALESCE(qs.service_name, 'QR Attendance') AS service_name,
-                                qa.checkin_datetime,
-                                qa.session_id,
-                                qa.member_contact
-                           FROM qr_attendance qa
-                           LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
-                           WHERE qa.member_id = :member_id
-                           ORDER BY qa.checkin_datetime DESC";
+        // Combine records from both attendance sources, timezone-corrected
+        $recordsQuery = "
+            SELECT 
+                a.id,
+                COALESCE(e.title, 'Service') AS service_name,
+                CONVERT_TZ(a.check_in_time, '+00:00', '+08:00') AS checkin_datetime,
+                NULL AS session_id,
+                NULL AS member_contact,
+                a.status
+            FROM attendance a
+            LEFT JOIN events e ON e.id = a.event_id
+            WHERE a.member_id = :member_id
+
+            UNION ALL
+
+            SELECT
+                qa.id,
+                COALESCE(qs.service_name, 'QR Attendance') AS service_name,
+                CONVERT_TZ(qa.checkin_datetime, '+00:00', '+08:00') AS checkin_datetime,
+                qa.session_id,
+                qa.member_contact,
+                'present' AS status
+            FROM qr_attendance qa
+            LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
+            WHERE qa.member_id = :member_id
+
+            ORDER BY checkin_datetime DESC";
 
         $recordsStmt = $db->prepare($recordsQuery);
         $recordsStmt->bindParam(':member_id', $memberId, PDO::PARAM_INT);
@@ -239,12 +275,12 @@ try {
 
         while ($row = $recordsStmt->fetch(PDO::FETCH_ASSOC)) {
             $attendanceRecords[] = [
-                'id' => isset($row['id']) ? (int)$row['id'] : null,
-                'service_name' => $row['service_name'] ?? 'QR Attendance',
+                'id'               => isset($row['id']) ? (int)$row['id'] : null,
+                'service_name'     => $row['service_name'] ?? 'QR Attendance',
                 'checkin_datetime' => $row['checkin_datetime'] ?? null,
-                'session_id' => isset($row['session_id']) ? (int)$row['session_id'] : null,
-                'member_contact' => $row['member_contact'] ?? null,
-                'status' => 'Present'
+                'session_id'       => isset($row['session_id']) ? (int)$row['session_id'] : null,
+                'member_contact'   => $row['member_contact'] ?? null,
+                'status'           => ucfirst(strtolower($row['status'] ?? 'present'))
             ];
 
             if (!empty($row['checkin_datetime'])) {
