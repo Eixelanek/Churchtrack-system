@@ -39,12 +39,13 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
   const lastScannedRef      = useRef('');        // debounce same token
   const lastScannedTime     = useRef(0);
 
-  const [scanError, setScanError]         = useState('');
-  const [isScanning, setIsScanning]       = useState(false);
-
-  // ── result feedback ─────────────────────────────────────────
   const [lastResult, setLastResult]       = useState(null);
   const resultTimerRef = useRef(null);
+  const [manualToken, setManualToken]     = useState('');
+
+  // ── result feedback ─────────────────────────────────────────
+  const [scanError, setScanError]         = useState('');
+  const [isScanning, setIsScanning]       = useState(false);
 
   // ── fetch active events ──────────────────────────────────────
   const fetchEvents = useCallback(async () => {
@@ -230,6 +231,14 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
     setStep('select');
   };
 
+  const handleManualSubmit = useCallback((e) => {
+    e?.preventDefault();
+    const token = manualToken.trim();
+    if (!token) return;
+    processToken(token);
+    setManualToken('');
+  }, [manualToken, processToken]);
+
   // ── render: event selector ────────────────────────────────────
   if (step === 'select') {
     return (
@@ -357,6 +366,19 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
                 </svg>
                 <p>{scanError}</p>
                 <button className="mqrs-retry-btn" onClick={startScanner}>Try Again</button>
+                <p style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', color: '#64748b' }}>Or paste the member QR token manually:</p>
+                <form onSubmit={handleManualSubmit} style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '360px' }}>
+                  <input
+                    type="text"
+                    value={manualToken}
+                    onChange={(e) => setManualToken(e.target.value)}
+                    placeholder="Paste QR token here…"
+                    style={{ flex: 1, padding: '0.6rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '0.85rem' }}
+                  />
+                  <button type="submit" className="mqrs-retry-btn" style={{ margin: 0 }} disabled={!manualToken.trim()}>
+                    Submit
+                  </button>
+                </form>
               </div>
             ) : (
               <>
