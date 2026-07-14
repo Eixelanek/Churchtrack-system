@@ -55,7 +55,7 @@ try {
     try {
         $attQuery = "SELECT 
                          COUNT(*) AS total_visits,
-                         MAX(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) AS last_attended
+                         MAX(DATE_ADD(check_in_time, INTERVAL 8 HOUR)) AS last_attended
                      FROM attendance
                      WHERE member_id = :member_id";
         $attStmt = $db->prepare($attQuery);
@@ -75,8 +75,8 @@ try {
         $attMonthQuery = "SELECT COUNT(*) AS month_visits
                           FROM attendance
                           WHERE member_id = :member_id
-                            AND YEAR(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) = YEAR(CONVERT_TZ(NOW(), '+00:00', '+08:00'))
-                            AND MONTH(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) = MONTH(CONVERT_TZ(NOW(), '+00:00', '+08:00'))";
+                            AND YEAR(DATE_ADD(check_in_time, INTERVAL 8 HOUR)) = YEAR(DATE_ADD(NOW(), INTERVAL 8 HOUR))
+                            AND MONTH(DATE_ADD(check_in_time, INTERVAL 8 HOUR)) = MONTH(DATE_ADD(NOW(), INTERVAL 8 HOUR))";
         $attMonthStmt = $db->prepare($attMonthQuery);
         $attMonthStmt->bindParam(':member_id', $memberId);
         $attMonthStmt->execute();
@@ -90,7 +90,7 @@ try {
     try {
         $qrAttendanceQuery = "SELECT 
                                 COUNT(*) AS total_visits,
-                                MAX(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) AS last_attended
+                                MAX(DATE_ADD(checkin_datetime, INTERVAL 8 HOUR)) AS last_attended
                               FROM qr_attendance
                               WHERE member_id = :member_id";
         $qrStmt = $db->prepare($qrAttendanceQuery);
@@ -112,8 +112,8 @@ try {
         $thisMonthQuery = "SELECT COUNT(*) AS month_visits
                             FROM qr_attendance
                             WHERE member_id = :member_id
-                              AND YEAR(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) = YEAR(CONVERT_TZ(NOW(), '+00:00', '+08:00'))
-                              AND MONTH(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) = MONTH(CONVERT_TZ(NOW(), '+00:00', '+08:00'))";
+                              AND YEAR(DATE_ADD(checkin_datetime, INTERVAL 8 HOUR)) = YEAR(DATE_ADD(NOW(), INTERVAL 8 HOUR))
+                              AND MONTH(DATE_ADD(checkin_datetime, INTERVAL 8 HOUR)) = MONTH(DATE_ADD(NOW(), INTERVAL 8 HOUR))";
         $monthStmt = $db->prepare($thisMonthQuery);
         $monthStmt->bindParam(':member_id', $memberId);
         $monthStmt->execute();
@@ -149,16 +149,16 @@ try {
 
     try {
         $streakQuery = "
-            SELECT DATE(CONVERT_TZ(check_in_time, '+00:00', '+08:00')) AS attendance_date
-            FROM attendance WHERE member_id = :member_id
+            SELECT DATE(DATE_ADD(check_in_time, INTERVAL 8 HOUR)) AS attendance_date
+            FROM attendance WHERE member_id = :member_id1
             UNION
-            SELECT DATE(CONVERT_TZ(checkin_datetime, '+00:00', '+08:00')) AS attendance_date
-            FROM qr_attendance WHERE member_id = :member_id
-            GROUP BY attendance_date
+            SELECT DATE(DATE_ADD(checkin_datetime, INTERVAL 8 HOUR)) AS attendance_date
+            FROM qr_attendance WHERE member_id = :member_id2
             ORDER BY attendance_date DESC";
 
         $streakStmt = $db->prepare($streakQuery);
-        $streakStmt->bindParam(':member_id', $memberId);
+        $streakStmt->bindParam(':member_id1', $memberId);
+        $streakStmt->bindParam(':member_id2', $memberId);
         $streakStmt->execute();
         $dates = $streakStmt->fetchAll(PDO::FETCH_COLUMN);
 
@@ -197,14 +197,14 @@ try {
     try {
         $recentQuery = "
             SELECT id, service_name,
-                   CONVERT_TZ(checkin_datetime, '+00:00', '+08:00') AS checkin_datetime
+                   DATE_ADD(checkin_datetime, INTERVAL 8 HOUR) AS checkin_datetime
             FROM (
                 SELECT a.id,
                        COALESCE(e.title, 'Service') AS service_name,
                        a.check_in_time AS checkin_datetime
                 FROM attendance a
                 LEFT JOIN events e ON e.id = a.event_id
-                WHERE a.member_id = :member_id
+                WHERE a.member_id = :member_id1
 
                 UNION ALL
 
@@ -213,13 +213,14 @@ try {
                        qa.checkin_datetime
                 FROM qr_attendance qa
                 LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
-                WHERE qa.member_id = :member_id
+                WHERE qa.member_id = :member_id2
             ) combined
             ORDER BY checkin_datetime DESC
             LIMIT 5";
 
         $recentStmt = $db->prepare($recentQuery);
-        $recentStmt->bindParam(':member_id', $memberId, PDO::PARAM_INT);
+        $recentStmt->bindParam(':member_id1', $memberId, PDO::PARAM_INT);
+        $recentStmt->bindParam(':member_id2', $memberId, PDO::PARAM_INT);
         $recentStmt->execute();
 
         while ($row = $recentStmt->fetch(PDO::FETCH_ASSOC)) {
@@ -241,36 +242,38 @@ try {
     ];
 
     try {
-        // Combine records from both attendance sources, timezone-corrected
+        // Combine records from both attendance sources
+        // Use DATE_ADD for timezone offset instead of CONVERT_TZ (avoids missing tz tables)
         $recordsQuery = "
             SELECT 
                 a.id,
                 COALESCE(e.title, 'Service') AS service_name,
-                CONVERT_TZ(a.check_in_time, '+00:00', '+08:00') AS checkin_datetime,
+                DATE_ADD(a.check_in_time, INTERVAL 8 HOUR) AS checkin_datetime,
                 NULL AS session_id,
                 NULL AS member_contact,
                 a.status
             FROM attendance a
             LEFT JOIN events e ON e.id = a.event_id
-            WHERE a.member_id = :member_id
+            WHERE a.member_id = :member_id1
 
             UNION ALL
 
             SELECT
                 qa.id,
                 COALESCE(qs.service_name, 'QR Attendance') AS service_name,
-                CONVERT_TZ(qa.checkin_datetime, '+00:00', '+08:00') AS checkin_datetime,
+                DATE_ADD(qa.checkin_datetime, INTERVAL 8 HOUR) AS checkin_datetime,
                 qa.session_id,
                 qa.member_contact,
                 'present' AS status
             FROM qr_attendance qa
             LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
-            WHERE qa.member_id = :member_id
+            WHERE qa.member_id = :member_id2
 
             ORDER BY checkin_datetime DESC";
 
         $recordsStmt = $db->prepare($recordsQuery);
-        $recordsStmt->bindParam(':member_id', $memberId, PDO::PARAM_INT);
+        $recordsStmt->bindParam(':member_id1', $memberId, PDO::PARAM_INT);
+        $recordsStmt->bindParam(':member_id2', $memberId, PDO::PARAM_INT);
         $recordsStmt->execute();
 
         while ($row = $recordsStmt->fetch(PDO::FETCH_ASSOC)) {

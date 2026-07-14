@@ -148,6 +148,7 @@ const Manager = () => {
   const navigate = useNavigate();
 
   const [activeView, setActiveView] = useState('dashboard');
+  const [scanCheckedInList, setScanCheckedInList] = useState([]); // persists across tab navigation
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -3791,7 +3792,7 @@ const Manager = () => {
 
   const activeContent = {
     dashboard: renderDashboard(),
-    'scan-attendance': <MemberQRScanner />,
+    'scan-attendance': <MemberQRScanner checkedInList={scanCheckedInList} setCheckedInList={setScanCheckedInList} />,
     'generate-qr': renderGenerateQr(),
     attendance: renderAttendance(),
     members: renderMembers()

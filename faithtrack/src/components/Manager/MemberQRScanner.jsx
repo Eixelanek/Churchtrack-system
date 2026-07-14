@@ -6,7 +6,7 @@ const getInitials = (name = '') =>
   name.split(' ').filter(Boolean).map((p) => p[0]?.toUpperCase() || '').join('').slice(0, 2);
 
 // ── component ─────────────────────────────────────────────────
-const MemberQRScanner = () => {
+const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
   // ── auth ────────────────────────────────────────────────────
   const sessionId = localStorage.getItem('sessionId');
   const managerId = localStorage.getItem('managerId') || localStorage.getItem('userId');
@@ -43,8 +43,7 @@ const MemberQRScanner = () => {
   const [isScanning, setIsScanning]       = useState(false);
 
   // ── result feedback ─────────────────────────────────────────
-  const [lastResult, setLastResult]       = useState(null); // { success, member, message, status }
-  const [checkedInList, setCheckedInList] = useState([]);   // running list for this session
+  const [lastResult, setLastResult]       = useState(null);
   const resultTimerRef = useRef(null);
 
   // ── fetch active events ──────────────────────────────────────
