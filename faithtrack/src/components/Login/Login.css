@@ -30,7 +30,8 @@
   background: linear-gradient(160deg, #0049AF 0%, #1095D2 100%);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 48px;
   padding: 36px 40px;
   position: relative;
   overflow: hidden;
@@ -62,6 +63,9 @@
 }
 
 .login-back-btn {
+  position: absolute;
+  top: 32px;
+  left: 40px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -70,9 +74,7 @@
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s;
-  position: relative;
   z-index: 1;
-  width: fit-content;
 }
 
 .login-back-btn svg {
@@ -139,9 +141,11 @@
 }
 
 .login-left-footer {
+  position: absolute;
+  bottom: 28px;
+  left: 40px;
   font-size: 0.78rem;
   color: rgba(255,255,255,0.5);
-  position: relative;
   z-index: 1;
 }
 
