@@ -925,48 +925,6 @@ const Register = () => {
           </div>
         )}
 
-        
-
-        {/* Step Progress Indicator */}
-        <div className="step-progress">
-          {hasReferral && (
-            <>
-              <div className="step-item">
-                <div className={`step-circle ${activeStep >= 1 ? 'active' : ''}`}>1</div>
-                <span className="step-label">Referrer</span>
-              </div>
-              <div className="step-connector"></div>
-            </>
-          )}
-          <div className="step-item">
-            <div className={`step-circle ${activeStep >= (hasReferral ? 2 : 1) ? 'active' : ''}`}>
-              {hasReferral ? '2' : '1'}
-            </div>
-            <span className="step-label">Personal</span>
-          </div>
-          <div className="step-connector"></div>
-          <div className="step-item">
-            <div className={`step-circle ${activeStep >= (hasReferral ? 3 : 2) ? 'active' : ''}`}>
-              {hasReferral ? '3' : '2'}
-            </div>
-            <span className="step-label">Contact</span>
-          </div>
-          <div className="step-connector"></div>
-          <div className="step-item">
-            <div className={`step-circle ${activeStep >= (hasReferral ? 4 : 3) ? 'active' : ''}`}>
-              {hasReferral ? '4' : '3'}
-            </div>
-            <span className="step-label">Address</span>
-          </div>
-          <div className="step-connector"></div>
-          <div className="step-item">
-            <div className={`step-circle ${activeStep >= (hasReferral ? 5 : 4) ? 'active' : ''}`}>
-              {hasReferral ? '5' : '4'}
-            </div>
-            <span className="step-label">Security</span>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmitRegistration}>
           <div className="registration-steps">
             {/* Step 1: Referrer Information (only for referred registration) */}
@@ -1064,7 +1022,7 @@ const Register = () => {
                     <input
                       type="text"
                     name="surname"
-                    placeholder="Enter surname"
+                    placeholder="e.g. Dela Cruz"
                     value={formData.surname}
                       onChange={handleChange}
                       required
@@ -1080,7 +1038,7 @@ const Register = () => {
                     <input
                       type="text"
                     name="firstName"
-                    placeholder="Enter first name"
+                    placeholder="e.g. Juan"
                     value={formData.firstName}
                       onChange={handleChange}
                       required
@@ -1093,7 +1051,7 @@ const Register = () => {
                   <input
                     type="text"
                     name="middleName"
-                    placeholder="Enter middle name"
+                    placeholder="e.g. Santos"
                     value={formData.middleName}
                     onChange={handleChange}
                     disabled={isLoading}
@@ -1119,7 +1077,7 @@ const Register = () => {
                 
                 <div className="form-group">
                   <label>
-                    Gender
+                    Sex
                     <span className="required-asterisk">*</span>
                   </label>
                   <select
@@ -1325,7 +1283,7 @@ const Register = () => {
                       <input
                         type="text"
                         name="guardianSurname"
-                        placeholder="Enter guardian surname"
+                        placeholder="e.g. Dela Cruz"
                         value={formData.guardianSurname}
                         onChange={handleChange}
                         required
@@ -1341,7 +1299,7 @@ const Register = () => {
                       <input
                         type="text"
                         name="guardianFirstName"
-                        placeholder="Enter guardian first name"
+                        placeholder="e.g. Maria"
                         value={formData.guardianFirstName}
                         onChange={handleChange}
                         required
@@ -1354,7 +1312,7 @@ const Register = () => {
                       <input
                         type="text"
                         name="guardianMiddleName"
-                        placeholder="Enter guardian middle name"
+                        placeholder="e.g. Santos"
                         value={formData.guardianMiddleName}
                         onChange={handleChange}
                         disabled={isLoading}
@@ -1514,7 +1472,7 @@ const Register = () => {
                   <input
                     type="text"
                     name="street"
-                    placeholder="Enter street address"
+                    placeholder="e.g. Phase 2 Blk 48 Lot 43"
                     value={formData.street}
                     onChange={handleChange}
                     required
@@ -1530,7 +1488,7 @@ const Register = () => {
                   <input
                     type="text"
                     name="barangay"
-                    placeholder="Enter barangay"
+                    placeholder="e.g. Brgy. Langkiwa"
                     value={formData.barangay}
                     onChange={handleChange}
                     required
@@ -1547,7 +1505,7 @@ const Register = () => {
                     <input
                       type="text"
                       name="city"
-                      placeholder="Enter city"
+                      placeholder="e.g. Biñan"
                       value={formData.city}
                       onChange={handleChange}
                       required
@@ -1563,7 +1521,7 @@ const Register = () => {
                     <input
                       type="text"
                       name="province"
-                      placeholder="Enter province"
+                      placeholder="e.g. Laguna"
                       value={formData.province}
                       onChange={handleChange}
                       required
