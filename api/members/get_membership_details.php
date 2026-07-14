@@ -293,6 +293,7 @@ try {
         }
     } catch (Exception $recordsEx) {
         $attendanceRecords = [];
+        error_log('get_membership_details records error: ' . $recordsEx->getMessage());
     }
 
     // Prepare response
@@ -308,7 +309,11 @@ try {
         "attendance_streak" => $currentStreak,
         "recent_scans" => $recentScans,
         "attendance_records" => $attendanceRecords,
-        "attendance_totals" => $attendanceSummaryTotals
+        "attendance_totals" => $attendanceSummaryTotals,
+        "_debug" => [
+            "records_count" => count($attendanceRecords),
+            "total_visits_raw" => $totalVisits,
+        ]
     ];
     
     http_response_code(200);

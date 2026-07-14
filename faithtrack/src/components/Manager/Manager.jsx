@@ -3792,7 +3792,6 @@ const Manager = () => {
 
   const activeContent = {
     dashboard: renderDashboard(),
-    'scan-attendance': <MemberQRScanner checkedInList={scanCheckedInList} setCheckedInList={setScanCheckedInList} />,
     'generate-qr': renderGenerateQr(),
     attendance: renderAttendance(),
     members: renderMembers()
@@ -3966,7 +3965,11 @@ const Manager = () => {
       <main className="manager-main">
         <div className="manager-content">
           <div className="manager-content-body">
-            {activeContent}
+            {/* MemberQRScanner stays mounted to preserve state across tab navigation */}
+            <div style={{ display: activeView === 'scan-attendance' ? 'block' : 'none' }}>
+              <MemberQRScanner checkedInList={scanCheckedInList} setCheckedInList={setScanCheckedInList} />
+            </div>
+            {activeView !== 'scan-attendance' && activeContent}
           </div>
         </div>
       </main>
