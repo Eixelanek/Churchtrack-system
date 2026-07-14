@@ -209,6 +209,24 @@ const ForgotPassword = () => {
             Remembered your password?{' '}
             <Link to="/login" className="fp-login-link">Sign in here</Link>
           </p>
+
+          {/* Steps shown only on mobile */}
+          <div className="fp-mobile-steps">
+            <p className="fp-mobile-steps-heading">What happens next?</p>
+            {steps.map((s, i) => (
+              <div key={i} className={`fp-mobile-step ${requestSubmitted ? 'fp-mobile-step--done' : ''}`}>
+                <div className="fp-mobile-step-icon">{s.icon}</div>
+                <div className="fp-step-body">
+                  <span className="fp-step-label">{s.label}</span>
+                  <span className="fp-step-desc">{s.desc}</span>
+                </div>
+              </div>
+            ))}
+            <div className="fp-mobile-hint">
+              The reset link expires in 24 hours. Check your spam folder if you don't see the email.
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
