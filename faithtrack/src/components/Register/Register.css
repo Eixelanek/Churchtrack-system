@@ -41,6 +41,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   background: none;
+  background-color: transparent;
   border: none;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
@@ -55,7 +56,7 @@
   transition: transform 0.2s;
 }
 
-.reg-topbar-back:hover { color: #fff; }
+.reg-topbar-back:hover { color: #fff; border-color: transparent; }
 .reg-topbar-back:hover svg { transform: translateX(-3px); }
 
 .reg-topbar-brand {
