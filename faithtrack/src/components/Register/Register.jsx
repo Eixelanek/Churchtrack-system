@@ -823,6 +823,9 @@ const Register = () => {
     ? ['Referrer', 'Personal', 'Contact', 'Address', 'Security']
     : ['Personal', 'Contact', 'Address', 'Security'];
 
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
+
   return (
     <div className="register-container">
       {showNotification && (
