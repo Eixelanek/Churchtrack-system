@@ -14,6 +14,7 @@ import Member from './components/Members/Member';
 import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
 import VerifyEmail from './components/VerifyEmail/VerifyEmail';
+import PublicNav from './components/common/PublicNav';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
 import SyncStatus from './components/SyncStatus/SyncStatus';
@@ -155,109 +156,13 @@ const App = () => {
         {/* Home is now public landing page */}
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={
-          <>
-            <div className="home-minimal-wrapper">
-              <div className="header-bg-decoration"></div>
-              <nav className="minimal-nav">
-                <div className="nav-logo">
-                  <img src={logoImage} alt="Church Logo" />
-                  <span className="nav-church-name">
-                    <span className="full-name">Christ-Like Christian Church</span>
-                    <span className="short-name">CLCC</span>
-                  </span>
-                </div>
-                <div className="nav-links desktop-nav">
-                  <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
-                  <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
-                  <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
-                  <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
-                </div>
-                <div className="hamburger-menu">
-                  <input type="checkbox" id="menu-toggle" />
-                  <label htmlFor="menu-toggle" className="menu-btn">
-                    <span></span>
-                  </label>
-                  <div className="mobile-menu">
-                    <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
-                    <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
-                    <NavLink to="/guides" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Guides</NavLink>
-                    <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
-                  </div>
-                </div>
-              </nav>
-              <About />
-            </div>
-          </>
+          <><PublicNav /><About /></>
         } />
         <Route path="/contact" element={
-          <>
-            <div className="home-minimal-wrapper">
-              <div className="header-bg-decoration"></div>
-              <nav className="minimal-nav">
-                <div className="nav-logo">
-                  <img src={logoImage} alt="Church Logo" />
-                  <span className="nav-church-name">
-                    <span className="full-name">Christ-Like Christian Church</span>
-                    <span className="short-name">CLCC</span>
-                  </span>
-                </div>
-                <div className="nav-links desktop-nav">
-                  <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
-                  <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
-                  <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
-                  <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
-                </div>
-                <div className="hamburger-menu">
-                  <input type="checkbox" id="menu-toggle" />
-                  <label htmlFor="menu-toggle" className="menu-btn">
-                    <span></span>
-                  </label>
-                  <div className="mobile-menu">
-                    <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
-                    <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
-                    <NavLink to="/guides" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Guides</NavLink>
-                    <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
-                  </div>
-                </div>
-              </nav>
-              <Contact />
-            </div>
-          </>
+          <><PublicNav /><Contact /></>
         } />
         <Route path="/guides" element={
-          <>
-            <div className="home-minimal-wrapper">
-              <div className="header-bg-decoration"></div>
-              <nav className="minimal-nav">
-                <div className="nav-logo">
-                  <img src={logoImage} alt="Church Logo" />
-                  <span className="nav-church-name">
-                    <span className="full-name">Christ-Like Christian Church</span>
-                    <span className="short-name">CLCC</span>
-                  </span>
-                </div>
-                <div className="nav-links desktop-nav">
-                  <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
-                  <NavLink to="/about" className={({ isActive }) => isActive ? 'active' : ''}>About</NavLink>
-                  <NavLink to="/guides" className={({ isActive }) => isActive ? 'active' : ''}>Guides</NavLink>
-                  <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
-                </div>
-                <div className="hamburger-menu">
-                  <input type="checkbox" id="menu-toggle" />
-                  <label htmlFor="menu-toggle" className="menu-btn">
-                    <span></span>
-                  </label>
-                  <div className="mobile-menu">
-                    <NavLink to="/" end onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Home</NavLink>
-                    <NavLink to="/about" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>About</NavLink>
-                    <NavLink to="/guides" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Guides</NavLink>
-                    <NavLink to="/contact" onClick={() => { const t = document.getElementById('menu-toggle'); if (t) t.checked = false; }}>Contact</NavLink>
-                  </div>
-                </div>
-              </nav>
-              <UserGuides />
-            </div>
-          </>
+          <><PublicNav /><UserGuides /></>
         } />
         <Route path="/" element={<Home />} />
       </Routes>
