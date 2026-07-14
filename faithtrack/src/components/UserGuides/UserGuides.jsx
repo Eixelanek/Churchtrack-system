@@ -165,24 +165,41 @@ const UserGuides = () => {
       {/* ── MAIN CONTENT ── */}
       <div className="guides-body">
 
-        {/* Left: topic list */}
+        {/* Left: topic list — on mobile this becomes a full accordion */}
         <nav className="guides-sidebar">
           {guides.map((g) => (
-            <button
-              key={g.id}
-              className={`sidebar-item ${activeId === g.id ? 'active' : ''}`}
-              onClick={() => toggle(g.id)}
-            >
-              <span className="sidebar-icon">{g.icon}</span>
-              <span className="sidebar-label">{g.title}</span>
-              <svg className={`sidebar-chevron ${activeId === g.id ? 'open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
+            <React.Fragment key={g.id}>
+              <button
+                className={`sidebar-item ${activeId === g.id ? 'active' : ''}`}
+                onClick={() => toggle(g.id)}
+              >
+                <span className="sidebar-icon">{g.icon}</span>
+                <span className="sidebar-label">{g.title}</span>
+                <svg className={`sidebar-chevron ${activeId === g.id ? 'open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              {/* Inline panel — visible only on mobile via CSS */}
+              {activeId === g.id && (
+                <div className="mobile-inline-panel">
+                  <div className="panel-items">
+                    {g.items.map((item, i) => (
+                      <div key={i} className="panel-item">
+                        <div className="panel-item-number">{i + 1}</div>
+                        <div className="panel-item-body">
+                          <h3>{item.subtitle}</h3>
+                          <p>{item.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
           ))}
         </nav>
 
-        {/* Right: content panel */}
+        {/* Right: desktop content panel */}
         <div className="guides-panel">
           {activeId === null ? (
             <div className="guides-placeholder">
