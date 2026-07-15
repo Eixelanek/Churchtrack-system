@@ -2576,11 +2576,15 @@ const Manager = () => {
     }
   }, [backendBaseUrl]);
 
-  // Fetch active QR sessions
+  // Fetch active events for manual check-in (uses the same endpoint as MemberQRScanner)
   const fetchActiveSessions = useCallback(async () => {
     setIsLoadingSessions(true);
+    const sessionId = localStorage.getItem('sessionId');
+    const managerId = localStorage.getItem('managerId') || localStorage.getItem('userId');
     try {
-      const response = await fetch(`${backendBaseUrl}/api/qr_sessions/list.php?status=active&limit=50`);
+      const response = await fetch(
+        `${backendBaseUrl}/api/manager/get_active_events.php?session_id=${encodeURIComponent(sessionId || '')}&manager_id=${encodeURIComponent(managerId || '')}`
+      );
       if (!response.ok) {
         setActiveSessions([]);
         setIsLoadingSessions(false);
@@ -2588,12 +2592,8 @@ const Manager = () => {
       }
 
       const result = await response.json();
-      if (result.success && Array.isArray(result.data)) {
-        // Filter to only active sessions and sort by event_datetime
-        const active = result.data
-          .filter(session => session.status === 'active')
-          .sort((a, b) => new Date(b.event_datetime) - new Date(a.event_datetime));
-        setActiveSessions(active);
+      if (result.success && Array.isArray(result.events)) {
+        setActiveSessions(result.events);
       } else {
         setActiveSessions([]);
       }
@@ -2674,61 +2674,76 @@ const Manager = () => {
   // Handle manual check-in (supports multiple members)
   const handleManualCheckIn = async () => {
     if (selectedMembers.length === 0 || !selectedSession) {
-      setCheckInMessage({ type: 'error', text: 'Please select at least one member and a session' });
+      setCheckInMessage({ type: 'error', text: 'Please select at least one member and an event' });
       return;
     }
 
     setIsCheckingIn(true);
     setCheckInMessage({ type: '', text: '' });
 
+    const sessionId = localStorage.getItem('sessionId');
+    const managerId = localStorage.getItem('managerId') || localStorage.getItem('userId');
+
     try {
-      // Check in all selected members
+      // Check in all selected members via qr_sessions/checkin.php
       const checkInPromises = selectedMembers.map(member =>
         fetch(`${backendBaseUrl}/api/qr_sessions/checkin.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            session_token: selectedSession.session_token,
+            session_id: sessionId,
+            manager_id: Number(managerId),
             member_id: member.id,
-            member_name: member.name,
-            member_contact: member.contact_number || null
+            event_id: selectedSession.id
           })
-        }).then(res => res.json())
+        }).then(res => res.json().then(data => ({ ...data, _member: member })))
       );
 
       const results = await Promise.all(checkInPromises);
-      const successful = results.filter(r => r.success);
-      const failed = results.filter(r => !r.success);
 
-      if (successful.length === selectedMembers.length) {
-        // All successful
-        const names = selectedMembers.map(m => m.name).join(', ');
-        setCheckInMessage({ 
-          type: 'success', 
-          text: `${successful.length} member${successful.length > 1 ? 's' : ''} checked in successfully: ${names}` 
-        });
-        setSelectedMembers([]);
-        setSelectedSession(null);
-        setManualCheckInSearch('');
-        fetchActiveSessions();
-        loadAllMembers(); // Refresh members list
-      } else if (successful.length > 0) {
-        // Partial success
-        const names = successful.map((_, i) => selectedMembers[i].name).join(', ');
-        setCheckInMessage({ 
-          type: 'error', 
-          text: `${successful.length} of ${selectedMembers.length} members checked in. Failed: ${failed.length} member(s).` 
-        });
-        // Remove successfully checked in members
-        const failedIds = failed.map((_, i) => {
-          const failedIndex = results.findIndex((r, idx) => !r.success && idx === i);
-          return selectedMembers[failedIndex]?.id;
-        }).filter(Boolean);
-        setSelectedMembers(prev => prev.filter(m => !failedIds.includes(m.id)));
-      } else {
+      const alreadyIn   = results.filter(r => r.success && r.already_checked_in);
+      const successful  = results.filter(r => r.success && !r.already_checked_in);
+      const failed      = results.filter(r => !r.success);
+
+      if (failed.length === results.length) {
         // All failed
         const errorMsg = failed[0]?.message || 'Failed to check in members';
         setCheckInMessage({ type: 'error', text: errorMsg });
+      } else if (alreadyIn.length === results.length) {
+        // All already checked in
+        const names = alreadyIn.map(r => r._member.name).join(', ');
+        setCheckInMessage({
+          type: 'error',
+          text: `Already checked in: ${names}`
+        });
+      } else {
+        // At least some succeeded
+        const parts = [];
+        if (successful.length > 0) {
+          const names = successful.map(r => r._member.name).join(', ');
+          parts.push(`${successful.length} member${successful.length > 1 ? 's' : ''} checked in: ${names}`);
+        }
+        if (alreadyIn.length > 0) {
+          const names = alreadyIn.map(r => r._member.name).join(', ');
+          parts.push(`Already checked in: ${names}`);
+        }
+        if (failed.length > 0) {
+          parts.push(`Failed: ${failed.length} member${failed.length > 1 ? 's' : ''}`);
+        }
+
+        const hasNewCheckins = successful.length > 0;
+        setCheckInMessage({
+          type: hasNewCheckins && failed.length === 0 ? 'success' : 'error',
+          text: parts.join(' • ')
+        });
+
+        if (hasNewCheckins) {
+          setSelectedMembers([]);
+          setSelectedSession(null);
+          setManualCheckInSearch('');
+          fetchActiveSessions();
+          loadAllMembers();
+        }
       }
     } catch (error) {
       setCheckInMessage({ type: 'error', text: 'An error occurred while checking in members' });
@@ -3163,7 +3178,7 @@ const Manager = () => {
                 backgroundColor: '#f9fafb',
                 borderRadius: '8px'
               }}>
-                No active sessions available
+                No active events available
               </div>
             ) : (
               <div style={{
@@ -3175,19 +3190,14 @@ const Manager = () => {
                 marginBottom: '1rem'
               }}>
                 {activeSessions.map((session) => {
-                  const isSelected = selectedSession?.session_token === session.session_token;
-                  const eventDate = new Date(session.event_datetime);
-                  const dateStr = eventDate.toLocaleDateString('en-GB', { 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric' 
-                  });
-                  const timeStr = eventDate.toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true 
-                  });
-                  
+                  const isSelected = selectedSession?.id === session.id;
+                  const dateLabel = session.date
+                    ? new Date(session.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : '';
+                  const timeLabel = session.start_time
+                    ? new Date(`1970-01-01T${session.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+                    : '';
+
                   return (
                     <div
                       key={session.id}
@@ -3215,6 +3225,7 @@ const Manager = () => {
                     >
                       <input
                         type="radio"
+                        name="manual-checkin-session"
                         checked={isSelected}
                         onChange={() => setSelectedSession(session)}
                         onClick={(e) => e.stopPropagation()}
@@ -3223,24 +3234,28 @@ const Manager = () => {
                           height: '18px',
                           marginTop: '2px',
                           cursor: 'pointer',
-                          accentColor: '#667eea',
                           flexShrink: 0
                         }}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ 
-                          fontWeight: '600', 
+                        <div style={{
+                          fontWeight: '600',
                           color: '#1f2937',
                           fontSize: '0.875rem',
                           marginBottom: '0.25rem'
                         }}>
-                          {session.service_name}
+                          {session.title}
                         </div>
-                        <div style={{ 
-                          fontSize: '0.75rem', 
+                        <div style={{
+                          fontSize: '0.75rem',
                           color: '#6b7280'
                         }}>
-                          {dateStr} • {timeStr}
+                          {dateLabel}{timeLabel ? ` • ${timeLabel}` : ''}
+                          {session.attendee_count > 0 && (
+                            <span style={{ marginLeft: '0.5rem', color: '#3b82f6' }}>
+                              {session.attendee_count} present
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -3272,7 +3287,7 @@ const Manager = () => {
                 </div>
                 {selectedSession && (
                   <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                    Session: <span style={{ fontWeight: '600', color: '#667eea' }}>{selectedSession.service_name}</span>
+                    Session: <span style={{ fontWeight: '600', color: '#667eea' }}>{selectedSession.title}</span>
                   </div>
                 )}
               </div>
