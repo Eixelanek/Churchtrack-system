@@ -2781,8 +2781,8 @@ const Manager = () => {
   };
 
   const handleSubmitGuestCheckIn = async () => {
-    if (!selectedGuestSession?.session_token) {
-      setGuestCiMessage({ type: 'error', text: 'Choose an active event session first.' });
+    if (!selectedGuestSession?.id) {
+      setGuestCiMessage({ type: 'error', text: 'Choose an active event first.' });
       return;
     }
 
@@ -2793,7 +2793,7 @@ const Manager = () => {
         return;
       }
       payload = {
-        session_token: selectedGuestSession.session_token,
+        event_id: selectedGuestSession.id,
         guest_id: selectedReturningGuest.id,
         source: 'manual_manager',
         status: 'present'
@@ -2810,7 +2810,7 @@ const Manager = () => {
         return;
       }
       payload = {
-        session_token: selectedGuestSession.session_token,
+        event_id: selectedGuestSession.id,
         first_name: fn,
         surname: sn,
         middle_name: '',
@@ -3474,7 +3474,7 @@ const Manager = () => {
           {guestCheckInPhase === 'pick' && (
             <>
               <label style={{ display: 'block', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem' }}>
-                Active sessions
+                Active events
               </label>
               {isLoadingSessions ? (
                 <div style={{ padding: '1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
@@ -3482,18 +3482,21 @@ const Manager = () => {
                 </div>
               ) : activeSessions.length === 0 ? (
                 <div style={{ padding: '1.5rem', textAlign: 'center', color: '#6b7280', fontSize: '0.875rem', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
-                  No active QR sessions right now.
+                  No active events right now.
                 </div>
               ) : (
                 <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', maxHeight: '340px', overflowY: 'auto', backgroundColor: '#fff' }}>
                   {activeSessions.map((session) => {
-                    const sel = selectedGuestSession?.session_token === session.session_token;
-                    const eventDate = new Date(session.event_datetime);
-                    const dateStr = eventDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const timeStr = eventDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    const sel = selectedGuestSession?.id === session.id;
+                    const dateStr = session.date
+                      ? new Date(session.date + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                      : '';
+                    const timeStr = session.start_time
+                      ? new Date('1970-01-01T' + session.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+                      : '';
                     return (
                       <div
-                        key={session.id ?? session.session_token}
+                        key={session.id}
                         onClick={() => setSelectedGuestSession(session)}
                         style={{
                           padding: '0.75rem 1rem',
@@ -3507,17 +3510,17 @@ const Manager = () => {
                       >
                         <input
                           type="radio"
+                          name="guest-checkin-session"
                           checked={sel}
                           onChange={() => setSelectedGuestSession(session)}
                           onClick={(e) => e.stopPropagation()}
-                          aria-label={`Select ${session.service_name}`}
-                          style={{ width: '16px', height: '16px', marginTop: '3px', accentColor: '#7c3aed' }}
+                          aria-label={`Select ${session.title}`}
+                          style={{ width: '16px', height: '16px', marginTop: '3px' }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.875rem' }}>{session.service_name}</div>
+                          <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.875rem' }}>{session.title}</div>
                           <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                            {dateStr} • {timeStr}
-                            {session.event_type === 'custom' ? ' • Custom event' : ' • Preset'}
+                            {dateStr}{timeStr ? ` • ${timeStr}` : ''}
                           </div>
                         </div>
                       </div>
@@ -3585,9 +3588,9 @@ const Manager = () => {
           {(guestCheckInPhase === 'returning' || guestCheckInPhase === 'new') && (
             <div style={{ marginBottom: '1rem', padding: '0.65rem 0.85rem', background: '#f5f3ff', borderRadius: '8px', fontSize: '0.8125rem', color: '#5b21b6' }}>
               <strong style={{ fontWeight: 700 }}>Event:</strong>{' '}
-              {selectedGuestSession?.service_name}
-              {selectedGuestSession?.event_datetime
-                ? ` — ${new Date(selectedGuestSession.event_datetime).toLocaleString()}`
+              {selectedGuestSession?.title}
+              {selectedGuestSession?.date
+                ? ` — ${new Date(selectedGuestSession.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                 : ''}
             </div>
           )}

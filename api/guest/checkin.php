@@ -43,6 +43,7 @@ try {
     }
 
     $sessionToken = trim($input['session_token'] ?? '');
+    $eventIdDirect = isset($input['event_id']) ? intval($input['event_id']) : 0;
     $firstName = trim($input['first_name'] ?? '');
     $middleName = trim($input['middle_name'] ?? '');
     $surname = trim($input['surname'] ?? '');
@@ -67,11 +68,11 @@ try {
         exit();
     }
 
-    if ($sessionToken === '') {
+    if ($sessionToken === '' && $eventIdDirect <= 0) {
         http_response_code(400);
         echo json_encode([
             'success' => false,
-            'message' => 'Session token is required'
+            'message' => 'Event ID is required'
         ]);
         exit();
     }
@@ -151,40 +152,72 @@ try {
 
     $db->beginTransaction();
 
-    // Fetch the guest session details
-    $sessionStmt = $db->prepare("SELECT id, event_id, service_name, event_datetime, event_type, status, session_type FROM qr_sessions WHERE session_token = :token LIMIT 1");
-    $sessionStmt->bindParam(':token', $sessionToken);
-    $sessionStmt->execute();
-    $session = $sessionStmt->fetch(PDO::FETCH_ASSOC);
+    // Fetch the guest session details — support both event_id direct and legacy session_token
+    $session = null;
+    $sessionId = 0;
+    $eventId = null;
 
-    if (!$session) {
-        $db->rollBack();
-        http_response_code(404);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Invalid or expired guest QR code.'
-        ]);
-        exit();
+    if ($eventIdDirect > 0) {
+        // New flow: event_id provided directly — create a synthetic session from the event
+        $evtStmt = $db->prepare("SELECT id, title, date, start_time, status FROM events WHERE id = :id LIMIT 1");
+        $evtStmt->bindValue(':id', $eventIdDirect, PDO::PARAM_INT);
+        $evtStmt->execute();
+        $evt = $evtStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$evt) {
+            $db->rollBack();
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Event not found.']);
+            exit();
+        }
+
+        if ($evt['status'] === 'completed') {
+            $db->rollBack();
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'This event is already completed.']);
+            exit();
+        }
+
+        // Build a synthetic session array so the rest of the code works unchanged
+        $session = [
+            'id'             => 0,   // no real qr_session row
+            'event_id'       => (int)$evt['id'],
+            'service_name'   => $evt['title'],
+            'event_datetime' => $evt['date'] . ' ' . ($evt['start_time'] ?? '00:00:00'),
+            'event_type'     => 'manual',
+            'status'         => 'active',
+            'session_type'   => 'guest',
+        ];
+        $sessionId  = 0;
+        $eventId    = (int)$evt['id'];
+    } else {
+        // Legacy flow: session_token
+        $sessionStmt = $db->prepare("SELECT id, event_id, service_name, event_datetime, event_type, status, session_type FROM qr_sessions WHERE session_token = :token LIMIT 1");
+        $sessionStmt->bindParam(':token', $sessionToken);
+        $sessionStmt->execute();
+        $session = $sessionStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$session) {
+            $db->rollBack();
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Invalid or expired guest QR code.']);
+            exit();
+        }
+
+        if ($session['status'] !== 'active') {
+            $db->rollBack();
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'This guest QR code session is no longer active.',
+                'data' => ['status' => $session['status']]
+            ]);
+            exit();
+        }
+
+        $sessionId = (int)$session['id'];
+        $eventId   = !empty($session['event_id']) ? (int)$session['event_id'] : null;
     }
-
-    // Unified QR - accept guest check-ins on any session
-    // No session_type restriction needed for unified QR codes
-
-    if ($session['status'] !== 'active') {
-        $db->rollBack();
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'This guest QR code session is no longer active.',
-            'data' => [
-                'status' => $session['status']
-            ]
-        ]);
-        exit();
-    }
-
-    $sessionId = (int) $session['id'];
-    $eventId = !empty($session['event_id']) ? (int) $session['event_id'] : null;
 
     try {
         $eventDateTime = new DateTimeImmutable($session['event_datetime'] ?? 'now');
@@ -442,12 +475,17 @@ try {
         $guestId = (int) $db->lastInsertId();
     }
 
-    // Prevent duplicate check-ins for the same guest & session
-    // Check 1: By guest_id + session_id (if guest was found/created)
+    // Prevent duplicate check-ins for the same guest & event/session
     if ($guestId) {
-        $duplicateCheck = $db->prepare('SELECT id FROM guest_attendance WHERE guest_id = :guest_id AND session_id = :session_id LIMIT 1');
-        $duplicateCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
-        $duplicateCheck->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
+        if ($sessionId > 0) {
+            $duplicateCheck = $db->prepare('SELECT id FROM guest_attendance WHERE guest_id = :guest_id AND session_id = :session_id LIMIT 1');
+            $duplicateCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
+            $duplicateCheck->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
+        } else {
+            $duplicateCheck = $db->prepare('SELECT id FROM guest_attendance WHERE guest_id = :guest_id AND event_id = :event_id LIMIT 1');
+            $duplicateCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
+            $duplicateCheck->bindValue(':event_id', $eventId, PDO::PARAM_INT);
+        }
         $duplicateCheck->execute();
 
         if ($duplicateCheck->fetch()) {
@@ -456,42 +494,42 @@ try {
             echo json_encode([
                 'success' => false,
                 'message' => 'This guest has already been checked in for this event.',
-                'data' => [
-                    'guest_id' => $guestId,
-                    'duplicate' => true
-                ]
+                'data' => ['guest_id' => $guestId, 'duplicate' => true]
             ]);
             exit();
         }
     }
 
-    // Check 2: By name matching for the same session (additional protection)
-    // This catches cases where same name tries to check in again even if guest_id differs
+    // Check 2: By name for same session/event
     if ($normalizedFirstName && $normalizedSurname) {
-        // Fetch all guest attendances for this session and check in PHP to avoid collation issues
-        $nameDuplicateCheck = $db->prepare(
-            "SELECT ga.id, g.first_name, g.surname
-             FROM guest_attendance ga
-             INNER JOIN guests g ON ga.guest_id = g.id
-             WHERE ga.session_id = :session_id"
-        );
-        $nameDuplicateCheck->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
+        if ($sessionId > 0) {
+            $nameDuplicateCheck = $db->prepare(
+                "SELECT ga.id, g.first_name, g.surname FROM guest_attendance ga
+                 INNER JOIN guests g ON ga.guest_id = g.id
+                 WHERE ga.session_id = :session_id"
+            );
+            $nameDuplicateCheck->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
+        } else {
+            $nameDuplicateCheck = $db->prepare(
+                "SELECT ga.id, g.first_name, g.surname FROM guest_attendance ga
+                 INNER JOIN guests g ON ga.guest_id = g.id
+                 WHERE ga.event_id = :event_id"
+            );
+            $nameDuplicateCheck->bindValue(':event_id', $eventId, PDO::PARAM_INT);
+        }
         $nameDuplicateCheck->execute();
         $existingAttendances = $nameDuplicateCheck->fetchAll(PDO::FETCH_ASSOC);
-        
+
         foreach ($existingAttendances as $attendance) {
             $existingFirstName = mb_strtolower(trim($attendance['first_name'] ?? ''));
-            $existingSurname = mb_strtolower(trim($attendance['surname'] ?? ''));
+            $existingSurname   = mb_strtolower(trim($attendance['surname']  ?? ''));
             if ($existingFirstName === $normalizedFirstName && $existingSurname === $normalizedSurname) {
                 $db->rollBack();
                 http_response_code(409);
                 echo json_encode([
                     'success' => false,
                     'message' => 'A guest with this name has already been checked in for this event.',
-                    'data' => [
-                        'duplicate' => true,
-                        'basis' => 'name'
-                    ]
+                    'data'    => ['duplicate' => true, 'basis' => 'name']
                 ]);
                 exit();
             }
@@ -502,9 +540,9 @@ try {
         "INSERT INTO guest_attendance (guest_id, session_id, event_id, status, checkin_time, source, notes)
          VALUES (:guest_id, :session_id, :event_id, :status, NOW(), :source, :notes)"
     );
-    $attendanceInsert->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
-    $attendanceInsert->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
-    $attendanceInsert->bindValue(':event_id', $eventId, $eventId !== null ? PDO::PARAM_INT : PDO::PARAM_NULL);
+    $attendanceInsert->bindValue(':guest_id',   $guestId,   PDO::PARAM_INT);
+    $attendanceInsert->bindValue(':session_id', $sessionId > 0 ? $sessionId : null, $sessionId > 0 ? PDO::PARAM_INT : PDO::PARAM_NULL);
+    $attendanceInsert->bindValue(':event_id',   $eventId,   $eventId !== null ? PDO::PARAM_INT : PDO::PARAM_NULL);
     $attendanceInsert->bindValue(':status', $attendanceStatus);
     $attendanceDbSource = $isManagerManual ? 'manual' : (($source !== '' && strtolower($source) === 'manual') ? 'manual' : 'qr');
     $attendanceInsert->bindValue(':source', $attendanceDbSource);
@@ -513,9 +551,11 @@ try {
 
     $attendanceId = (int) $db->lastInsertId();
 
-    $updateScanCount = $db->prepare('UPDATE qr_sessions SET scan_count = scan_count + 1 WHERE id = :session_id');
-    $updateScanCount->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
-    $updateScanCount->execute();
+    if ($sessionId > 0) {
+        $updateScanCount = $db->prepare('UPDATE qr_sessions SET scan_count = scan_count + 1 WHERE id = :session_id');
+        $updateScanCount->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
+        $updateScanCount->execute();
+    }
 
     $db->commit();
 
