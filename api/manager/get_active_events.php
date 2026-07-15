@@ -49,6 +49,10 @@ try {
     $db->exec("UPDATE events SET status = 'active', updated_at = NOW()
                WHERE status = 'upcoming' AND CONCAT(date, ' ', start_time) <= NOW()");
 
+    // Auto-complete events whose end_time has passed
+    $db->exec("UPDATE events SET status = 'completed', auto_ended = 1, manually_ended = 0, updated_at = NOW()
+               WHERE status != 'completed' AND CONCAT(date, ' ', end_time) <= NOW()");
+
     // Get scannable events — active OR upcoming, today or within next 24 hours
     $eventsStmt = $db->prepare(
         "SELECT 

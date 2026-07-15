@@ -28,12 +28,11 @@ try {
         
         $fixed_count = $fix_stmt->rowCount();
         
-        // Also fix events that might be showing as active/upcoming but should be completed
-        // based on their end time OR if the date is in the past
+        // Also fix events that are still active/upcoming but whose end_time has passed
         $auto_complete_query = "UPDATE events 
                                SET status = 'completed', auto_ended = 1, manually_ended = 0 
                                WHERE status IN ('active', 'upcoming') 
-                               AND (CONCAT(date, ' ', end_time) < NOW() OR date < CURDATE())";
+                               AND CONCAT(date, ' ', end_time) <= NOW()";
         
         $auto_complete_stmt = $db->prepare($auto_complete_query);
         $auto_complete_stmt->execute();

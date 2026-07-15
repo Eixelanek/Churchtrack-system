@@ -1977,7 +1977,7 @@ const AttendanceManagement = ({
                         const absenteesPreview = absenteesList.slice(0, INLINE_PREVIEW_LIMIT);
                         const attendeesCount = detailsEvent.totalAttendees ?? attendeesList.length ?? event.totalAttendees ?? 0;
                         const absenteesCount = detailsEvent.absentCount ?? absenteesList.length;
-                        const hasQrSessions = (detailsEvent.qrSessionCount ?? 0) > 0;
+        const hasQrSessions = true; // attendance always shown — no longer gated on QR sessions
                         const locationLabel = detailsEvent.location || event.location || 'Not specified';
 
                         const openFullListsModal = (initialTab = 'attendees') => {
@@ -2119,7 +2119,7 @@ const AttendanceManagement = ({
                                   </div>
                                   <div className="attendees-grid">
                                     {attendeesList.length === 0 ? (
-                                      <div className="empty-state">No QR attendees recorded yet.</div>
+                                      <div className="empty-state">No attendees recorded yet.</div>
                                     ) : (
                                       attendeesPreview.map((attendee) => {
                                         const { primary, secondary } = splitDisplayName(attendee.name || 'Checked-in Guest');
