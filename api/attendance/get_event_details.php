@@ -104,7 +104,7 @@ try {
         "SELECT
              a.member_id,
              a.status       AS att_status,
-             DATE_ADD(a.check_in_time, INTERVAL 8 HOUR) AS check_in_time,
+             a.check_in_time,
              m.first_name,
              m.middle_name,
              m.surname,
