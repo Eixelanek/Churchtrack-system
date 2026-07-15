@@ -1,10 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { API_BASE_URL } from '../../config/api';
 
 const PRESETS = [
-  { key: 'sunday-service',  name: 'Sunday Service',  startTime: '09:00', endTime: '12:00' },
-  { key: 'prayer-meeting',  name: 'Prayer Meeting',   startTime: '18:00', endTime: '20:00' },
+  { key: 'sunday-service',  name: 'Sunday Service',  startTime: '09:00', durationHours: 4 },
+  { key: 'prayer-meeting',  name: 'Prayer Meeting',   startTime: '18:00', durationHours: 2 },
 ];
+
+const addHours = (timeStr, hours) => {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + hours * 60;
+  const newH = Math.floor(total / 60) % 24;
+  const newM = total % 60;
+  return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+};
 
 const getTodayDate = () => {
   const now = new Date();
@@ -22,12 +31,31 @@ const CreateEventForm = () => {
   const [message,        setMessage]        = useState('');
   const [messageType,    setMessageType]    = useState('success');
 
+  // ── events list ────────────────────────────────────────────
+  const [events,         setEvents]         = useState([]);
+  const [eventsLoading,  setEventsLoading]  = useState(true);
+
+  const fetchEvents = useCallback(async () => {
+    setEventsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/events/get_all.php?include_attendees=false&limit=50`);
+      const data = await res.json();
+      setEvents(data.events || []);
+    } catch {
+      // non-critical
+    } finally {
+      setEventsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+
   const handlePresetClick = useCallback((preset) => {
     setFormType('preset');
     setSelectedPreset(preset.key);
     setEventDate(getTodayDate());
     setStartTime(preset.startTime);
-    setEndTime(preset.endTime);
+    setEndTime(addHours(preset.startTime, preset.durationHours));
     setCustomName('');
     setMessage('');
   }, []);
@@ -77,6 +105,7 @@ const CreateEventForm = () => {
       setStartTime('');
       setEndTime('');
       setSelectedPreset('');
+      fetchEvents(); // refresh list
     } catch (err) {
       setMessage(err.message || 'Unable to create event.');
       setMessageType('error');
@@ -92,7 +121,9 @@ const CreateEventForm = () => {
         <p>Create events for attendance tracking</p>
       </div>
 
-      <div className="qr-form-panel" style={{ maxWidth: 520 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '520px 1fr', gap: '2rem', alignItems: 'start' }}>
+        {/* ── Left: Create form ─────────────────────────── */}
+        <div className="qr-form-panel">
         {/* Quick preset buttons */}
         <div className="qr-quick-generate">
           <h4>Quick Create</h4>
@@ -140,7 +171,15 @@ const CreateEventForm = () => {
                 <label>Select Service</label>
                 <select
                   value={selectedPreset}
-                  onChange={(e) => setSelectedPreset(e.target.value)}
+                  onChange={(e) => {
+                    const key = e.target.value;
+                    setSelectedPreset(key);
+                    const preset = PRESETS.find(p => p.key === key);
+                    if (preset) {
+                      setStartTime(preset.startTime);
+                      setEndTime(addHours(preset.startTime, preset.durationHours));
+                    }
+                  }}
                   className="qr-form-select"
                 >
                   <option value="">Choose a service…</option>
@@ -177,7 +216,14 @@ const CreateEventForm = () => {
               <input
                 type="time"
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={(e) => {
+                  const newStart = e.target.value;
+                  setStartTime(newStart);
+                  // Auto-compute end time: preset duration or 2h default for custom
+                  const preset = PRESETS.find(p => p.key === selectedPreset);
+                  const hours = preset ? preset.durationHours : 2;
+                  setEndTime(addHours(newStart, hours));
+                }}
                 className="qr-form-input"
               />
             </div>
@@ -212,6 +258,70 @@ const CreateEventForm = () => {
             {message}
           </div>
         )}
+        </div>{/* end left col */}
+
+        {/* ── Right: Events list ────────────────────────── */}
+        <div className="qr-list-panel">
+          <div className="qr-list-card">
+            <div className="qr-list-header">
+              <div className="qr-header-left">
+                <h3>All Events</h3>
+              </div>
+              <div className="qr-header-right">
+                <button
+                  type="button"
+                  className="manager-card-action"
+                  onClick={fetchEvents}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div className="qr-table-wrapper">
+              <table className="qr-table">
+                <thead>
+                  <tr>
+                    <th>EVENT</th>
+                    <th>DATE</th>
+                    <th>TIME</th>
+                    <th>STATUS</th>
+                    <th>ATTENDEES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventsLoading ? (
+                    <tr><td colSpan="5" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>Loading events…</td></tr>
+                  ) : events.length === 0 ? (
+                    <tr><td colSpan="5" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>No events yet.</td></tr>
+                  ) : (
+                    events.map((event) => (
+                      <tr key={event.id}>
+                        <td style={{ fontWeight: 600 }}>{event.title}</td>
+                        <td>{event.date ? new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
+                        <td>{event.time}{event.endTime ? ` – ${event.endTime}` : ''}</td>
+                        <td>
+                          <span style={{
+                            padding: '2px 10px',
+                            borderRadius: '9999px',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            background: event.status === 'active' ? '#dcfce7' : event.status === 'completed' ? '#f1f5f9' : '#fef9c3',
+                            color: event.status === 'active' ? '#16a34a' : event.status === 'completed' ? '#64748b' : '#ca8a04',
+                          }}>
+                            {(event.status || 'upcoming').toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>{event.totalAttendees ?? 0}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>{/* end right col */}
       </div>
     </div>
   );
