@@ -45,8 +45,7 @@ try {
         exit();
     }
 
-    // Get active events — status = 'active', date is today or upcoming within 24 hours
-    // Also include events that started today (for same-day attendance marking)
+    // Get scannable events — active OR upcoming, today or within next 24 hours
     $eventsStmt = $db->prepare(
         "SELECT 
             id,
@@ -59,7 +58,7 @@ try {
             status,
             (SELECT COUNT(*) FROM attendance a WHERE a.event_id = events.id AND a.status IN ('present','late')) AS attendee_count
          FROM events
-         WHERE status = 'active'
+         WHERE status IN ('active', 'upcoming')
            AND date >= CURDATE()
            AND date <= DATE_ADD(CURDATE(), INTERVAL 1 DAY)
          ORDER BY date ASC, start_time ASC"
@@ -67,7 +66,7 @@ try {
     $eventsStmt->execute();
     $events = $eventsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // If no events found within 24 hours, also return any active event from today
+    // If no events found within 24 hours, also return any active/upcoming event from today
     if (empty($events)) {
         $todayStmt = $db->prepare(
             "SELECT 
@@ -81,7 +80,7 @@ try {
                 status,
                 (SELECT COUNT(*) FROM attendance a WHERE a.event_id = events.id AND a.status IN ('present','late')) AS attendee_count
              FROM events
-             WHERE status = 'active'
+             WHERE status IN ('active', 'upcoming')
                AND date = CURDATE()
              ORDER BY start_time ASC"
         );
