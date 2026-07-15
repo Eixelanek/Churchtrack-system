@@ -83,9 +83,7 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
           name: a.name,
           profile_picture: a.profile_picture || null,
           checkin_status: (a.status || 'present').toLowerCase() === 'late' ? 'late' : 'present',
-          time: a.checkInTime
-            ? new Date(a.checkInTime.replace(' ', 'T')).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-            : ''
+          time: a.checkInTime || ''
         }));
       setCheckedInList(attendees);
     } catch {

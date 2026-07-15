@@ -88,13 +88,24 @@ try {
             default   => 'Checked in',
         };
 
+        // Format time as "h:i A" (e.g. "10:45 PM") directly in PHP — avoids JS date parsing issues
+        $timeFormatted = '';
+        if (!empty($row['check_in_time'])) {
+            try {
+                $dt = new DateTime($row['check_in_time']);
+                $timeFormatted = $dt->format('g:i A');
+            } catch (Exception $e) {
+                $timeFormatted = '';
+            }
+        }
+
         return [
             'id'              => $row['member_id'] ? (int)$row['member_id'] : 0,
             'memberId'        => $row['member_id'] ? (int)$row['member_id'] : null,
             'name'            => $name,
             'initials'        => $initials,
             'status'          => $statusLabel,
-            'checkInTime'     => $row['check_in_time'] ?? null,
+            'checkInTime'     => $timeFormatted,
             'profile_picture' => $row['profile_picture'] ?? null,
         ];
     };
