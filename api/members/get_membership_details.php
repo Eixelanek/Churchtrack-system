@@ -152,7 +152,7 @@ try {
             SELECT DATE(DATE_ADD(check_in_time, INTERVAL 8 HOUR)) AS attendance_date
             FROM attendance WHERE member_id = :member_id1
             UNION
-            SELECT DATE(DATE_ADD(checkin_datetime, INTERVAL 8 HOUR)) AS attendance_date
+            SELECT DATE(checkin_datetime) AS attendance_date
             FROM qr_attendance WHERE member_id = :member_id2
             ORDER BY attendance_date DESC";
 
@@ -199,7 +199,7 @@ try {
             SELECT id, service_name, checkin_datetime
             FROM (
                 SELECT a.id,
-                       COALESCE(e.title, 'Service') AS service_name,
+                       COALESCE(CONVERT(e.title USING utf8mb4), 'Service') AS service_name,
                        DATE_ADD(a.check_in_time, INTERVAL 8 HOUR) AS checkin_datetime
                 FROM attendance a
                 LEFT JOIN events e ON e.id = a.event_id
@@ -208,7 +208,7 @@ try {
                 UNION ALL
 
                 SELECT qa.id,
-                       COALESCE(qs.service_name, 'QR Attendance') AS service_name,
+                       COALESCE(CONVERT(qs.service_name USING utf8mb4), 'QR Attendance') AS service_name,
                        qa.checkin_datetime
                 FROM qr_attendance qa
                 LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
@@ -247,11 +247,11 @@ try {
         $recordsQuery = "
             SELECT 
                 a.id,
-                COALESCE(e.title, 'Service') AS service_name,
+                COALESCE(CONVERT(e.title USING utf8mb4), 'Service') AS service_name,
                 DATE_ADD(a.check_in_time, INTERVAL 8 HOUR) AS checkin_datetime,
                 NULL AS session_id,
                 NULL AS member_contact,
-                a.status
+                CONVERT(a.status USING utf8mb4) AS status
             FROM attendance a
             LEFT JOIN events e ON e.id = a.event_id
             WHERE a.member_id = :member_id1
@@ -260,11 +260,11 @@ try {
 
             SELECT
                 qa.id,
-                COALESCE(qs.service_name, 'QR Attendance') AS service_name,
+                COALESCE(CONVERT(qs.service_name USING utf8mb4), 'QR Attendance') AS service_name,
                 qa.checkin_datetime,
                 qa.session_id,
-                qa.member_contact,
-                'present' AS status
+                CONVERT(qa.member_contact USING utf8mb4) AS member_contact,
+                CONVERT('present' USING utf8mb4) AS status
             FROM qr_attendance qa
             LEFT JOIN qr_sessions qs ON qs.id = qa.session_id
             WHERE qa.member_id = :member_id2
