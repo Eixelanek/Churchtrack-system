@@ -204,7 +204,7 @@ const AttendanceManagement = ({
 
     const activeCompletedEvents = safeEvents.filter((event) => {
       const status = (event.status || '').toLowerCase();
-      return status === 'active' || status === 'completed';
+      return status === 'active' || status === 'completed' || status === 'upcoming';
     });
 
     const totalRecords = activeCompletedEvents.length;
@@ -253,7 +253,12 @@ const AttendanceManagement = ({
       return attendanceEvents;
     }
 
-    return attendanceEvents.filter((event) => (event.status || '').toLowerCase() === normalizedFilter);
+    return attendanceEvents.filter((event) => {
+      const s = (event.status || '').toLowerCase();
+      // treat 'upcoming' same as 'active' for display purposes
+      const normalized = s === 'upcoming' ? 'active' : s;
+      return normalized === normalizedFilter;
+    });
   }, [attendanceEvents, attendanceStatusFilter]);
 
   useEffect(() => {

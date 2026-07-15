@@ -19,6 +19,12 @@ try {
     $offset = ($page - 1) * $limit;
     $includeAttendees = isset($_GET['include_attendees']) ? $_GET['include_attendees'] === 'true' : true;
 
+    // Auto-activate upcoming events when their start time arrives
+    $db->exec("UPDATE events 
+               SET status = 'active', updated_at = NOW()
+               WHERE status = 'upcoming'
+                 AND CONCAT(date, ' ', start_time) <= NOW()");
+
     // Auto-complete events based on their duration
     // Prayer Meeting: 2 hours, Sunday Service & Custom: 4 hours
     $auto_complete_query = "UPDATE events 

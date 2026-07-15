@@ -45,6 +45,10 @@ try {
         exit();
     }
 
+    // Auto-activate upcoming events whose start time has arrived
+    $db->exec("UPDATE events SET status = 'active', updated_at = NOW()
+               WHERE status = 'upcoming' AND CONCAT(date, ' ', start_time) <= NOW()");
+
     // Get scannable events — active OR upcoming, today or within next 24 hours
     $eventsStmt = $db->prepare(
         "SELECT 
