@@ -1,6 +1,9 @@
 <?php
 // Add CORS headers for cross-origin requests
 
+// Ensure all PHP date/time functions use Philippine time
+date_default_timezone_set('Asia/Manila');
+
 class Database {
     private $host;
     private $port;
