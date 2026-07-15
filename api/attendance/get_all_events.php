@@ -7,7 +7,12 @@ require_once '../config/database.php';
 try {
     $database = new Database();
     $db = $database->getConnection();
-    
+
+    // Auto-complete any events from past dates that are still active/upcoming
+    $db->exec("UPDATE events SET status = 'completed', auto_ended = 1, manually_ended = 0, updated_at = NOW()
+               WHERE status != 'completed'
+                 AND (CONCAT(date, ' ', end_time) <= NOW() OR date < CURDATE())");
+
     $allowedStatuses = ['active', 'completed', 'cancelled'];
     $status = isset($_GET['status']) ? strtolower(trim($_GET['status'])) : 'completed';
 

@@ -26,13 +26,17 @@ try {
                  AND CONCAT(date, ' ', start_time) <= NOW()");
 
     // Auto-complete events whose end_time has passed
+    // Covers: (1) end_time on the same date, (2) any event on a past date
     $db->exec("UPDATE events 
                SET status = 'completed', 
                    auto_ended = 1, 
                    manually_ended = 0,
                    updated_at = NOW()
                WHERE status != 'completed' 
-                 AND CONCAT(date, ' ', end_time) <= NOW()");
+                 AND (
+                   CONCAT(date, ' ', end_time) <= NOW()
+                   OR date < CURDATE()
+                 )");
     
     // Get total count for pagination
     $countQuery = "SELECT COUNT(*) as total FROM events";

@@ -84,7 +84,7 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
           profile_picture: a.profile_picture || null,
           checkin_status: (a.status || 'present').toLowerCase() === 'late' ? 'late' : 'present',
           time: a.checkInTime
-            ? new Date(a.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            ? new Date(a.checkInTime.replace(' ', 'T')).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
             : ''
         }));
       setCheckedInList(attendees);
@@ -316,7 +316,7 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
                     <div className="mqrs-event-info">
                       <div className="mqrs-event-title">{event.title}</div>
                       <div className="mqrs-event-meta">
-                        {event.date && new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        {event.date && new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                         {event.start_time && ` · ${new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                       </div>
                     </div>

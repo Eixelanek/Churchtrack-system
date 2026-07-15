@@ -16,7 +16,10 @@ try {
     $query = "SELECT id, title, date, start_time, end_time 
               FROM events 
               WHERE status != 'completed' 
-              AND CONCAT(date, ' ', end_time) <= NOW()";
+              AND (
+                CONCAT(date, ' ', end_time) <= NOW()
+                OR date < CURDATE()
+              )";
     
     $stmt = $db->prepare($query);
     $stmt->execute();

@@ -32,7 +32,10 @@ try {
         $auto_complete_query = "UPDATE events 
                                SET status = 'completed', auto_ended = 1, manually_ended = 0 
                                WHERE status IN ('active', 'upcoming') 
-                               AND CONCAT(date, ' ', end_time) <= NOW()";
+                               AND (
+                                 CONCAT(date, ' ', end_time) <= NOW()
+                                 OR date < CURDATE()
+                               )";
         
         $auto_complete_stmt = $db->prepare($auto_complete_query);
         $auto_complete_stmt->execute();
