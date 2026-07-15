@@ -405,14 +405,14 @@ const Admin = () => {
         // Map backend notifications to frontend format
         setNotifications(data.map((n) => ({
           id: n.id,
-          title: n.type === 'pending_request' ? '👤 New Member Request' : 
-                 n.type === 'birthday' ? '🎂 Birthday Today!' :
-                 n.type === 'guest_ready_for_conversion' ? '⭐ Guest Ready for Membership' :
-                 n.type === 'event_reminder' ? '⏰ Event Reminder' :
-                 n.type === 'attendance_needed' ? '✅ Attendance Needed' :
-                 n.type === 'low_attendance' ? '⚠️ Low Attendance Alert' :
-                 n.type === 'family_circle_created' ? '👨‍👩‍👧 Family Circle Created' :
-                 n.type === 'family_circle_removed' ? '✂️ Family Circle Removed' : 'Notification',
+          title: n.type === 'pending_request' ? 'New Member Request' : 
+                 n.type === 'birthday' ? 'Birthday Today' :
+                 n.type === 'guest_ready_for_conversion' ? 'Guest Ready for Membership' :
+                 n.type === 'event_reminder' ? 'Event Reminder' :
+                 n.type === 'attendance_needed' ? 'Attendance Needed' :
+                 n.type === 'low_attendance' ? 'Low Attendance Alert' :
+                 n.type === 'family_circle_created' ? 'Family Circle Created' :
+                 n.type === 'family_circle_removed' ? 'Family Circle Removed' : 'Notification',
           message: n.message,
           time: formatNotificationTime(n.timestamp),
           read: n.is_read,
@@ -443,6 +443,74 @@ const Admin = () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return notifTime.toLocaleDateString();
+  };
+
+  // Function to get notification icon
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'pending_request':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#0049AF', flexShrink: 0}}>
+            <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 8V16M24 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'birthday':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#8b5cf6', flexShrink: 0}}>
+            <path d="M6 12H18C18 12 19 12 19 13V19C19 20 18 21 12 21C6 21 5 20 5 19V13C5 12 6 12 6 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 6V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 6V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 6V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 3C9 3 12 2 12 5C12 2 15 3 15 3C15 3 15 5 12 8C9 5 9 3 9 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'guest_ready_for_conversion':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#10b981', flexShrink: 0}}>
+            <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M22 11L18 15L16 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'event_reminder':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#f59e0b', flexShrink: 0}}>
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'attendance_needed':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#0049AF', flexShrink: 0}}>
+            <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'low_attendance':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#ef4444', flexShrink: 0}}>
+            <path d="M12 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 17H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10.29 3.86L1.82 18C1.65715 18.2848 1.56634 18.6145 1.57147 18.9525C1.5766 19.2905 1.67734 19.6191 1.85967 19.902C2.04201 20.1849 2.29858 20.4112 2.60107 20.5538C2.90356 20.6964 3.23927 20.749 3.567 20.7H20.43C20.7577 20.749 21.0934 20.6964 21.3959 20.5538C21.6984 20.4112 21.955 20.1849 22.1373 19.902C22.3197 19.6191 22.4204 19.2905 22.4255 18.9525C22.4307 18.6145 22.3399 18.2848 22.177 18L13.71 3.86C13.5286 3.5457 13.2489 3.28487 12.9092 3.10397C12.5695 2.92306 12.1894 2.83008 11.805 2.83008C11.4206 2.83008 11.0405 2.92306 10.7008 3.10397C10.3611 3.28487 10.0814 3.5457 9.89999 3.86H10.29Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'family_circle_created':
+      case 'family_circle_removed':
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '12px', color: '#0049AF', flexShrink: 0}}>
+            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      default:
+        return null;
+    }
   };
 
   const handleNotificationClick = () => {
@@ -2043,7 +2111,8 @@ const Admin = () => {
                 <div className="notifications-list">
                   {notifications.length > 0 ? (
                     notifications.map(notification => (
-                      <div key={notification.id} className={`notification-item ${!notification.read ? 'unread' : ''}`} onClick={() => handleNotificationItemClick(notification)} data-type={notification.type}>
+                      <div key={notification.id} className={`notification-item ${!notification.read ? 'unread' : ''}`} onClick={() => handleNotificationItemClick(notification)} data-type={notification.type} style={{display: 'flex', alignItems: 'flex-start'}}>
+                        {getNotificationIcon(notification.type)}
                         <div className="notification-content">
                           <div className="notification-title">{notification.title}</div>
                           <div className="notification-message">{notification.message}</div>
@@ -2929,7 +2998,15 @@ const Admin = () => {
                           {/* Upcoming Birthdays */}
                           <div className="chart-card-new">
                             <div className="card-header-with-link">
-                              <h3>🎂 Upcoming Birthdays</h3>
+                              <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display: 'inline-block', marginRight: '8px', verticalAlign: 'middle'}}>
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Upcoming Birthdays
+                              </h3>
                               <button className="view-all-link" onClick={() => {
                                 setShowMembersView(true);
                                 // Set birthdays tab in session storage
@@ -3045,18 +3122,33 @@ const Admin = () => {
                             <h3>Quick Actions</h3>
                             <div className="quick-actions-grid">
                               <button className="action-btn member-btn" onClick={() => setShowMembersView(true)}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                                  <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M20 8V16M24 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
                                 <span>+ Member</span>
                               </button>
                               <button className="action-btn report-btn" onClick={() => {
                                 setShowReportModal(true);
                                 generateReport();
                               }}>
-                                <span>📊 Report</span>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                                  <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <span>Report</span>
                               </button>
                               <button className="action-btn schedule-btn" onClick={() => {
                                 setShowScheduleModal(true);
                               }}>
-                                <span>📅 Schedule</span>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <span>Schedule</span>
                               </button>
                             </div>
                           </div>
@@ -3762,42 +3854,23 @@ const Admin = () => {
         <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
           <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📊 Reports</h2>
-              <button className="modal-close" onClick={() => setShowReportModal(false)}>×</button>
+              <h2 className="modal-title">Reports</h2>
+              <button className="modal-close-btn" onClick={() => setShowReportModal(false)}>×</button>
             </div>
             <div className="modal-body">
               {/* Report Type Tabs */}
-              <div className="report-tabs" style={{ marginBottom: '20px', borderBottom: '2px solid #e5e7eb' }}>
+              <div className="report-tabs">
                 <button 
                   className={`report-tab ${reportType === 'attendance' ? 'active' : ''}`}
                   onClick={() => setReportType('attendance')}
-                  style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    background: reportType === 'attendance' ? '#4F46E5' : 'transparent',
-                    color: reportType === 'attendance' ? 'white' : '#666',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0',
-                    marginRight: '5px'
-                  }}
                 >
-                  📅 Attendance Report
+                  Attendance Report
                 </button>
                 <button 
                   className={`report-tab ${reportType === 'membership' ? 'active' : ''}`}
                   onClick={() => setReportType('membership')}
-                  style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    background: reportType === 'membership' ? '#4F46E5' : 'transparent',
-                    color: reportType === 'membership' ? 'white' : '#666',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0'
-                  }}
                 >
-                  👥 Membership Report
+                  Membership Report
                 </button>
               </div>
 
@@ -3822,7 +3895,10 @@ const Admin = () => {
                   />
                 </div>
                 <button className="btn-primary" onClick={generateReport}>
-                  🔄 Generate
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Generate
                 </button>
               </div>
 
@@ -3882,10 +3958,22 @@ const Admin = () => {
               
                   <div className="report-actions">
                     <button className="btn-primary" onClick={exportReportXlsx}>
-                      📥 Download Excel
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Download Excel
                     </button>
-                    <button className="btn-primary" onClick={exportReportPdf} style={{ marginLeft: '10px' }}>
-                      📄 Download PDF
+                    <button className="btn-primary" onClick={exportReportPdf}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Download PDF
                     </button>
                   </div>
                 </>
@@ -3895,17 +3983,16 @@ const Admin = () => {
 
               {reportType === 'membership' && (
                 <div className="membership-report-section">
-                  <div className="report-info" style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '20px' }}>
-                    <h3 style={{ marginTop: 0 }}>Membership Report</h3>
-                    <p style={{ color: '#666', marginBottom: 0 }}>Export a complete list of all members with their details including contact information, status, and join dates.</p>
+                  <div className="account-card" style={{marginBottom: '24px'}}>
+                    <h3 style={{marginTop: 0}}>Membership Report</h3>
+                    <p style={{color: '#64748b', marginBottom: 0}}>Export a complete list of all members with their details including contact information, status, and join dates.</p>
                   </div>
                   
-                  <div className="membership-filter" style={{ marginBottom: '20px' }}>
-                    <label style={{ fontWeight: '600', marginRight: '10px' }}>Filter by Status:</label>
+                  <div className="membership-filter">
+                    <label>Filter by Status:</label>
                     <select 
                       value={membershipStatus}
                       onChange={(e) => setMembershipStatus(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }}
                     >
                       <option value="all">All Members</option>
                       <option value="active">Active Only</option>
@@ -3915,10 +4002,22 @@ const Admin = () => {
 
                   <div className="report-actions">
                     <button className="btn-primary" onClick={exportMembershipXlsx}>
-                      📥 Download Excel
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Download Excel
                     </button>
-                    <button className="btn-primary" onClick={exportMembershipPdf} style={{ marginLeft: '10px' }}>
-                      📄 Download PDF
+                    <button className="btn-primary" onClick={exportMembershipPdf}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{flexShrink: 0}}>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Download PDF
                     </button>
                   </div>
                 </div>
@@ -3933,8 +4032,8 @@ const Admin = () => {
         <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
           <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📅 Event Schedule</h2>
-              <button className="modal-close" onClick={() => setShowScheduleModal(false)}>×</button>
+              <h2 className="modal-title">Event Schedule</h2>
+              <button className="modal-close-btn" onClick={() => setShowScheduleModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="calendar-header">
