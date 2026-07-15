@@ -88,11 +88,11 @@ try {
             default   => 'Checked in',
         };
 
-        // Format time as "h:i A" (e.g. "10:45 PM") directly in PHP — avoids JS date parsing issues
+        // Format time in PHT (+08:00) — server PHP timezone may be UTC
         $timeFormatted = '';
         if (!empty($row['check_in_time'])) {
             try {
-                $dt = new DateTime($row['check_in_time']);
+                $dt = new DateTime($row['check_in_time'], new DateTimeZone('+08:00'));
                 $timeFormatted = $dt->format('g:i A');
             } catch (Exception $e) {
                 $timeFormatted = '';
@@ -140,102 +140,69 @@ try {
         }
     }
 
+    // ── Source 2: legacy qr_attendance (backward compat only) ────────────
     if (!empty($sessions)) {
-        // ── Source 2: legacy qr_attendance table ─────────────────────────
-        $attendeesQuery = "SELECT
-                               qa.member_id,
-                               qa.member_name,
-                               MIN(qa.checkin_datetime) AS check_in_time,
-                               'present'                AS att_status,
-                               m.first_name,
-                               m.middle_name,
-                               m.surname,
-                               m.suffix,
-                               m.profile_picture
-                           FROM qr_attendance qa
-                           INNER JOIN qr_sessions qs ON qa.session_id = qs.id
-                           LEFT JOIN  members m ON qa.member_id = m.id
-                           WHERE qs.event_id = :event_id
-                           GROUP BY qa.member_id, qa.member_name, m.first_name, m.middle_name,
-                                    m.surname, m.suffix, m.profile_picture
-                           ORDER BY check_in_time ASC";
-
-        $attendeesStmt = $db->prepare($attendeesQuery);
+        $attendeesStmt = $db->prepare(
+            "SELECT qa.member_id, qa.member_name, MIN(qa.checkin_datetime) AS check_in_time,
+                    'present' AS att_status, m.first_name, m.middle_name, m.surname, m.suffix, m.profile_picture
+             FROM qr_attendance qa
+             INNER JOIN qr_sessions qs ON qa.session_id = qs.id
+             LEFT JOIN members m ON qa.member_id = m.id
+             WHERE qs.event_id = :event_id
+             GROUP BY qa.member_id, qa.member_name, m.first_name, m.middle_name, m.surname, m.suffix, m.profile_picture
+             ORDER BY check_in_time ASC"
+        );
         $attendeesStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
         $attendeesStmt->execute();
-        $qrAttendees = $attendeesStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($qrAttendees as $row) {
-            // Skip if already counted from attendance table
-            if ($row['member_id'] && isset($seenMemberIds[(int)$row['member_id']])) {
-                continue;
-            }
+        foreach ($attendeesStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($row['member_id'] && isset($seenMemberIds[(int)$row['member_id']])) continue;
             $formattedAttendees[] = $formatAttendee($row);
-            if ($row['member_id']) {
-                $seenMemberIds[(int)$row['member_id']] = true;
-            }
-        }
-
-        // ── Guests ────────────────────────────────────────────────────────
-        $guestQuery = "SELECT
-                           ga.guest_id,
-                           ga.checkin_time,
-                           ga.status,
-                           COALESCE(g.full_name, CONCAT_WS(' ', g.first_name, g.surname)) AS name
-                       FROM guest_attendance ga
-                       LEFT JOIN guests g ON ga.guest_id = g.id
-                       LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
-                       WHERE ga.event_id = :event_id
-                          OR (ga.event_id IS NULL AND qs.event_id = :event_id)
-                       ORDER BY ga.checkin_time ASC";
-
-        $guestStmt = $db->prepare($guestQuery);
-        $guestStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
-        $guestStmt->execute();
-        $guestRows = $guestStmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $formatGuestAttendee = function ($row) {
-            $name = trim($row['name'] ?? 'Guest Attendee');
-            if ($name === '') $name = 'Guest Attendee';
-
-            $parts        = preg_split('/\s+/', $name);
-            $firstInitial = substr($parts[0] ?? 'G', 0, 1);
-            $lastInitial  = substr(end($parts) ?: 'T', 0, 1);
-            $initials      = strtoupper($firstInitial . $lastInitial);
-
-            $status      = strtolower($row['status'] ?? 'present');
-            $statusLabel = match ($status) {
-                'present' => 'Checked in',
-                'late'    => 'Late',
-                'absent'  => 'Absent',
-                default   => ucfirst($status),
-            };
-
-            return [
-                'id'          => 'guest-' . ($row['guest_id'] ?? uniqid()),
-                'memberId'    => null,
-                'name'        => $name,
-                'initials'    => $initials,
-                'status'      => $statusLabel,
-                'checkInTime' => $row['checkin_time'] ?? null,
-                'isGuest'     => true,
-            ];
-        };
-
-        foreach ($guestRows as $gr) {
-            $formattedAttendees[] = $formatGuestAttendee($gr);
+            if ($row['member_id']) $seenMemberIds[(int)$row['member_id']] = true;
         }
     }
 
-    // Sort all attendees by check-in time
-    usort($formattedAttendees, function ($a, $b) {
-        $tA = $a['checkInTime'] ?? '';
-        $tB = $b['checkInTime'] ?? '';
-        if ($tA === $tB) return strcmp($a['name'], $b['name']);
-        if (empty($tA)) return 1;
-        if (empty($tB)) return -1;
-        return strcmp($tA, $tB);
-    });
+    // ── Guests — always fetch regardless of QR sessions ──────────────────
+    $guestStmt = $db->prepare(
+        "SELECT ga.guest_id, ga.checkin_time, ga.status,
+                COALESCE(g.full_name, CONCAT_WS(' ', g.first_name, g.surname)) AS name
+         FROM guest_attendance ga
+         LEFT JOIN guests g ON ga.guest_id = g.id
+         LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
+         WHERE ga.event_id = :event_id
+            OR (ga.event_id IS NULL AND qs.event_id = :event_id)
+         ORDER BY ga.checkin_time ASC"
+    );
+    $guestStmt->bindParam(':event_id', $eventId, PDO::PARAM_INT);
+    $guestStmt->execute();
+
+    foreach ($guestStmt->fetchAll(PDO::FETCH_ASSOC) as $gr) {
+        $name = trim($gr['name'] ?? 'Guest Attendee') ?: 'Guest Attendee';
+        $parts = preg_split('/\s+/', $name);
+        $initials = strtoupper(substr($parts[0] ?? 'G', 0, 1) . substr(end($parts) ?: 'T', 0, 1));
+        $status = strtolower($gr['status'] ?? 'present');
+        $statusLabel = match ($status) {
+            'present' => 'Checked in', 'late' => 'Late', 'absent' => 'Absent',
+            default   => ucfirst($status),
+        };
+        $timeFormatted = '';
+        if (!empty($gr['checkin_time'])) {
+            try {
+                $timeFormatted = (new DateTime($gr['checkin_time'], new DateTimeZone('+08:00')))->format('g:i A');
+            } catch (Exception $e) {}
+        }
+        $formattedAttendees[] = [
+            'id'          => 'guest-' . ($gr['guest_id'] ?? uniqid()),
+            'memberId'    => null,
+            'name'        => $name,
+            'initials'    => $initials,
+            'status'      => $statusLabel,
+            'checkInTime' => $timeFormatted,
+            'isGuest'     => true,
+        ];
+    }
+
+    // Sort all attendees by check-in time (already formatted strings — sort by order added, which is chronological)
+    // No re-sort needed since both queries use ORDER BY check_in_time ASC
 
     // Absentees = active members not in either attendance source
     $absenteesQuery = "SELECT
