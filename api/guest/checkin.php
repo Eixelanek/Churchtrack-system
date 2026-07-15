@@ -146,6 +146,21 @@ try {
         if ($minorCol && $minorCol->rowCount() === 0) {
             $db->exec("ALTER TABLE guests ADD COLUMN is_minor TINYINT(1) NOT NULL DEFAULT 0 AFTER birth_date");
         }
+        // Allow session_id to be NULL in guest_attendance (for direct event_id check-ins)
+        $sessionIdCol = $db->query("SHOW COLUMNS FROM guest_attendance LIKE 'session_id'");
+        $sessionIdColRow = $sessionIdCol ? $sessionIdCol->fetch(PDO::FETCH_ASSOC) : null;
+        if ($sessionIdColRow && strpos(strtolower($sessionIdColRow['Null'] ?? ''), 'no') !== false) {
+            // session_id is NOT NULL — alter it to allow NULL
+            $db->exec("ALTER TABLE guest_attendance MODIFY COLUMN session_id INT NULL");
+            // Also drop FK on session_id if it exists, so NULL doesn't violate it
+            try {
+                $db->exec("ALTER TABLE guest_attendance DROP FOREIGN KEY fk_guest_attendance_session");
+            } catch (Exception $fkEx) { /* FK may not exist or have a different name */ }
+            // Add unique constraint on (guest_id, event_id) for direct event check-ins
+            try {
+                $db->exec("ALTER TABLE guest_attendance ADD UNIQUE KEY unique_guest_event (guest_id, event_id)");
+            } catch (Exception $ukEx) { /* already exists */ }
+        }
     } catch (Exception $schemaEx) {
         // ignore; insert will fail clearly if columns missing
     }
@@ -482,7 +497,14 @@ try {
             $duplicateCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
             $duplicateCheck->bindValue(':session_id', $sessionId, PDO::PARAM_INT);
         } else {
-            $duplicateCheck = $db->prepare('SELECT id FROM guest_attendance WHERE guest_id = :guest_id AND event_id = :event_id LIMIT 1');
+            // Direct event_id flow — check both the direct event_id column AND via session link
+            $duplicateCheck = $db->prepare(
+                'SELECT ga.id FROM guest_attendance ga
+                 LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
+                 WHERE ga.guest_id = :guest_id
+                   AND (ga.event_id = :event_id OR qs.event_id = :event_id)
+                 LIMIT 1'
+            );
             $duplicateCheck->bindValue(':guest_id', $guestId, PDO::PARAM_INT);
             $duplicateCheck->bindValue(':event_id', $eventId, PDO::PARAM_INT);
         }
@@ -513,7 +535,8 @@ try {
             $nameDuplicateCheck = $db->prepare(
                 "SELECT ga.id, g.first_name, g.surname FROM guest_attendance ga
                  INNER JOIN guests g ON ga.guest_id = g.id
-                 WHERE ga.event_id = :event_id"
+                 LEFT JOIN qr_sessions qs ON ga.session_id = qs.id
+                 WHERE ga.event_id = :event_id OR qs.event_id = :event_id"
             );
             $nameDuplicateCheck->bindValue(':event_id', $eventId, PDO::PARAM_INT);
         }
@@ -761,10 +784,8 @@ try {
         http_response_code(409);
         echo json_encode([
             'success' => false,
-            'message' => 'Guest has already been checked in for this session.',
-            'data' => [
-                'duplicate' => true
-            ]
+            'message' => 'This guest has already been checked in for this event.',
+            'data' => ['duplicate' => true]
         ]);
     } else {
         http_response_code(500);

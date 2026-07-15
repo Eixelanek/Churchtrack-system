@@ -134,9 +134,7 @@ try {
     }
 
     // --- Determine attendance status (present vs late) ---
-    // If current time is past the event start_time by more than 15 minutes → late
-    $statusValue  = 'present';
-    $checkInTime  = date('Y-m-d H:i:s');
+    $statusValue = 'present';
 
     $timeStmt = $db->prepare("SELECT start_time FROM events WHERE id = :id LIMIT 1");
     $timeStmt->bindParam(':id', $eventId, PDO::PARAM_INT);
@@ -144,23 +142,22 @@ try {
     $timeRow = $timeStmt->fetch(PDO::FETCH_ASSOC);
 
     if ($timeRow && !empty($timeRow['start_time']) && !empty($event['date'])) {
-        $startDateTime = new DateTime($event['date'] . ' ' . $timeRow['start_time']);
-        $now           = new DateTime();
+        $startDateTime = new DateTime($event['date'] . ' ' . $timeRow['start_time'], new DateTimeZone('+08:00'));
+        $now           = new DateTime('now', new DateTimeZone('+08:00'));
         $diffMinutes   = ($now->getTimestamp() - $startDateTime->getTimestamp()) / 60;
         if ($diffMinutes > 15) {
             $statusValue = 'late';
         }
     }
 
-    // --- Insert attendance ---
+    // --- Insert attendance using MySQL NOW() so timezone is correct ---
     $insertStmt = $db->prepare(
         "INSERT INTO attendance (event_id, member_id, status, check_in_time)
-         VALUES (:event_id, :member_id, :status, :check_in_time)"
+         VALUES (:event_id, :member_id, :status, NOW())"
     );
-    $insertStmt->bindParam(':event_id',     $eventId,     PDO::PARAM_INT);
-    $insertStmt->bindParam(':member_id',    $memberId,    PDO::PARAM_INT);
-    $insertStmt->bindParam(':status',       $statusValue);
-    $insertStmt->bindParam(':check_in_time', $checkInTime);
+    $insertStmt->bindParam(':event_id',  $eventId,    PDO::PARAM_INT);
+    $insertStmt->bindParam(':member_id', $memberId,   PDO::PARAM_INT);
+    $insertStmt->bindParam(':status',    $statusValue);
     $insertStmt->execute();
 
     // --- Auto-reactivate inactive member ---
@@ -188,7 +185,7 @@ try {
         'already_checked_in' => false,
         'message'            => $memberName . ' checked in successfully.',
         'status'             => $statusValue,
-        'check_in_time'      => $checkInTime,
+        'check_in_time'      => (new DateTime('now', new DateTimeZone('+08:00')))->format('g:i A'),
         'member' => [
             'id'              => $memberId,
             'name'            => $memberName,

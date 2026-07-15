@@ -152,7 +152,7 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
         setCheckedInList((prev) => {
           const exists = prev.find((m) => m.id === data.member.id);
           if (exists) return prev;
-          return [{ ...data.member, checkin_status: data.status, time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }, ...prev];
+          return [{ ...data.member, checkin_status: data.status, time: data.check_in_time || new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }, ...prev];
         });
         // Update attendee count on selected event
         setEvents((prev) =>

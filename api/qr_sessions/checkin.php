@@ -137,12 +137,11 @@ try {
 
     // --- Determine attendance status (present vs late) ---
     $statusValue = 'present';
-    $checkInTime = date('Y-m-d H:i:s');
 
     if (!empty($event['start_time']) && !empty($event['date'])) {
         try {
-            $startDateTime = new DateTime($event['date'] . ' ' . $event['start_time']);
-            $now           = new DateTime();
+            $startDateTime = new DateTime($event['date'] . ' ' . $event['start_time'], new DateTimeZone('+08:00'));
+            $now           = new DateTime('now', new DateTimeZone('+08:00'));
             $diffMinutes   = ($now->getTimestamp() - $startDateTime->getTimestamp()) / 60;
             if ($diffMinutes > 15) {
                 $statusValue = 'late';
@@ -152,15 +151,14 @@ try {
         }
     }
 
-    // --- Insert attendance ---
+    // --- Insert attendance using MySQL NOW() so timezone is correct ---
     $insertStmt = $db->prepare(
         "INSERT INTO attendance (event_id, member_id, status, check_in_time)
-         VALUES (:event_id, :member_id, :status, :check_in_time)"
+         VALUES (:event_id, :member_id, :status, NOW())"
     );
-    $insertStmt->bindParam(':event_id',      $eventId,      PDO::PARAM_INT);
-    $insertStmt->bindParam(':member_id',     $memberId,     PDO::PARAM_INT);
-    $insertStmt->bindParam(':status',        $statusValue);
-    $insertStmt->bindParam(':check_in_time', $checkInTime);
+    $insertStmt->bindParam(':event_id',  $eventId,    PDO::PARAM_INT);
+    $insertStmt->bindParam(':member_id', $memberId,   PDO::PARAM_INT);
+    $insertStmt->bindParam(':status',    $statusValue);
     $insertStmt->execute();
 
     // --- Auto-reactivate inactive member ---
@@ -182,13 +180,16 @@ try {
         error_log('Failed to evaluate inactive members: ' . $e->getMessage());
     }
 
+    // Fetch the saved check_in_time from DB (uses MySQL NOW() = +08:00)
+    $savedTime = $db->query("SELECT TIME_FORMAT(NOW(), '%h:%i %p') AS t")->fetchColumn();
+
     http_response_code(201);
     echo json_encode([
         'success'            => true,
         'already_checked_in' => false,
         'message'            => $memberName . ' checked in successfully.',
         'status'             => $statusValue,
-        'check_in_time'      => $checkInTime,
+        'check_in_time'      => $savedTime,
         'member' => [
             'id'              => $memberId,
             'name'            => $memberName,
