@@ -88,11 +88,11 @@ try {
             default   => 'Checked in',
         };
 
-        // Format time in PHT (+08:00) — server PHP timezone may be UTC
+        // Display check_in_time as-is — stored in PHT via MySQL connection +08:00
         $timeFormatted = '';
         if (!empty($row['check_in_time'])) {
             try {
-                $dt = new DateTime($row['check_in_time'], new DateTimeZone('+08:00'));
+                $dt = new DateTime($row['check_in_time']);
                 $timeFormatted = $dt->format('g:i A');
             } catch (Exception $e) {
                 $timeFormatted = '';
@@ -187,7 +187,7 @@ try {
         $timeFormatted = '';
         if (!empty($gr['checkin_time'])) {
             try {
-                $timeFormatted = (new DateTime($gr['checkin_time'], new DateTimeZone('+08:00')))->format('g:i A');
+                $timeFormatted = (new DateTime($gr['checkin_time']))->format('g:i A');
             } catch (Exception $e) {}
         }
         $formattedAttendees[] = [
