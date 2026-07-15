@@ -660,6 +660,7 @@
   width: 20px;
   height: 20px;
   stroke-width: 2.5;
+  stroke: #fff;
 }
 
 .policy-modal-body {
@@ -795,11 +796,11 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 720px) {
-  .reg-topbar { padding: 0 20px; }
-  .register-box { padding: 28px 20px 40px 20px; }
-  .register-header h1 { font-size: 1.35rem; }
-  .form-groups { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
+  .reg-topbar { padding: 0 18px; }
+  .register-box { padding: 32px 18px 48px 18px; }
+  .register-header h1 { font-size: 1.45rem; }
+  .form-groups { grid-template-columns: 1fr; gap: 20px; }
+  .form-row { grid-template-columns: 1fr; gap: 20px; }
   .step-connector { width: 24px; }
   .step-navigation { justify-content: stretch; }
   .next-button, .submit-button { width: 100%; justify-content: center; }
@@ -814,6 +815,22 @@
   .policy-section { flex-direction: column; gap: 12px; }
   .policy-section-icon { width: 40px; height: 40px; border-radius: 10px; }
   .policy-section-icon svg { width: 20px; height: 20px; }
+}
+
+@media (max-width: 480px) {
+  .register-container { padding: 0; }
+  .reg-topbar { height: 60px; padding: 0 16px; }
+  .register-box { padding: 28px 16px 44px 16px; }
+  .register-header h1 { font-size: 1.35rem; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { font-size: 0.88rem; margin-bottom: 8px; }
+  .form-group input,
+  .form-group select {
+    padding: 12px 14px;
+    font-size: 0.92rem;
+  }
+  .step-connector { width: 20px; }
+  .step-circle { width: 34px; height: 34px; font-size: 0.8rem; }
 }
 
 @media (max-width: 400px) {
