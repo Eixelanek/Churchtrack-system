@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import AttendanceManagement from '../Admin/AttendanceManagement';
 import MembersManagement from '../Admin/MembersManagement';
 import MemberQRScanner from './MemberQRScanner';
+import CreateEventForm from './CreateEventForm';
 import './Manager.css';
 import logoImage from '../../assets/logo2.png';
 import { loadChurchSettingsFromAPI } from '../../utils/churchSettings';
@@ -833,7 +834,7 @@ const Manager = () => {
   const navItems = [
     { key: 'dashboard', label: 'Dashboard' },
     { key: 'scan-attendance', label: 'Scan Attendance' },
-    { key: 'generate-qr', label: 'Generate QR' },
+    { key: 'events', label: 'Events' },
     { key: 'attendance', label: 'Attendance' },
     { key: 'members', label: 'Members' }
   ];
@@ -3792,7 +3793,8 @@ const Manager = () => {
 
   const activeContent = {
     dashboard: renderDashboard(),
-    'generate-qr': renderGenerateQr(),
+    'scan-attendance': <MemberQRScanner checkedInList={scanCheckedInList} setCheckedInList={setScanCheckedInList} />,
+    events: <CreateEventForm />,
     attendance: renderAttendance(),
     members: renderMembers()
   }[activeView];
