@@ -351,40 +351,39 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Show scan results even on the select screen so they persist after stopping scanner */}
-      {checkedInList.length > 0 && (
-        <div className="mqrs-list-card" style={{ marginTop: '1rem' }}>
-          <div className="mqrs-list-header">
-            <h3>Checked In This Session</h3>
-            <span className="mqrs-list-count">{checkedInList.length}</span>
+        {/* Checked-in list — always visible, loaded from DB on event select */}
+        {checkedInList.length > 0 && (
+          <div className="mqrs-list-card" style={{ marginTop: '1.5rem' }}>
+            <div className="mqrs-list-header">
+              <h3>Checked In</h3>
+              <span className="mqrs-list-count">{checkedInList.length}</span>
+            </div>
+            <div className="mqrs-list-items">
+              {checkedInList.map((member, i) => (
+                <div key={`${member.id}-${i}`} className="mqrs-list-item">
+                  <div className="mqrs-list-avatar">
+                    {member.profile_picture ? (
+                      <img src={member.profile_picture} alt={member.name} />
+                    ) : (
+                      <span>{getInitials(member.name)}</span>
+                    )}
+                  </div>
+                  <div className="mqrs-list-info">
+                    <div className="mqrs-list-name">{member.name}</div>
+                    <div className="mqrs-list-time">{member.time}</div>
+                  </div>
+                  <div className={`mqrs-list-badge ${member.checkin_status}`}>
+                    {member.checkin_status === 'late' ? 'Late' : 'Present'}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="mqrs-list-items">
-            {checkedInList.map((member, i) => (
-              <div key={`${member.id}-${i}`} className="mqrs-list-item">
-                <div className="mqrs-list-avatar">
-                  {member.profile_picture ? (
-                    <img src={member.profile_picture} alt={member.name} />
-                  ) : (
-                    <span>{getInitials(member.name)}</span>
-                  )}
-                </div>
-                <div className="mqrs-list-info">
-                  <div className="mqrs-list-name">{member.name}</div>
-                  <div className="mqrs-list-time">{member.time}</div>
-                </div>
-                <div className={`mqrs-list-badge ${member.checkin_status}`}>
-                  {member.checkin_status === 'late' ? 'Late' : 'Present'}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
 
   // ── render: scanning mode ─────────────────────────────────────
   return (
