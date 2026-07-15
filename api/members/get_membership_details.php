@@ -196,12 +196,11 @@ try {
     // Recent scans (latest check-ins)
     try {
         $recentQuery = "
-            SELECT id, service_name,
-                   DATE_ADD(checkin_datetime, INTERVAL 8 HOUR) AS checkin_datetime
+            SELECT id, service_name, checkin_datetime
             FROM (
                 SELECT a.id,
                        COALESCE(e.title, 'Service') AS service_name,
-                       a.check_in_time AS checkin_datetime
+                       DATE_ADD(a.check_in_time, INTERVAL 8 HOUR) AS checkin_datetime
                 FROM attendance a
                 LEFT JOIN events e ON e.id = a.event_id
                 WHERE a.member_id = :member_id1
@@ -240,6 +239,7 @@ try {
         'total_absent' => 0,
         'dates' => []
     ];
+    $recordsError = null;
 
     try {
         // Combine records from both attendance sources
@@ -261,7 +261,7 @@ try {
             SELECT
                 qa.id,
                 COALESCE(qs.service_name, 'QR Attendance') AS service_name,
-                DATE_ADD(qa.checkin_datetime, INTERVAL 8 HOUR) AS checkin_datetime,
+                qa.checkin_datetime,
                 qa.session_id,
                 qa.member_contact,
                 'present' AS status
@@ -293,6 +293,7 @@ try {
         }
     } catch (Exception $recordsEx) {
         $attendanceRecords = [];
+        $recordsError = $recordsEx->getMessage();
         error_log('get_membership_details records error: ' . $recordsEx->getMessage());
     }
 
@@ -313,6 +314,7 @@ try {
         "_debug" => [
             "records_count" => count($attendanceRecords),
             "total_visits_raw" => $totalVisits,
+            "records_error" => $recordsError,
         ]
     ];
     

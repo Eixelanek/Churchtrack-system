@@ -24,16 +24,6 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
   const [selectedEventId, setSelectedEventId] = useState('');
   const selectedEvent = events.find((e) => String(e.id) === String(selectedEventId)) || null;
 
-  // Reset scan list only when a different event is selected
-  const prevEventIdRef = useRef(selectedEventId);
-  useEffect(() => {
-    if (prevEventIdRef.current !== selectedEventId && selectedEventId !== '') {
-      setCheckedInList([]);
-      setLastResult(null);
-    }
-    prevEventIdRef.current = selectedEventId;
-  }, [selectedEventId]);
-
   // ── scanner ─────────────────────────────────────────────────
   const videoRef            = useRef(null);
   const streamRef           = useRef(null);
@@ -78,7 +68,40 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // ── scanner core ─────────────────────────────────────────────
+  // ── load existing attendees when event is selected ────────────
+  const fetchEventAttendees = useCallback(async (eventId) => {
+    if (!eventId || !sessionId || !managerId) return;
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/attendance/get_event_details.php?event_id=${encodeURIComponent(eventId)}`
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) return;
+      const attendees = (data.attendees || [])
+        .filter((a) => a.memberId)
+        .map((a) => ({
+          id: a.memberId,
+          name: a.name,
+          profile_picture: a.profile_picture || null,
+          checkin_status: (a.status || 'present').toLowerCase() === 'late' ? 'late' : 'present',
+          time: a.checkInTime
+            ? new Date(a.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            : ''
+        }));
+      setCheckedInList(attendees);
+    } catch {
+      // non-critical — list just starts empty
+    }
+  }, [sessionId, managerId, setCheckedInList]);
+
+  // When event selection changes, load its attendees
+  const prevEventIdRef = useRef('');
+  useEffect(() => {
+    if (selectedEventId && selectedEventId !== prevEventIdRef.current) {
+      prevEventIdRef.current = selectedEventId;
+      fetchEventAttendees(selectedEventId);
+    }
+  }, [selectedEventId, fetchEventAttendees]);
   const stopScanner = useCallback(() => {
     scanningRef.current = false;
     setIsScanning(false);
