@@ -2714,3 +2714,150 @@
     font-size: 1.2rem;
   }
 }
+
+/* ── ATTENDANCE TABLE (redesigned events list) ── */
+.att-table-wrap {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,73,175,0.07);
+  box-shadow: 0 2px 16px rgba(0,73,175,0.06);
+  overflow: hidden;
+}
+
+.att-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+}
+
+.att-table thead tr {
+  border-bottom: 1px solid rgba(0,73,175,0.08);
+  background: rgba(0,73,175,0.02);
+}
+
+.att-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+}
+
+.att-table-row {
+  border-bottom: 1px solid rgba(0,73,175,0.05);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.att-table-row:hover {
+  background: rgba(0,73,175,0.02);
+}
+
+.att-table-row:last-child {
+  border-bottom: none;
+}
+
+.att-row-expanded {
+  background: rgba(0,73,175,0.03);
+  border-bottom: none;
+}
+
+.att-table-row td {
+  padding: 14px 16px;
+  vertical-align: middle;
+}
+
+.att-td-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c0cce0;
+  width: 36px;
+  text-align: center;
+}
+
+.att-td-title {
+  font-weight: 700;
+  color: #0a1a3a;
+}
+
+.att-td-meta {
+  color: #5a6a85;
+  white-space: nowrap;
+}
+
+.att-td-count {
+  font-weight: 700;
+  color: #0049AF;
+  text-align: center;
+}
+
+.att-td-chevron {
+  width: 36px;
+  text-align: center;
+}
+
+.att-chevron {
+  width: 18px;
+  height: 18px;
+  stroke: #b0bec5;
+  transition: transform 0.25s ease, stroke 0.2s;
+  display: inline-block;
+}
+
+.att-chevron.open {
+  transform: rotate(180deg);
+  stroke: #0049AF;
+}
+
+/* Status badges */
+.att-status-badge {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.att-status--active    { background: #dbeafe; color: #1d4ed8; }
+.att-status--completed { background: #dcfce7; color: #16a34a; }
+.att-status--upcoming  { background: rgba(0,73,175,0.08); color: #0049AF; }
+.att-status--cancelled { background: #fee2e2; color: #dc2626; }
+
+/* Checkbox */
+.att-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #0049AF;
+  cursor: pointer;
+}
+
+/* Expanded row */
+.att-expanded-row {
+  background: #f8faff;
+  border-bottom: 1px solid rgba(0,73,175,0.06);
+}
+
+.att-expanded-cell {
+  padding: 0 !important;
+}
+
+.att-expanded-cell .event-details-expanded {
+  padding: 20px 24px;
+  border-top: 2px solid rgba(0,73,175,0.08);
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .att-table thead th:nth-child(5),
+  .att-table tbody td:nth-child(5) { display: none; }
+
+  .att-table thead th,
+  .att-table tbody td { padding: 12px 10px; font-size: 0.82rem; }
+
+  .att-table-wrap { border-radius: 12px; }
+}

@@ -1872,7 +1872,7 @@ const AttendanceManagement = ({
         </div>
       )}
 
-      <div className="members-cards-container">
+      <div className="att-table-wrap">
         {filteredAttendanceEvents.length === 0 ? (
           <div className="no-events-message">
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -1884,81 +1884,90 @@ const AttendanceManagement = ({
             <p>Events will appear here once they have attendance activity.</p>
           </div>
         ) : (
-          filteredAttendanceEvents.map((event) => {
-            const eventDate = new Date(event.date);
-            const dayNumber = eventDate.getDate();
-            const monthDay = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'long' });
-            
-            return (
-              <div key={event.id} className={`member-card-wrapper ${expandedServiceId === event.id ? 'expanded' : ''}`}>
-                <div
-                  className="member-card"
-                  onClick={() => {
-                    const isCurrentlyExpanded = expandedServiceId === event.id;
-                    const nextExpandedId = isCurrentlyExpanded ? null : event.id;
-                    setExpandedServiceId(nextExpandedId);
+          <table className="att-table">
+            <thead>
+              <tr>
+                {multiSelectMode && <th style={{ width: 40 }}></th>}
+                <th>#</th>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Attendees</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAttendanceEvents.map((event, idx) => {
+                const eventDate = new Date(event.date);
+                const dayNumber = eventDate.getDate();
+                const monthDay = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'long' });
+                const isExpanded = expandedServiceId === event.id;
+                const status = (event.status || 'upcoming').toLowerCase();
 
-                    if (!isCurrentlyExpanded && !eventDetailsMap[event.id]) {
-                      setEventDetailsLoading((prev) => ({ ...prev, [event.id]: true }));
-                      loadEventDetails(event.id)
-                        .then((data) => {
-                          if (data) {
-                            setEventDetailsMap((prev) => ({ ...prev, [event.id]: data }));
-                          }
-                        })
-                        .finally(() => {
-                          setEventDetailsLoading((prev) => ({ ...prev, [event.id]: false }));
-                        });
-                    }
-                  }}
-                >
-                  {multiSelectMode && (
-                    <input 
-                      type="checkbox" 
-                      className="member-card-checkbox"
-                      checked={selectedEvents.has(event.id)}
-                      onChange={() => toggleEventSelection(event.id)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  )}
-                  <div className="event-date-box">
-                    <div className="date-number">{dayNumber}</div>
-                  </div>
-                  <div className="member-details">
-                    <div className="member-name">{monthDay}</div>
-                    <div className="member-email">{dayName}</div>
-                  </div>
-                  <div className="member-badges">
-                    <div className="total-attendees">
-                      <span className="total-label">TOTAL</span>
-                      <span className="total-number">
+                return (
+                  <>
+                    <tr
+                      key={event.id}
+                      className={`att-table-row ${isExpanded ? 'att-row-expanded' : ''}`}
+                      onClick={() => {
+                        const isCurrentlyExpanded = expandedServiceId === event.id;
+                        const nextExpandedId = isCurrentlyExpanded ? null : event.id;
+                        setExpandedServiceId(nextExpandedId);
+                        if (!isCurrentlyExpanded && !eventDetailsMap[event.id]) {
+                          setEventDetailsLoading((prev) => ({ ...prev, [event.id]: true }));
+                          loadEventDetails(event.id)
+                            .then((data) => {
+                              if (data) setEventDetailsMap((prev) => ({ ...prev, [event.id]: data }));
+                            })
+                            .finally(() => {
+                              setEventDetailsLoading((prev) => ({ ...prev, [event.id]: false }));
+                            });
+                        }
+                      }}
+                    >
+                      {multiSelectMode && (
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="att-checkbox"
+                            checked={selectedEvents.has(event.id)}
+                            onChange={() => toggleEventSelection(event.id)}
+                          />
+                        </td>
+                      )}
+                      <td className="att-td-num">{idx + 1}</td>
+                      <td className="att-td-title">{event.title}</td>
+                      <td className="att-td-meta">{monthDay}</td>
+                      <td className="att-td-meta">{dayName}</td>
+                      <td className="att-td-count">
                         {(() => {
-                          // Use event details count if available (most accurate), otherwise use event totalAttendees from backend
                           const detailsData = eventDetailsMap[event.id];
-                          if (detailsData?.attendees) {
-                            return detailsData.attendees.length;
-                          }
-                          // Backend now correctly calculates totalAttendees including guests
+                          if (detailsData?.attendees) return detailsData.attendees.length;
                           return event.totalAttendees || 0;
                         })()}
-                      </span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="people-icon">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                  </div>
-                </div>
-                {expandedServiceId === event.id && (
-                  <div className="event-details-expanded">
-                    {eventDetailsLoading[event.id] && (
-                      <div className="event-details-loading">Loading event details...</div>
-                    )}
+                      </td>
+                      <td>
+                        <span className={`att-status-badge att-status--${status}`}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="att-td-chevron">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`att-chevron ${isExpanded ? 'open' : ''}`}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr key={`${event.id}-details`} className="att-expanded-row">
+                        <td colSpan={multiSelectMode ? 8 : 7} className="att-expanded-cell">
+                          <div className="event-details-expanded">
+                            {eventDetailsLoading[event.id] && (
+                              <div className="event-details-loading">Loading event details...</div>
+                            )}
 
-                    {!eventDetailsLoading[event.id] && (
+                            {!eventDetailsLoading[event.id] && (
                       (() => {
                         const detailsData = eventDetailsMap[event.id];
                         const detailsEvent = detailsData?.event || {};
@@ -2243,13 +2252,16 @@ const AttendanceManagement = ({
                         );
                       })()
                     )}
-                  </div>
-                )}
-              </div>
-            );
-          })
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
         )}
-
       </div>
 
       {/* OLD PLACEHOLDER - HIDDEN */}
