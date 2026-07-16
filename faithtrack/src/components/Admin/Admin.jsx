@@ -221,6 +221,7 @@ const Admin = () => {
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const profileRef = useRef(null);
   const [showSettingsView, setShowSettingsView] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('identity');
   const [churchLogo, setChurchLogo] = useState(logoImage);
   const [headerLogo, setHeaderLogo] = useState(null);
   const [churchName, setChurchName] = useState('Christ-Like Christian Church');
@@ -1515,6 +1516,7 @@ const Admin = () => {
 
   const handleSettingsClick = () => {
     setShowSettingsView(true);
+    setSettingsTab('identity');
     setOriginalChurchData(getCurrentChurchSettingsSnapshot());
     setHasChurchChanges(false);
   };
@@ -2615,350 +2617,323 @@ const Admin = () => {
                 </div>
               </div>
             ) : showSettingsView ? (
-              <div className="profile-view admin-settings-page">
-                <div className="profile-settings-header">
-                  <button 
-                    className="back-button"
-                    onClick={handleSettingsBackClick}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    <span>Back</span>
-                  </button>
-                  <h1 className="profile-settings-title">Settings</h1>
+              <div className="stg-page">
+
+                {/* ── Page Header ── */}
+                <div className="stg-header">
+                  <div className="stg-header-left">
+                    <button className="stg-back-btn" onClick={handleSettingsBackClick}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                      </svg>
+                    </button>
+                    <div>
+                      <h1 className="stg-title">Settings</h1>
+                      <p className="stg-subtitle">Manage your church configuration</p>
+                    </div>
+                  </div>
+                  {hasChurchChanges && (
+                    <div className="stg-header-actions">
+                      <button className="stg-btn stg-btn--ghost" onClick={handleChurchCancel}>Discard</button>
+                      <button className="stg-btn stg-btn--primary" onClick={handleChurchSave}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                        Save Changes
+                      </button>
+                    </div>
+                  )}
                 </div>
-                
-                <div className="profile-content">
-                  <div className="profile-section">
-                    <div className="account-section">
-                      <div className="account-card">
-                        <h2>Church Identity</h2>
-                        <div className="form-group">
-                          <label>Church Logo</label>
-                          <div className="admin-settings-media-row" style={{ marginTop: '0.5rem' }}>
-                            <div className="profile-avatar large">
-                              <img src={churchLogo} alt="Church Logo" className="avatar-image" />
-                            </div>
-                            <div className="admin-settings-media-actions">
-                              <button 
-                                className="change-avatar-btn"
-                                onClick={() => logoInputRef.current.click()}
-                              >
-                                Change Logo
-                              </button>
-                              <button 
-                                className="cancel-btn"
-                                onClick={handleRemoveLogo}
-                                style={{ 
-                                  backgroundColor: '#ef4444', 
-                                  color: 'white',
-                                  padding: '0.5rem 1rem',
-                                  borderRadius: '8px',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                            <input
-                              type="file"
-                              ref={logoInputRef}
-                              onChange={handleLogoChange}
-                              accept="image/*"
-                              style={{ display: 'none' }}
-                            />
+
+                {/* ── Tabs ── */}
+                <div className="stg-tabs">
+                  {[
+                    { id: 'identity', label: 'Church Identity', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+                    { id: 'homepage', label: 'Homepage', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> },
+                    { id: 'helpcenter', label: 'Help Center', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> },
+                    { id: 'system', label: 'System', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg> },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      className={`stg-tab ${settingsTab === tab.id ? 'active' : ''}`}
+                      onClick={() => setSettingsTab(tab.id)}
+                    >
+                      {tab.icon}
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* ── Tab Panels ── */}
+                <div className="stg-body">
+
+                  {/* CHURCH IDENTITY */}
+                  {settingsTab === 'identity' && (
+                    <div className="stg-panel">
+
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Church Logo</h3>
+                            <p className="stg-card-desc">Used in reports, PDFs, and the admin sidebar</p>
                           </div>
                         </div>
-
-                        <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                          <label>Header Logo (used in Admin/Manager/Member headers)</label>
-                          <div className="admin-settings-media-row" style={{ marginTop: '0.5rem' }}>
-                            <div className="profile-avatar large">
-                              <img src={headerLogo || churchLogo} alt="Header Logo" className="avatar-image" />
-                            </div>
-                            <div className="admin-settings-media-actions">
-                              <button 
-                                className="change-avatar-btn"
-                                onClick={() => headerLogoInputRef.current.click()}
-                              >
-                                Change Header Logo
-                              </button>
-                              <button 
-                                className="cancel-btn"
-                                onClick={handleRemoveHeaderLogo}
-                                style={{ 
-                                  backgroundColor: '#ef4444', 
-                                  color: 'white',
-                                  padding: '0.5rem 1rem',
-                                  borderRadius: '8px',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </div>
-                            <input
-                              type="file"
-                              ref={headerLogoInputRef}
-                              onChange={handleHeaderLogoChange}
-                              accept="image/*"
-                              style={{ display: 'none' }}
-                            />
+                        <div className="stg-media-row">
+                          <div className="stg-logo-preview">
+                            <img src={churchLogo} alt="Church Logo" />
                           </div>
-                        </div>
-
-                        <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                          <label>Church Name</label>
-                          <input
-                            type="text"
-                            value={churchName}
-                            onChange={handleChurchNameChange}
-                            className="form-input"
-                            placeholder="Enter church name"
-                          />
-                        </div>
-
-                        <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                          <label>Church Address</label>
-                          <textarea
-                            value={churchAddress}
-                            onChange={(e) => {
-                              setChurchAddress(e.target.value);
-                              checkChurchChanges({ churchAddress: e.target.value });
-                            }}
-                            className="form-input"
-                            placeholder="Enter church address"
-                            rows="3"
-                            style={{ resize: 'vertical', fontFamily: 'inherit' }}
-                          />
-                        </div>
-
-                        <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                          <label>Church Phone</label>
-                          <input
-                            type="text"
-                            value={churchPhone}
-                            onChange={(e) => {
-                              setChurchPhone(e.target.value);
-                              checkChurchChanges({ churchPhone: e.target.value });
-                            }}
-                            className="form-input"
-                            placeholder="Enter church phone number"
-                          />
-                        </div>
-
-                        <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                          <label>Church Email</label>
-                          <input
-                            type="email"
-                            value={churchEmail}
-                            onChange={(e) => {
-                              setChurchEmail(e.target.value);
-                              checkChurchChanges({ churchEmail: e.target.value });
-                            }}
-                            className="form-input"
-                            placeholder="Enter church email"
-                          />
+                          <div className="stg-media-actions">
+                            <button className="stg-btn stg-btn--outline" onClick={() => logoInputRef.current.click()}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                              Upload Logo
+                            </button>
+                            <button className="stg-btn stg-btn--danger-ghost" onClick={handleRemoveLogo}>Remove</button>
+                          </div>
+                          <input type="file" ref={logoInputRef} onChange={handleLogoChange} accept="image/*" style={{ display: 'none' }} />
                         </div>
                       </div>
 
-                      <div className="account-card" style={{ marginTop: '1.5rem' }}>
-                        <h2>Homepage Images</h2>
-                        <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Customize the floating images displayed on your church homepage.
-                        </p>
-                        <div className="admin-settings-homepage-grid" style={{ marginTop: '1.5rem' }}>
-                          {[0, 1, 2, 3, 4, 5].map((index) => {
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--indigo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Header Logo</h3>
+                            <p className="stg-card-desc">Shown in the Admin, Manager, and Member navigation bars</p>
+                          </div>
+                        </div>
+                        <div className="stg-media-row">
+                          <div className="stg-logo-preview">
+                            <img src={headerLogo || churchLogo} alt="Header Logo" />
+                          </div>
+                          <div className="stg-media-actions">
+                            <button className="stg-btn stg-btn--outline" onClick={() => headerLogoInputRef.current.click()}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                              Upload Logo
+                            </button>
+                            <button className="stg-btn stg-btn--danger-ghost" onClick={handleRemoveHeaderLogo}>Remove</button>
+                          </div>
+                          <input type="file" ref={headerLogoInputRef} onChange={handleHeaderLogoChange} accept="image/*" style={{ display: 'none' }} />
+                        </div>
+                      </div>
+
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Church Information</h3>
+                            <p className="stg-card-desc">Basic details about your church</p>
+                          </div>
+                        </div>
+                        <div className="stg-fields">
+                          <div className="stg-field">
+                            <label className="stg-label">Church Name</label>
+                            <input type="text" value={churchName} onChange={handleChurchNameChange} className="stg-input" placeholder="Enter church name" />
+                          </div>
+                          <div className="stg-field">
+                            <label className="stg-label">Address</label>
+                            <textarea value={churchAddress} onChange={(e) => { setChurchAddress(e.target.value); checkChurchChanges({ churchAddress: e.target.value }); }} className="stg-input stg-textarea" placeholder="Enter church address" rows="3" />
+                          </div>
+                          <div className="stg-fields-row">
+                            <div className="stg-field">
+                              <label className="stg-label">Phone</label>
+                              <input type="text" value={churchPhone} onChange={(e) => { setChurchPhone(e.target.value); checkChurchChanges({ churchPhone: e.target.value }); }} className="stg-input" placeholder="(+63) 900 000 0000" />
+                            </div>
+                            <div className="stg-field">
+                              <label className="stg-label">Email</label>
+                              <input type="email" value={churchEmail} onChange={(e) => { setChurchEmail(e.target.value); checkChurchChanges({ churchEmail: e.target.value }); }} className="stg-input" placeholder="church@email.com" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+
+                  {/* HOMEPAGE */}
+                  {settingsTab === 'homepage' && (
+                    <div className="stg-panel">
+
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Hero Text</h3>
+                            <p className="stg-card-desc">Main headline and supporting message on the homepage banner</p>
+                          </div>
+                        </div>
+                        <div className="stg-fields">
+                          <div className="stg-field">
+                            <label className="stg-label">Hero Title</label>
+                            <textarea value={homepageHeroTitle} onChange={handleHomepageHeroTitleChange} className="stg-input stg-textarea" placeholder="SHAPING FUTURES WITH FAITH" rows={3} />
+                            <span className="stg-hint">Use Shift + Enter for line breaks</span>
+                          </div>
+                          <div className="stg-field">
+                            <label className="stg-label">Hero Subtitle</label>
+                            <textarea value={homepageHeroSubtitle} onChange={handleHomepageHeroSubtitleChange} className="stg-input stg-textarea" placeholder="Join us for an uplifting experience" rows={2} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Floating Images</h3>
+                            <p className="stg-card-desc">Photos displayed in the animated grid on the homepage</p>
+                          </div>
+                        </div>
+                        <div className="stg-image-grid">
+                          {[0,1,2,3,4,5].map((index) => {
                             const imageValues = [homepageImage1, homepageImage2, homepageImage3, homepageImage4, homepageImage5, homepageImage6];
                             const imageRefs = [homepageImage1Ref, homepageImage2Ref, homepageImage3Ref, homepageImage4Ref, homepageImage5Ref, homepageImage6Ref];
                             const imageValue = imageValues[index];
                             const imageRef = imageRefs[index];
                             return (
-                              <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#1e293b' }}>
-                                  Image {index + 1}
-                                </label>
-                                <div className="admin-settings-homepage-slot">
-                                  <div className="profile-avatar large">
-                                    <img 
-                                      src={imageValue || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect fill='%23e2e8f0' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%2394a3b8' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E`} 
-                                      alt={`Homepage Image ${index + 1}`} 
-                                      className="avatar-image" 
-                                    />
-                                  </div>
-                                  <div className="admin-settings-media-actions admin-settings-media-actions--grow">
-                                    <button 
-                                      className="change-avatar-btn"
-                                      onClick={() => imageRef.current?.click()}
-                                    >
-                                      Change Image
-                                    </button>
-                                    <button 
-                                      className="cancel-btn"
-                                      onClick={() => handleRemoveHomepageImage(index)}
-                                      disabled={!imageValue}
-                                      style={{ 
-                                        backgroundColor: '#ef4444', 
-                                        color: 'white',
-                                        padding: '0.5rem 1rem',
-                                        borderRadius: '8px',
-                                        border: 'none',
-                                        cursor: imageValue ? 'pointer' : 'not-allowed',
-                                        fontSize: '0.875rem',
-                                        opacity: imageValue ? 1 : 0.5
-                                      }}
-                                    >
-                                      Remove
-                                    </button>
-                                    <input
-                                      type="file"
-                                      ref={imageRef}
-                                      onChange={(e) => handleHomepageImageChange(index, e)}
-                                      accept="image/*"
-                                      style={{ display: 'none' }}
-                                    />
-                                  </div>
+                              <div key={index} className="stg-image-slot">
+                                <div className="stg-image-preview">
+                                  {imageValue
+                                    ? <img src={imageValue} alt={`Homepage Image ${index + 1}`} />
+                                    : <div className="stg-image-empty">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="28" height="28"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                      </div>
+                                  }
                                 </div>
+                                <span className="stg-image-label">Image {index + 1}</span>
+                                <div className="stg-image-actions">
+                                  <button className="stg-btn stg-btn--xs stg-btn--outline" onClick={() => imageRef.current?.click()}>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="11" height="11"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    Upload
+                                  </button>
+                                  {imageValue && (
+                                    <button className="stg-btn stg-btn--xs stg-btn--danger-ghost" onClick={() => handleRemoveHomepageImage(index)}>Remove</button>
+                                  )}
+                                </div>
+                                <input type="file" ref={imageRef} onChange={(e) => handleHomepageImageChange(index, e)} accept="image/*" style={{ display: 'none' }} />
                               </div>
                             );
                           })}
                         </div>
                       </div>
 
-                      <div className="account-card" style={{ marginTop: '1.5rem' }}>
-                        <h2>Homepage Hero Text</h2>
-                        <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Set the main headline and supporting message shown on your homepage hero section.
-                        </p>
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                          <label>Hero Title</label>
-                          <textarea
-                            value={homepageHeroTitle}
-                            onChange={handleHomepageHeroTitleChange}
-                            className="form-input"
-                            placeholder="Enter homepage hero title"
-                            rows={3}
-                            style={{ resize: 'vertical' }}
-                          />
-                          <small style={{ display: 'block', marginTop: '0.5rem', color: '#64748b' }}>
-                            Tip: Use <code>Shift + Enter</code> for line breaks.
-                          </small>
+                    </div>
+                  )}
+
+                  {/* HELP CENTER */}
+                  {settingsTab === 'helpcenter' && (
+                    <div className="stg-panel">
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--teal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">Support Contact</h3>
+                            <p className="stg-card-desc">Contact details shown to members when they need assistance</p>
+                          </div>
                         </div>
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                          <label>Hero Subtitle</label>
-                          <textarea
-                            value={homepageHeroSubtitle}
-                            onChange={handleHomepageHeroSubtitleChange}
-                            className="form-input"
-                            placeholder="Enter homepage hero subtitle"
-                            rows={2}
-                            style={{ resize: 'vertical' }}
-                          />
+                        <div className="stg-fields">
+                          <div className="stg-field">
+                            <label className="stg-label">Support Email</label>
+                            <div className="stg-input-icon-wrap">
+                              <svg className="stg-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                              <input type="email" value={helpCenterEmail} onChange={handleHelpCenterEmailChange} className="stg-input stg-input--icon" placeholder="support@yourchurch.com" />
+                            </div>
+                          </div>
+                          <div className="stg-field">
+                            <label className="stg-label">Contact Number</label>
+                            <div className="stg-input-icon-wrap">
+                              <svg className="stg-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                              <input type="tel" value={helpCenterPhone} onChange={handleHelpCenterPhoneChange} className="stg-input stg-input--icon" placeholder="(+63) 900 000 0000" />
+                            </div>
+                          </div>
+                          <div className="stg-field">
+                            <label className="stg-label">Help Center Link</label>
+                            <div className="stg-input-icon-wrap">
+                              <svg className="stg-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                              <input type="url" value={helpCenterUrl} onChange={handleHelpCenterUrlChange} className="stg-input stg-input--icon" placeholder="https://yourchurch.com/help" />
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    </div>
+                  )}
 
-                      <div className="account-card" style={{ marginTop: '1.5rem' }}>
-                        <h2>Help Center</h2>
-                        <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Provide contact details members can use when they need assistance.
-                        </p>
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                          <label>Support Email</label>
-                          <input
-                            type="email"
-                            value={helpCenterEmail}
-                            onChange={handleHelpCenterEmailChange}
-                            className="form-input"
-                            placeholder="support@yourchurch.com"
-                          />
+                  {/* SYSTEM */}
+                  {settingsTab === 'system' && (
+                    <div className="stg-panel">
+                      <div className="stg-card">
+                        <div className="stg-card-header">
+                          <div className="stg-card-icon stg-card-icon--red">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                          </div>
+                          <div>
+                            <h3 className="stg-card-title">System Maintenance</h3>
+                            <p className="stg-card-desc">Remove stale sessions, login logs, rejected applications, and outdated guardian data</p>
+                          </div>
                         </div>
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                          <label>Contact Number</label>
-                          <input
-                            type="tel"
-                            value={helpCenterPhone}
-                            onChange={handleHelpCenterPhoneChange}
-                            className="form-input"
-                            placeholder="(+63) 900 000 0000"
-                          />
-                        </div>
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                          <label>Help Center Link</label>
-                          <input
-                            type="url"
-                            value={helpCenterUrl}
-                            onChange={handleHelpCenterUrlChange}
-                            className="form-input"
-                            placeholder="https://yourchurch.com/help"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="account-card" style={{ marginTop: '1.5rem' }}>
-                        <h2>System Maintenance</h2>
-                        <p style={{ marginTop: '0.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                          Run a manual cleanup to remove stale admin and member sessions, outdated login logs, rejected and stale pending member applications, and guardian data for members aged 18 and above.
-                        </p>
-                        <div className="maintenance-actions">
+                        <div className="stg-maintenance">
                           <button
-                            className={`save-btn maintenance-run-btn${isMaintenanceRunning ? ' loading' : ''}`}
+                            className={`stg-btn stg-btn--primary stg-btn--maintenance${isMaintenanceRunning ? ' loading' : ''}`}
                             onClick={handleRunMaintenance}
                             disabled={isMaintenanceRunning}
                           >
-                            {isMaintenanceRunning ? 'Running Maintenance…' : 'Run Maintenance'}
+                            {isMaintenanceRunning ? (
+                              <>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" style={{ animation: 'spin 1s linear infinite' }}><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                Running Maintenance…
+                              </>
+                            ) : (
+                              <>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                Run Maintenance
+                              </>
+                            )}
                           </button>
-                          <p className="maintenance-note">This operation is safe to run anytime.</p>
+                          <p className="stg-maintenance-note">This operation is safe to run anytime and will not affect member data.</p>
                         </div>
                         {maintenanceError && (
-                          <div className="maintenance-status maintenance-status-error">
-                            {maintenanceError}
-                          </div>
+                          <div className="stg-alert stg-alert--error">{maintenanceError}</div>
                         )}
                         {maintenanceResult && (
-                          <div className="maintenance-summary">
-                            <div className="maintenance-summary-header">
+                          <div className="stg-maintenance-result">
+                            <div className="stg-maintenance-result-header">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
                               Last run: {formatMaintenanceTimestamp(maintenanceResult.ranAt)}
                             </div>
                             {Array.isArray(maintenanceResult.tasks) && maintenanceResult.tasks.length > 0 && (
-                              <ul className="maintenance-task-list">
+                              <div className="stg-task-list">
                                 {maintenanceResult.tasks.map((task) => (
-                                  <li key={task.name} className="maintenance-task-item">
-                                    <span className="maintenance-task-name">{task.name}</span>
+                                  <div key={task.name} className="stg-task-item">
+                                    <span className="stg-task-name">{task.name}</span>
                                     {task.skipped ? (
-                                      <span className="maintenance-task-badge skipped">Skipped</span>
+                                      <span className="stg-task-badge stg-task-badge--skip">Skipped</span>
                                     ) : task.deleted > 0 ? (
-                                      <span className="maintenance-task-badge removed">{task.deleted} removed</span>
+                                      <span className="stg-task-badge stg-task-badge--removed">{task.deleted} removed</span>
                                     ) : (
-                                      <span className="maintenance-task-badge clean">Clean</span>
+                                      <span className="stg-task-badge stg-task-badge--clean">Clean</span>
                                     )}
-                                  </li>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             )}
-                            <div className="maintenance-summary-total">
+                            <div className="stg-maintenance-total">
                               Total removed: <strong>{maintenanceResult.totalDeleted ?? 0}</strong>
                             </div>
                           </div>
                         )}
                       </div>
-
-                      {hasChurchChanges && (
-                        <div className="button-group" style={{ marginTop: '1.5rem' }}>
-                          <button className="cancel-btn" onClick={handleChurchCancel}>
-                            Cancel
-                          </button>
-                          <button className="save-btn" onClick={handleChurchSave}>
-                            Save Changes
-                          </button>
-                        </div>
-                      )}
                     </div>
-                  </div>
+                  )}
+
                 </div>
               </div>
             ) : (
