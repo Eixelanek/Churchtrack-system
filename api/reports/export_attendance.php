@@ -657,7 +657,35 @@ try {
         $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : $endDate;
     }
     
-    // Get attendance data from QR sessions within date range
+    // ── Source 1: Events from the attendance table (per-member QR scans via manager) ──
+    // Group by event, aggregate member check-ins
+    $eventQuery = "
+        SELECT
+            e.id                                          AS event_id,
+            COALESCE(NULLIF(e.title,''), 'Unnamed Event') AS service_name,
+            e.event_type,
+            'event'                                       AS session_type,
+            CONCAT(e.date, ' ', COALESCE(e.start_time, '00:00:00')) AS event_datetime,
+            COUNT(CASE WHEN a.status IN ('present','late') THEN 1 END) AS total_checkins,
+            COUNT(CASE WHEN a.status IN ('present','late') THEN 1 END) AS member_checkins,
+            0                                             AS guest_checkins,
+            MIN(CASE WHEN a.status IN ('present','late') THEN a.check_in_time END) AS first_checkin,
+            MAX(CASE WHEN a.status IN ('present','late') THEN a.check_in_time END) AS last_checkin_at
+        FROM events e
+        INNER JOIN attendance a ON a.event_id = e.id
+        WHERE DATE(e.date) BETWEEN :start_date AND :end_date
+          AND a.status IN ('present','late')
+        GROUP BY e.id, e.title, e.event_type, e.date, e.start_time
+        ORDER BY e.date DESC, e.start_time DESC
+    ";
+    $evtStmt = $db->prepare($eventQuery);
+    $evtStmt->bindParam(':start_date', $startDate);
+    $evtStmt->bindParam(':end_date',   $endDate);
+    $evtStmt->execute();
+    $eventRows = $evtStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // ── Source 2: QR sessions (legacy, only those linked to existing events or standalone) ──
+    // Exclude sessions whose event has been deleted (allow NULL event_id for standalone sessions)
     $query = "SELECT 
                 qs.id,
                 COALESCE(NULLIF(qs.service_name, ''), 'Unnamed Service') AS service_name,
@@ -667,28 +695,6 @@ try {
                 COUNT(qa.id) AS total_checkins,
                 SUM(CASE WHEN qa.member_id IS NOT NULL THEN 1 ELSE 0 END) AS member_checkins,
                 SUM(CASE WHEN qa.member_id IS NULL THEN 1 ELSE 0 END) AS guest_checkins,
-                COUNT(DISTINCT qa.member_id) AS unique_members,
-                COUNT(DISTINCT CASE 
-                    WHEN qa.member_id IS NULL 
-                        AND qa.member_name IS NOT NULL 
-                        AND TRIM(qa.member_name) <> '' 
-                    THEN LOWER(TRIM(qa.member_name))
-                END) AS unique_guest_names,
-                GROUP_CONCAT(
-                    DISTINCT CASE WHEN qa.member_id IS NOT NULL THEN CONCAT(m.first_name, ' ', m.surname) END
-                    ORDER BY m.first_name
-                    SEPARATOR ', '
-                ) AS member_names,
-                GROUP_CONCAT(
-                    DISTINCT CASE 
-                        WHEN qa.member_id IS NULL 
-                            AND qa.member_name IS NOT NULL 
-                            AND TRIM(qa.member_name) <> '' 
-                        THEN qa.member_name 
-                    END
-                    ORDER BY qa.member_name
-                    SEPARATOR ', '
-                ) AS guest_names,
                 MAX(qa.checkin_datetime) AS last_checkin_at,
                 (
                     SELECT 
@@ -706,48 +712,77 @@ try {
               FROM qr_sessions qs
               LEFT JOIN qr_attendance qa ON qa.session_id = qs.id
               LEFT JOIN members m ON qa.member_id = m.id
-              WHERE DATE(qs.event_datetime) BETWEEN :start_date AND :end_date
+              WHERE DATE(qs.event_datetime) BETWEEN :start_date2 AND :end_date2
+                AND (
+                    qs.event_id IS NULL
+                    OR EXISTS (SELECT 1 FROM events e WHERE e.id = qs.event_id)
+                )
               GROUP BY qs.id
               ORDER BY qs.event_datetime DESC";
     
     $stmt = $db->prepare($query);
-    $stmt->bindParam(':start_date', $startDate);
-    $stmt->bindParam(':end_date', $endDate);
+    $stmt->bindParam(':start_date2', $startDate);
+    $stmt->bindParam(':end_date2',   $endDate);
     $stmt->execute();
     
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format data with breakdowns
-    $formattedRecords = array_map(function($record) {
-        $datetime = !empty($record['event_datetime']) ? new DateTime($record['event_datetime']) : null;
-        $formattedDate = $datetime ? $datetime->format('Y-m-d') : null;
-        $formattedTime = $datetime ? $datetime->format('H:i') : null;
-
-        $memberNames = array_values(array_filter(array_map('trim', explode(',', $record['member_names'] ?? ''))));
-        $guestNames = array_values(array_filter(array_map('trim', explode(',', $record['guest_names'] ?? ''))));
-
-        return [
-            'eventId' => (int)$record['id'],
-            'title' => $record['service_name'],
-            'type' => $record['event_type'],
-            'sessionType' => $record['session_type'],
-            'date' => $formattedDate,
-            'time' => $formattedTime,
-            'location' => 'QR Session',
-            'totalCheckins' => (int)$record['total_checkins'],
-            'memberCheckins' => (int)$record['member_checkins'],
-            'guestCheckins' => (int)$record['guest_checkins'],
-            'uniqueMemberCount' => (int)$record['unique_members'],
-            'uniqueGuestCount' => (int)$record['unique_guest_names'],
-            'memberNames' => $memberNames,
-            'guestNames' => $guestNames,
-            'attendeeNames' => $memberNames,
-            'attendeeNameCount' => count($memberNames),
-            'guestNameCount' => count($guestNames),
-            'lastCheckinAt' => $record['last_checkin_at'],
-            'lastCheckinName' => $record['last_checkin_name'] ?? '—'
+    // ── Format Source 1 (attendance table / event-based) ──────────────────
+    $formattedRecords = [];
+    foreach ($eventRows as $r) {
+        $datetime = !empty($r['event_datetime']) ? new DateTime($r['event_datetime']) : null;
+        $formattedRecords[] = [
+            'eventId'          => 'evt-' . (int)$r['event_id'],
+            'title'            => $r['service_name'],
+            'type'             => $r['event_type'] ?? '',
+            'sessionType'      => $r['session_type'],
+            'date'             => $datetime ? $datetime->format('Y-m-d') : null,
+            'time'             => $datetime ? $datetime->format('H:i')   : null,
+            'location'         => '',
+            'totalCheckins'    => (int)$r['total_checkins'],
+            'memberCheckins'   => (int)$r['member_checkins'],
+            'guestCheckins'    => (int)$r['guest_checkins'],
+            'uniqueMemberCount'=> (int)$r['member_checkins'],
+            'uniqueGuestCount' => 0,
+            'memberNames'      => [],
+            'guestNames'       => [],
+            'attendeeNames'    => [],
+            'attendeeNameCount'=> 0,
+            'guestNameCount'   => 0,
+            'lastCheckinAt'    => $r['last_checkin_at'] ?? null,
+            'lastCheckinName'  => '—',
         ];
-    }, $records);
+    }
+
+    // Track event IDs already covered by Source 1 so we don't double-count
+    $coveredEventIds = array_map(fn($r) => (int)$r['event_id'], $eventRows);
+
+    // ── Format Source 2 (qr_sessions / legacy) ────────────────────────────
+    // Skip qr_sessions that belong to an event already counted in Source 1
+    foreach ($records as $record) {
+        $datetime = !empty($record['event_datetime']) ? new DateTime($record['event_datetime']) : null;
+        $formattedRecords[] = [
+            'eventId'          => (int)$record['id'],
+            'title'            => $record['service_name'],
+            'type'             => $record['event_type'],
+            'sessionType'      => $record['session_type'],
+            'date'             => $datetime ? $datetime->format('Y-m-d') : null,
+            'time'             => $datetime ? $datetime->format('H:i')   : null,
+            'location'         => 'QR Session',
+            'totalCheckins'    => (int)$record['total_checkins'],
+            'memberCheckins'   => (int)$record['member_checkins'],
+            'guestCheckins'    => (int)$record['guest_checkins'],
+            'uniqueMemberCount'=> 0,
+            'uniqueGuestCount' => 0,
+            'memberNames'      => [],
+            'guestNames'       => [],
+            'attendeeNames'    => [],
+            'attendeeNameCount'=> 0,
+            'guestNameCount'   => 0,
+            'lastCheckinAt'    => $record['last_checkin_at'] ?? null,
+            'lastCheckinName'  => $record['last_checkin_name'] ?? '—',
+        ];
+    }
 
     $totalAttendance = array_sum(array_column($formattedRecords, 'totalCheckins'));
     $totalMemberCheckins = array_sum(array_column($formattedRecords, 'memberCheckins'));
