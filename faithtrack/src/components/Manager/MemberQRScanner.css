@@ -601,6 +601,66 @@
   flex-shrink: 0;
 }
 
+/* ── HOW IT WORKS ── */
+.mqrs-how-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,73,175,0.07);
+  box-shadow: 0 2px 12px rgba(0,73,175,0.05);
+  padding: 20px 22px;
+}
+
+.mqrs-how-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0049AF;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 16px;
+}
+
+.mqrs-how-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mqrs-how-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.mqrs-how-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0049AF, #1095D2);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mqrs-how-body span {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0a1a3a;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.mqrs-how-body p {
+  font-size: 0.8rem;
+  color: #7a8a9a;
+  line-height: 1.5;
+  margin: 0;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .mqrs-select-layout { grid-template-columns: 1fr; }

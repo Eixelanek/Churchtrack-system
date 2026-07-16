@@ -339,6 +339,34 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
                 Start Scanning
               </button>
             </div>
+
+            {/* How it works */}
+            <div className="mqrs-how-card">
+              <p className="mqrs-how-title">How it works</p>
+              <div className="mqrs-how-steps">
+                <div className="mqrs-how-step">
+                  <div className="mqrs-how-num">1</div>
+                  <div className="mqrs-how-body">
+                    <span>Select an event</span>
+                    <p>Choose the active event you want to record attendance for.</p>
+                  </div>
+                </div>
+                <div className="mqrs-how-step">
+                  <div className="mqrs-how-num">2</div>
+                  <div className="mqrs-how-body">
+                    <span>Start scanning</span>
+                    <p>Click "Start Scanning" to open the camera and enable QR detection.</p>
+                  </div>
+                </div>
+                <div className="mqrs-how-step">
+                  <div className="mqrs-how-num">3</div>
+                  <div className="mqrs-how-body">
+                    <span>Scan member QR codes</span>
+                    <p>Point the camera at each member's QR code. Attendance is recorded automatically.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right: checked-in list */}
