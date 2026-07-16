@@ -81,51 +81,57 @@
 }
 
 /* ── EVENT SELECTOR ── */
-.mqrs-selector-wrap {
-  display: flex;
-  justify-content: center;
-  padding: 8px 0;
+.mqrs-select-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
 }
+
+.mqrs-selector-col { display: flex; flex-direction: column; }
 
 .mqrs-selector-card {
   background: #fff;
   border-radius: 20px;
   border: 1px solid rgba(0,73,175,0.07);
   box-shadow: 0 4px 24px rgba(0,73,175,0.07);
-  padding: 36px 32px;
-  width: 100%;
-  max-width: 540px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.mqrs-selector-top {
+  display: flex;
   align-items: center;
   gap: 14px;
-  text-align: center;
 }
 
 .mqrs-selector-icon {
-  width: 72px;
-  height: 72px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, rgba(0,73,175,0.08) 0%, rgba(16,149,210,0.12) 100%);
-  border-radius: 50%;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.mqrs-selector-icon svg { stroke: #0049AF; }
+.mqrs-selector-icon svg { width: 22px; height: 22px; stroke: #0049AF; }
 
 .mqrs-selector-card h2 {
-  font-size: 1.3rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0a1a3a;
-  margin: 0;
+  margin: 0 0 2px;
 }
 
 .mqrs-selector-sub {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   color: #7a8a9a;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* Event list */
@@ -586,8 +592,18 @@
 .mqrs-list-badge.present { background: #dcfce7; color: #16a34a; }
 .mqrs-list-badge.late    { background: #fef9c3; color: #ca8a04; }
 
+.mqrs-list-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #aab;
+  min-width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
+  .mqrs-select-layout { grid-template-columns: 1fr; }
   .mqrs-scanning-layout { grid-template-columns: 1fr; }
   .mqrs-list-card { max-height: 400px; }
 }
@@ -595,6 +611,6 @@
 @media (max-width: 600px) {
   .mqrs-page { padding: 16px 16px 32px; }
   .mqrs-scanning-header { flex-direction: column; align-items: flex-start; }
-  .mqrs-selector-card { padding: 24px 18px; }
+  .mqrs-selector-card { padding: 18px; }
   .mqrs-header h1 { font-size: 1.4rem; }
 }

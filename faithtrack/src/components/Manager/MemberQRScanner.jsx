@@ -263,113 +263,123 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
           <p>Select an active event, then scan members' QR codes to record attendance.</p>
         </div>
 
-        <div className="mqrs-selector-wrap">
-          <div className="mqrs-selector-card">
-            <div className="mqrs-selector-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-            </div>
-
-            <h2>Select Event</h2>
-            <p className="mqrs-selector-sub">Choose the event you want to record attendance for.</p>
-
-            {eventsLoading ? (
-              <div className="mqrs-events-loading">
-                <div className="mqrs-spinner" />
-                <span>Loading events…</span>
+        <div className="mqrs-select-layout">
+          {/* Left: event selector */}
+          <div className="mqrs-selector-col">
+            <div className="mqrs-selector-card">
+              <div className="mqrs-selector-top">
+                <div className="mqrs-selector-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2>Select Event</h2>
+                  <p className="mqrs-selector-sub">Choose the event to record attendance for.</p>
+                </div>
               </div>
-            ) : eventsError ? (
-              <div className="mqrs-events-error">
-                <p>{eventsError}</p>
-                <button className="mqrs-retry-btn" onClick={fetchEvents}>Retry</button>
-              </div>
-            ) : events.length === 0 ? (
-              <div className="mqrs-no-events">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 8v4M12 16h.01"></path>
+
+              {eventsLoading ? (
+                <div className="mqrs-events-loading">
+                  <div className="mqrs-spinner" />
+                  <span>Loading events…</span>
+                </div>
+              ) : eventsError ? (
+                <div className="mqrs-events-error">
+                  <p>{eventsError}</p>
+                  <button className="mqrs-retry-btn" onClick={fetchEvents}>Retry</button>
+                </div>
+              ) : events.length === 0 ? (
+                <div className="mqrs-no-events">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="36" height="36">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                  </svg>
+                  <p>No active events right now.</p>
+                  <span>Create an event first before scanning attendance.</span>
+                  <button className="mqrs-retry-btn" onClick={fetchEvents}>Refresh</button>
+                </div>
+              ) : (
+                <div className="mqrs-event-list">
+                  {events.map((event) => (
+                    <label
+                      key={event.id}
+                      className={`mqrs-event-option ${String(selectedEventId) === String(event.id) ? 'selected' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="event"
+                        value={event.id}
+                        checked={String(selectedEventId) === String(event.id)}
+                        onChange={() => setSelectedEventId(String(event.id))}
+                      />
+                      <div className="mqrs-event-info">
+                        <div className="mqrs-event-title">{event.title}</div>
+                        <div className="mqrs-event-meta">
+                          {event.date && new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          {event.start_time && ` · ${new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                        </div>
+                      </div>
+                      <div className="mqrs-event-count">
+                        <span>{event.attendee_count}</span>
+                        <small>scanned</small>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              <button
+                className="mqrs-start-btn"
+                disabled={!selectedEventId || eventsLoading}
+                onClick={handleStartScanning}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
                 </svg>
-                <p>No active events right now.</p>
-                <span>Create an event first before scanning attendance.</span>
-                <button className="mqrs-retry-btn" onClick={fetchEvents}>Refresh</button>
+                Start Scanning
+              </button>
+            </div>
+          </div>
+
+          {/* Right: checked-in list */}
+          <div className="mqrs-list-col">
+            <div className="mqrs-list-card">
+              <div className="mqrs-list-header">
+                <h3>Checked In</h3>
+                <span className="mqrs-list-count">{checkedInList.length}</span>
               </div>
-            ) : (
-              <div className="mqrs-event-list">
-                {events.map((event) => (
-                  <label
-                    key={event.id}
-                    className={`mqrs-event-option ${String(selectedEventId) === String(event.id) ? 'selected' : ''}`}
-                  >
-                    <input
-                      type="radio"
-                      name="event"
-                      value={event.id}
-                      checked={String(selectedEventId) === String(event.id)}
-                      onChange={() => setSelectedEventId(String(event.id))}
-                    />
-                    <div className="mqrs-event-info">
-                      <div className="mqrs-event-title">{event.title}</div>
-                      <div className="mqrs-event-meta">
-                        {event.date && new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        {event.start_time && ` · ${new Date(`1970-01-01T${event.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+              {checkedInList.length === 0 ? (
+                <div className="mqrs-list-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="36" height="36">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                  <p>No attendees yet.</p>
+                  <span>Select an event and start scanning to see check-ins here.</span>
+                </div>
+              ) : (
+                <div className="mqrs-list-items">
+                  {checkedInList.map((member, i) => (
+                    <div key={`${member.id}-${i}`} className="mqrs-list-item">
+                      <span className="mqrs-list-num">{i + 1}</span>
+                      <div className="mqrs-list-avatar">
+                        {member.profile_picture
+                          ? <img src={member.profile_picture} alt={member.name} />
+                          : <span>{getInitials(member.name)}</span>}
+                      </div>
+                      <div className="mqrs-list-info">
+                        <div className="mqrs-list-name">{member.name}</div>
+                        <div className="mqrs-list-time">{member.time}</div>
+                      </div>
+                      <div className={`mqrs-list-badge ${member.checkin_status}`}>
+                        {member.checkin_status === 'late' ? 'Late' : 'Present'}
                       </div>
                     </div>
-                    <div className="mqrs-event-count">
-                      <span>{event.attendee_count}</span>
-                      <small>scanned</small>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            <button
-              className="mqrs-start-btn"
-              disabled={!selectedEventId || eventsLoading}
-              onClick={handleStartScanning}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-              </svg>
-              Start Scanning
-            </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Checked-in list — always visible, loaded from DB on event select */}
-        {checkedInList.length > 0 && (
-          <div className="mqrs-list-card" style={{ marginTop: '1.5rem' }}>
-            <div className="mqrs-list-header">
-              <h3>Checked In</h3>
-              <span className="mqrs-list-count">{checkedInList.length}</span>
-            </div>
-            <div className="mqrs-list-items">
-              {checkedInList.map((member, i) => (
-                <div key={`${member.id}-${i}`} className="mqrs-list-item">
-                  <div className="mqrs-list-avatar">
-                    {member.profile_picture ? (
-                      <img src={member.profile_picture} alt={member.name} />
-                    ) : (
-                      <span>{getInitials(member.name)}</span>
-                    )}
-                  </div>
-                  <div className="mqrs-list-info">
-                    <div className="mqrs-list-name">{member.name}</div>
-                    <div className="mqrs-list-time">{member.time}</div>
-                  </div>
-                  <div className={`mqrs-list-badge ${member.checkin_status}`}>
-                    {member.checkin_status === 'late' ? 'Late' : 'Present'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     );
   }
