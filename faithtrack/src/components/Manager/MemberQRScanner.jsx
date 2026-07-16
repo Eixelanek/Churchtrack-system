@@ -454,7 +454,7 @@ const MemberQRScanner = ({ checkedInList, setCheckedInList }) => {
                     <div className="mqrs-result-msg">{lastResult.message}</div>
                     {lastResult.status && !lastResult.alreadyCheckedIn && (
                       <div className={`mqrs-result-status ${lastResult.status}`}>
-                        {lastResult.status === 'late' ? '⏰ Late' : '✓ Present'}
+                        {lastResult.status === 'late' ? 'Late' : 'Present'}
                       </div>
                     )}
                   </div>
