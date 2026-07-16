@@ -2966,27 +2966,41 @@ const AttendanceManagement = ({
         <div className="modal-overlay" onMouseDown={handleModalMouseDown} onClick={handleModalClose}>
           <div className="modal-content edet-modal" onClick={(e) => e.stopPropagation()}>
 
-            {/* ── Modal Header ── */}
+            {/* ── Header ── */}
             <div className="edet-header">
-              <div className="edet-header-left">
-                <h2 className="edet-title">{selectedEventDetails.title}</h2>
-                {(selectedEventDetails.dateLabel || selectedEventDetails.timeLabel) && (
-                  <p className="edet-subtitle">
-                    {selectedEventDetails.dateLabel}
-                    {selectedEventDetails.dateLabel && selectedEventDetails.timeLabel && <span className="edet-dot">·</span>}
-                    {selectedEventDetails.timeLabel}
-                    {selectedEventDetails.location && selectedEventDetails.location !== 'Not specified' && (
-                      <><span className="edet-dot">·</span>{selectedEventDetails.location}</>
+              <div className="edet-header-meta">
+                {/* Calendar icon */}
+                <div className="edet-header-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div className="edet-header-text">
+                  <h2 className="edet-title">{selectedEventDetails.title}</h2>
+                  <div className="edet-meta-chips">
+                    {selectedEventDetails.dateLabel && (
+                      <span className="edet-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="12" height="12"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {selectedEventDetails.dateLabel}
+                      </span>
                     )}
-                  </p>
-                )}
+                    {selectedEventDetails.timeLabel && (
+                      <span className="edet-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        {selectedEventDetails.timeLabel}
+                      </span>
+                    )}
+                    {selectedEventDetails.location && selectedEventDetails.location !== 'Not specified' && (
+                      <span className="edet-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="12" height="12"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {selectedEventDetails.location}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <button
-                className="edet-close-btn"
-                onClick={() => { setShowEventDetailsModal(false); setModalSearchTerm(''); }}
-                aria-label="Close"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button className="edet-close-btn" onClick={() => { setShowEventDetailsModal(false); setModalSearchTerm(''); }} aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
@@ -2999,25 +3013,42 @@ const AttendanceManagement = ({
               </div>
             ) : (
               <>
-                {/* ── Summary Stats ── */}
+                {/* ── Stat Cards ── */}
                 <div className="edet-stats-row">
                   <div className="edet-stat edet-stat--green">
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
                     <span className="edet-stat-value">{selectedEventDetails.attendeesCount}</span>
                     <span className="edet-stat-label">Present</span>
                   </div>
                   <div className="edet-stat edet-stat--red">
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </div>
                     <span className="edet-stat-value">{selectedEventDetails.absenteesCount}</span>
                     <span className="edet-stat-label">Absent</span>
                   </div>
                   <div className="edet-stat edet-stat--blue">
-                    <span className="edet-stat-value">
-                      {selectedEventDetails.attendeesList
-                        ? selectedEventDetails.attendeesList.filter(a => a.memberId).length
-                        : selectedEventDetails.attendees.filter(a => a.memberId).length}
-                    </span>
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                    <span className="edet-stat-value">{selectedEventDetails.attendees.filter(a => a.memberId).length}</span>
                     <span className="edet-stat-label">Members</span>
                   </div>
                   <div className="edet-stat edet-stat--purple">
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                    </div>
                     <span className="edet-stat-value">
                       {selectedEventDetails.memberCount > 0
                         ? Math.round((selectedEventDetails.attendees.filter(a => a.memberId).length / selectedEventDetails.memberCount) * 100)
@@ -3027,176 +3058,151 @@ const AttendanceManagement = ({
                   </div>
                 </div>
 
-                {/* ── Export Buttons ── */}
-                <div className="edet-export-row">
-                  <button
-                    className="event-export-btn"
-                    title="Print / Save PDF"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const res = await fetch(`${API_BASE_URL}/api/reports/export_event.php?event_id=${selectedEventDetails.eventId}&format=json`);
-                        const d = await res.json();
-                        if (!d.success) { alert('Failed to load event data.'); return; }
-                        const ev = d.event;
-                        const logo = d.churchLogo ? `<img src="${d.churchLogo}" style="height:60px;object-fit:contain;display:block;margin:0 auto 6px;" />` : '';
-                        const total = d.attendees.length + d.absentees.length;
-                        const rate  = total > 0 ? Math.round((d.attendees.length / total) * 100) : 0;
-                        const attRows = d.attendees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">No attendees recorded</td></tr>`;
-                        const absRows = d.absentees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center;color:#94a3b8">All active members attended</td></tr>`;
-                        const html = `
-                          <div style="text-align:center;margin-bottom:16px">${logo}
-                            <h1 style="font-size:20px;font-weight:700;margin:0">${d.churchName}</h1>
-                            <h2 style="font-size:13px;color:#64748b;font-weight:400;margin:4px 0 0">Event Attendance Report</h2>
-                            <p style="font-size:11px;color:#94a3b8;margin:4px 0 0">Generated: ${d.generatedAt}</p>
-                          </div>
-                          <div style="background:#f8fafc;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px">
-                            <b>${ev.title}</b><br/>
-                            <span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}${ev.type ? ' · ' + ev.type : ''}</span>
-                          </div>
-                          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Present</div></div>
-                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div>
-                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Attendance Rate</div></div>
-                          </div>
-                          <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Present (${d.attendees.length})</div>
-                          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
-                            <thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in Time</th></tr></thead>
-                            <tbody>${attRows}</tbody>
-                          </table>
-                          <div style="font-weight:700;font-size:12px;border-left:3px solid #dc2626;padding-left:6px;margin:14px 0 6px">Absent (${d.absentees.length})</div>
-                          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
-                            <thead><tr><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">Name</th></tr></thead>
-                            <tbody>${absRows}</tbody>
-                          </table>`;
-                        document.getElementById('evt-print-div')?.remove();
-                        document.getElementById('evt-print-sty')?.remove();
-                        const div = document.createElement('div'); div.id='evt-print-div'; div.innerHTML=html;
-                        document.body.appendChild(div);
-                        const sty = document.createElement('style'); sty.id='evt-print-sty';
-                        sty.textContent=`@media print{html,body{overflow:visible!important;height:auto!important}body>*:not(#evt-print-div){display:none!important}#evt-print-div{display:block!important;position:relative!important;overflow:visible!important;height:auto!important;max-height:none!important}}#evt-print-div{display:none;font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:24px}#evt-print-div table td{padding:4px 7px;border-bottom:1px solid #f1f5f9}#evt-print-div table tr:nth-child(even) td{background:#f8fafc}`;
-                        document.head.appendChild(sty);
-                        setTimeout(()=>{window.print();setTimeout(()=>{div.remove();sty.remove();},2000);},100);
-                      } catch(err) { alert('Print failed: ' + err.message); }
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                    Print
-                  </button>
-                  <button
-                    className="event-export-btn"
-                    title="Export Excel"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const form = document.createElement('form');
-                      form.method = 'POST';
-                      form.action = `${API_BASE_URL}/api/reports/export_event.php`;
-                      form.target = '_blank';
-                      const fmtInput = document.createElement('input');
-                      fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'xlsx';
-                      const idInput = document.createElement('input');
-                      idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = selectedEventDetails.eventId;
-                      form.appendChild(fmtInput); form.appendChild(idInput);
-                      document.body.appendChild(form); form.submit(); document.body.removeChild(form);
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                    Excel
-                  </button>
-                </div>
-
-                {/* ── Tabs ── */}
-                <div className="full-list-tabs">
-                  <button
-                    type="button"
-                    className={`full-list-tab ${selectedEventDetails.activeTab === 'attendees' ? 'active' : ''}`}
-                    onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' })); setModalSearchTerm(''); }}
-                  >
-                    Present ({selectedEventDetails.attendees.length})
-                  </button>
-                  <button
-                    type="button"
-                    className={`full-list-tab ${selectedEventDetails.activeTab === 'absentees' ? 'active' : ''}`}
-                    onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' })); setModalSearchTerm(''); }}
-                  >
-                    Absent ({selectedEventDetails.absentees.length})
-                  </button>
+                {/* ── Export + Tabs toolbar ── */}
+                <div className="edet-toolbar">
+                  <div className="edet-tabs">
+                    <button
+                      type="button"
+                      className={`edet-tab ${selectedEventDetails.activeTab === 'attendees' ? 'active' : ''}`}
+                      onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' })); setModalSearchTerm(''); }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                      Present
+                      <span className="edet-tab-count">{selectedEventDetails.attendees.length}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`edet-tab ${selectedEventDetails.activeTab === 'absentees' ? 'active' : ''}`}
+                      onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' })); setModalSearchTerm(''); }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      Absent
+                      <span className="edet-tab-count">{selectedEventDetails.absentees.length}</span>
+                    </button>
+                  </div>
+                  <div className="edet-export-btns">
+                    <button
+                      className="edet-export-btn"
+                      title="Print / Save PDF"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const res = await fetch(`${API_BASE_URL}/api/reports/export_event.php?event_id=${selectedEventDetails.eventId}&format=json`);
+                          const d = await res.json();
+                          if (!d.success) { alert('Failed to load event data.'); return; }
+                          const ev = d.event;
+                          const logo = d.churchLogo ? `<img src="${d.churchLogo}" style="height:60px;object-fit:contain;display:block;margin:0 auto 6px;" />` : '';
+                          const total = d.attendees.length + d.absentees.length;
+                          const rate  = total > 0 ? Math.round((d.attendees.length / total) * 100) : 0;
+                          const attRows = d.attendees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">No attendees recorded</td></tr>`;
+                          const absRows = d.absentees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center;color:#94a3b8">All active members attended</td></tr>`;
+                          const html = `<div style="text-align:center;margin-bottom:16px">${logo}<h1 style="font-size:20px;font-weight:700;margin:0">${d.churchName}</h1><h2 style="font-size:13px;color:#64748b;font-weight:400;margin:4px 0 0">Event Attendance Report</h2><p style="font-size:11px;color:#94a3b8;margin:4px 0 0">Generated: ${d.generatedAt}</p></div><div style="background:#f8fafc;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px"><b>${ev.title}</b><br/><span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}</span></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"><div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Present</div></div><div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div><div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Rate</div></div></div><div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Present (${d.attendees.length})</div><table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px"><thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in</th></tr></thead><tbody>${attRows}</tbody></table><div style="font-weight:700;font-size:12px;border-left:3px solid #dc2626;padding-left:6px;margin:14px 0 6px">Absent (${d.absentees.length})</div><table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px"><thead><tr><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">Name</th></tr></thead><tbody>${absRows}</tbody></table>`;
+                          document.getElementById('evt-print-div')?.remove();
+                          document.getElementById('evt-print-sty')?.remove();
+                          const div = document.createElement('div'); div.id='evt-print-div'; div.innerHTML=html;
+                          document.body.appendChild(div);
+                          const sty = document.createElement('style'); sty.id='evt-print-sty';
+                          sty.textContent=`@media print{html,body{overflow:visible!important;height:auto!important}body>*:not(#evt-print-div){display:none!important}#evt-print-div{display:block!important;position:relative!important;overflow:visible!important;height:auto!important;max-height:none!important}}#evt-print-div{display:none;font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:24px}#evt-print-div table td{padding:4px 7px;border-bottom:1px solid #f1f5f9}#evt-print-div table tr:nth-child(even) td{background:#f8fafc}`;
+                          document.head.appendChild(sty);
+                          setTimeout(()=>{window.print();setTimeout(()=>{div.remove();sty.remove();},2000);},100);
+                        } catch(err) { alert('Print failed: ' + err.message); }
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                      Print
+                    </button>
+                    <button
+                      className="edet-export-btn"
+                      title="Export Excel"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const form = document.createElement('form');
+                        form.method = 'POST'; form.action = `${API_BASE_URL}/api/reports/export_event.php`; form.target = '_blank';
+                        const fi = document.createElement('input'); fi.type='hidden'; fi.name='format'; fi.value='xlsx';
+                        const ii = document.createElement('input'); ii.type='hidden'; ii.name='event_id'; ii.value=selectedEventDetails.eventId;
+                        form.appendChild(fi); form.appendChild(ii);
+                        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                      Excel
+                    </button>
+                  </div>
                 </div>
 
                 {/* ── Search ── */}
                 <div className="edet-search-wrap">
-                  <svg className="edet-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <svg className="edet-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                   <input
                     className="edet-search-input"
                     type="text"
-                    placeholder="Search by name…"
+                    placeholder={selectedEventDetails.activeTab === 'attendees' ? 'Search attendees…' : 'Search absentees…'}
                     value={modalSearchTerm}
                     onChange={(e) => setModalSearchTerm(e.target.value)}
                   />
                   {modalSearchTerm && (
-                    <button className="edet-search-clear" onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
+                    <button className="edet-search-clear" onClick={() => setModalSearchTerm('')} aria-label="Clear">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                   )}
                 </div>
 
-                {/* ── List ── */}
-                <div className="full-list-container">
+                {/* ── People List ── */}
+                <div className="edet-list">
                   {(() => {
-                    const rawList = selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees;
+                    const isAttendees = selectedEventDetails.activeTab === 'attendees';
+                    const rawList = isAttendees ? selectedEventDetails.attendees : selectedEventDetails.absentees;
                     const filtered = modalSearchTerm.trim()
                       ? rawList.filter(p => (p.name || '').toLowerCase().includes(modalSearchTerm.toLowerCase()))
                       : rawList;
+
                     if (filtered.length === 0) {
                       return (
-                        <div className="empty-state">
-                          {modalSearchTerm
-                            ? 'No results found.'
-                            : (selectedEventDetails.activeTab === 'attendees' ? 'No attendees recorded yet.' : 'No absentees recorded.')}
+                        <div className="edet-empty">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="40" height="40">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                          </svg>
+                          <p>{modalSearchTerm ? 'No results found.' : (isAttendees ? 'No attendees recorded yet.' : 'No absentees recorded.')}</p>
                         </div>
                       );
                     }
-                    return (
-                      <ul className="full-list">
-                        {filtered.map((person, i) => {
-                          const { primary, secondary } = splitDisplayName(
-                            person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member')
-                          );
-                          const isAttendee = selectedEventDetails.activeTab === 'attendees';
-                          const statusLabel = isAttendee
-                            ? (person.status === 'Present' || person.status === 'present' ? 'PRESENT' : (person.status || 'Present').toUpperCase())
-                            : 'ABSENT';
-                          return (
-                            <li
-                              className={`full-list-item ${isAttendee ? 'checked' : 'absent'}`}
-                              key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? i}`}
-                            >
-                              <div className={`full-list-accent ${isAttendee ? 'checked' : 'absent'}`}></div>
-                              <div className={`full-list-avatar ${isAttendee ? 'checked' : 'absent'}`}>
-                                {person.profile_picture ? (
-                                  <img
-                                    src={resolveProfilePicUrl(person.profile_picture)}
-                                    alt={person.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                                    onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = person.initials || '??'; }}
-                                  />
-                                ) : (person.initials || '??')}
-                              </div>
-                              <div className="full-list-main">
-                                <div className="full-list-name">
-                                  <span className="full-list-primary">{primary}</span>
-                                  {secondary && <span className="full-list-secondary">{secondary}</span>}
-                                </div>
-                                {isAttendee && person.checkInTime && (
-                                  <div className="full-list-subtext">
-                                    Checked in at {formatModalCheckInClock(person.checkInTime)}
-                                  </div>
-                                )}
-                              </div>
-                              <span className={`full-list-status ${isAttendee ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    );
+
+                    return filtered.map((person, i) => {
+                      const { primary, secondary } = splitDisplayName(
+                        person.name || (isAttendees ? 'Guest' : 'Member')
+                      );
+                      const initials = person.initials || primary.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) || '??';
+                      return (
+                        <div
+                          className={`edet-person ${isAttendees ? 'edet-person--present' : 'edet-person--absent'}`}
+                          key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? i}`}
+                        >
+                          <div className={`edet-person-avatar ${isAttendees ? 'edet-person-avatar--present' : 'edet-person-avatar--absent'}`}>
+                            {person.profile_picture ? (
+                              <img
+                                src={resolveProfilePicUrl(person.profile_picture)}
+                                alt={person.name}
+                                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = initials; }}
+                              />
+                            ) : initials}
+                          </div>
+                          <div className="edet-person-info">
+                            <span className="edet-person-name">
+                              {primary}
+                              {secondary && <span className="edet-person-name-rest"> {secondary}</span>}
+                            </span>
+                            {isAttendees && person.checkInTime && (
+                              <span className="edet-person-time">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="11" height="11"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                {formatModalCheckInClock(person.checkInTime)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="edet-person-num">#{i + 1}</span>
+                        </div>
+                      );
+                    });
                   })()}
                 </div>
               </>
