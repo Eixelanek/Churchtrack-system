@@ -159,7 +159,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
 
   // ── render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: '4px 0' }}>
+    <div style={{ padding: '4px 0', minHeight: 0 }}>
 
       {/* Controls */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 14 }}>
@@ -217,7 +217,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
           {data.attendanceTrend?.length > 0 && (
             <Card style={{ marginBottom: 12 }}>
               <SectionTitle icon="📅">Attendance Trend (by Week)</SectionTitle>
-              <div style={{ width: '100%', height: 200 }}>
+              <div style={{ width: '100%', height: 180 }}>
                 <ResponsiveContainer>
                   <BarChart data={data.attendanceTrend} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -239,7 +239,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
             {data.memberGrowth?.length > 0 && (
               <Card style={{ flex: '1 1 280px' }}>
                 <SectionTitle icon="📈">Member Growth (Last 7 Months)</SectionTitle>
-                <div style={{ width: '100%', height: 175 }}>
+                <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <AreaChart data={data.memberGrowth} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
                       <defs>
@@ -262,7 +262,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
             {data.serviceBreakdown?.length > 0 && (
               <Card style={{ flex: '1 1 280px' }}>
                 <SectionTitle icon="🏛️">Service Breakdown</SectionTitle>
-                <div style={{ width: '100%', height: 175 }}>
+                <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <BarChart data={data.serviceBreakdown} layout="vertical" margin={{ top: 4, right: 30, left: 4, bottom: 4 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -287,7 +287,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
             {data.genderBreakdown?.length > 0 && (
               <Card style={{ flex: '1 1 200px' }}>
                 <SectionTitle icon="⚧">Gender Distribution</SectionTitle>
-                <div style={{ width: '100%', height: 175 }}>
+                <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <PieChart>
                       <Pie
