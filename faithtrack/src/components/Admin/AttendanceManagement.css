@@ -3525,7 +3525,7 @@
 /* ── SIDE BY SIDE WRAPPER ── */
 .att-sections-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 2fr;
   gap: 16px;
   margin-top: 20px;
 }
@@ -3593,5 +3593,81 @@
   .att-sections-row {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+}
+
+/* ── FIX: Column alignment and space usage ── */
+
+/* Present section — 4 cols: avatar | name | status | time */
+.att-sections-row .attendees-section:nth-child(1) .attendee-item-small,
+.att-sections-row .attendees-section:nth-child(1) .att-table-header {
+  grid-template-columns: 32px 1fr 72px 80px;
+  gap: 10px;
+}
+
+/* Absent section — 3 cols only: avatar | name | status, no time */
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small,
+.att-sections-row .attendees-section:nth-child(2) .att-table-header {
+  grid-template-columns: 32px 1fr 72px;
+  gap: 10px;
+}
+
+/* Hide the time dash on absent items */
+.att-sections-row .attendees-section:nth-child(2) .attendee-checkin-time {
+  display: none;
+}
+
+/* Make header spans align exactly to their column */
+.att-table-header {
+  display: grid;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(0,73,175,0.03);
+  border-bottom: 1px solid rgba(0,73,175,0.07);
+}
+
+.att-table-header span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* First span (avatar col) — hidden, just a spacer */
+.att-table-header span:first-child {
+  visibility: hidden;
+}
+
+/* Status and Time spans right-align to match data cells */
+.att-table-header span:nth-child(3),
+.att-table-header span:nth-child(4) {
+  text-align: center;
+}
+
+.attendee-status {
+  text-align: center;
+}
+
+.attendee-checkin-time {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #5a6a85;
+  white-space: nowrap;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .att-sections-row .attendees-section:nth-child(1) .attendee-item-small,
+  .att-sections-row .attendees-section:nth-child(1) .att-table-header {
+    grid-template-columns: 28px 1fr 64px 70px;
+  }
+
+  .att-sections-row .attendees-section:nth-child(2) .attendee-item-small,
+  .att-sections-row .attendees-section:nth-child(2) .att-table-header {
+    grid-template-columns: 28px 1fr 64px;
   }
 }

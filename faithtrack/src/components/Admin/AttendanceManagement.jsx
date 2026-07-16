@@ -2162,6 +2162,7 @@ const AttendanceManagement = ({
                                     )}
                                   </div>
                                   <div className="att-table-header">
+                                    <span></span>
                                     <span>Name</span>
                                     <span>Status</span>
                                     <span>Check-in</span>
@@ -2223,7 +2224,9 @@ const AttendanceManagement = ({
                                     )}
                                   </div>
                                   <div className="att-table-header att-table-header--absent">
+                                    <span></span>
                                     <span>Name</span>
+                                    <span>Status</span>
                                   </div>
                                   <div className="attendees-grid">
                                     {absenteesList.length === 0 ? (
