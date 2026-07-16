@@ -3941,7 +3941,7 @@ const Admin = () => {
                 </div>
               )}
               {reportType === 'analytics' && (
-                <AnalyticsReport churchName={churchName} />
+                <AnalyticsReport churchName={churchName} churchLogo={churchLogo} />
               )}
             </div>
           </div>

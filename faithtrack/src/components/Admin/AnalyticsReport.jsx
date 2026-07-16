@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area
@@ -18,14 +19,14 @@ const SectionTitle = ({ children, icon }) => (
   </div>
 );
 
-const Card = ({ children, style = {} }) => (
-  <div style={{
+const Card = ({ children, style = {}, className = '', ...rest }) => (
+  <div className={className} style={{
     background: '#fff',
     border: '1px solid #e5e7eb',
     borderRadius: 10,
     padding: '14px 16px',
     ...style
-  }}>
+  }} {...rest}>
     {children}
   </div>
 );
@@ -56,7 +57,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const AnalyticsReport = ({ churchName = 'Church' }) => {
+const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
   const today = new Date();
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
   const todayStr = today.toISOString().split('T')[0];
@@ -66,6 +67,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
   const [data,      setData]      = useState(null);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState(null);
+  const [printing,  setPrinting]  = useState(false);
   const printRef = useRef(null);
 
   // ── fetch ─────────────────────────────────────────────────────────────────
@@ -90,71 +92,104 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
     }
   }, [startDate, endDate]);
 
-  // ── print (data-table version so charts are readable in print) ────────────
-  const handlePrint = () => {
-    if (!data) return;
-    const summary = data.summary;
-    const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+  // ── print — captures charts as images via html2canvas ────────────────────
+  const handlePrint = async () => {
+    if (!data || !printRef.current) return;
 
-    const makeTable = (headers, rows) => `
-      <table>
-        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-        <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
-      </table>`;
+    setPrinting(true);
+    try {
+      // Capture every Card that contains a chart
+      const chartCards = printRef.current.querySelectorAll('.analytics-chart-card');
+      const chartImages = [];
+      for (const card of chartCards) {
+        const canvas = await html2canvas(card, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
+        chartImages.push({ id: card.dataset.chartId, src: canvas.toDataURL('image/png') });
+      }
 
-    const win = window.open('', '_blank', 'width=1100,height=800');
-    if (!win) { alert('Pop-up blocked. Please allow pop-ups for this site.'); return; }
+      const summary = data.summary;
+      const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
 
-    win.document.write(`<!DOCTYPE html><html><head>
-      <title>${churchName} – Analytics Report</title>
-      <style>
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:28px}
-        .header{text-align:center;margin-bottom:20px}
-        .header h1{font-size:20px}.header h2{font-size:14px;color:#64748b;margin-top:4px}
-        .header p{font-size:11px;color:#94a3b8;margin-top:4px}
-        .section-title{font-weight:700;font-size:13px;border-left:3px solid #4F46E5;padding-left:6px;margin:18px 0 8px}
-        .stat-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
-        .stat-card{border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;flex:1 1 110px}
-        .stat-val{font-size:18px;font-weight:700;color:#4F46E5}.stat-lbl{font-size:11px;color:#374151;font-weight:600;margin-top:2px}
-        table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
-        th{background:#4F46E5;color:#fff;padding:6px 8px;text-align:left}
-        td{padding:5px 8px;border-bottom:1px solid #f1f5f9}
-        tr:nth-child(even) td{background:#f8fafc}
-        .two-col{display:flex;gap:16px}.two-col>div{flex:1 1 45%}
-        @media print{body{padding:12px}}
-      </style>
-    </head><body>
-      <div class="header">
-        <h1>${churchName}</h1>
-        <h2>Analytics Report &nbsp;|&nbsp; ${startDate} &nbsp;to&nbsp; ${endDate}</h2>
-        <p>Generated: ${genTime}</p>
-      </div>
-      <div class="section-title">Summary</div>
-      <div class="stat-grid">
-        ${[
-          ['Total Events', summary.totalEvents],
-          ['Total Check-ins', summary.totalCheckins],
-          ['Avg / Event', summary.avgPerEvent],
-          ['Active Members', `${summary.activeMembers} / ${summary.totalMembers}`],
-          ['Guests (period)', summary.guestTotal],
-          ...(summary.convertedCount > 0 ? [['Converted', summary.convertedCount]] : []),
-        ].map(([l,v]) => `<div class="stat-card"><div class="stat-val">${v}</div><div class="stat-lbl">${l}</div></div>`).join('')}
-      </div>
-      ${data.attendanceTrend?.length ? `<div class="section-title">Attendance Trend (by Week)</div>${makeTable(['Week','Total','Members','Guests'], data.attendanceTrend.map(r=>[r.week,r.total,r.members,r.guests]))}` : ''}
-      ${data.memberGrowth?.length    ? `<div class="section-title">Member Growth (Last 7 Months)</div>${makeTable(['Month','Total Members'], data.memberGrowth.map(r=>[r.month,r.count]))}` : ''}
-      <div class="two-col">
-        <div>${data.serviceBreakdown?.length ? `<div class="section-title">Service Breakdown</div>${makeTable(['Service','Check-ins','%'], data.serviceBreakdown.map(r=>[r.name,r.total,r.percentage+'%']))}` : ''}</div>
-        <div>
-          ${data.genderBreakdown?.length ? `<div class="section-title">Gender Distribution</div>${makeTable(['Gender','Count','%'], data.genderBreakdown.map(r=>[r.name,r.value,r.percentage+'%']))}` : ''}
-          ${data.statusBreakdown?.length ? `<div class="section-title">Member Status</div>${makeTable(['Status','Count','%'], data.statusBreakdown.map(r=>[r.name,r.value,r.percentage+'%']))}` : ''}
+      const makeTable = (headers, rows) => `
+        <table>
+          <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>`;
+
+      const logoHtml = churchLogo
+        ? `<img src="${churchLogo}" alt="logo" style="height:60px;object-fit:contain;margin-bottom:6px;" /><br/>`
+        : '';
+
+      const chartImgHtml = (id) => {
+        const found = chartImages.find(c => c.id === id);
+        return found ? `<img src="${found.src}" style="width:100%;margin-bottom:12px;border-radius:8px;" />` : '';
+      };
+
+      const win = window.open('', '_blank', 'width=1100,height=900');
+      if (!win) { alert('Pop-up blocked. Please allow pop-ups for this site.'); return; }
+
+      win.document.write(`<!DOCTYPE html><html><head>
+        <title>${churchName} – Analytics Report</title>
+        <style>
+          *{box-sizing:border-box;margin:0;padding:0}
+          body{font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:28px}
+          .header{text-align:center;margin-bottom:20px}
+          .header h1{font-size:20px;font-weight:700}
+          .header h2{font-size:14px;color:#64748b;margin-top:4px}
+          .header p{font-size:11px;color:#94a3b8;margin-top:4px}
+          .section-title{font-weight:700;font-size:13px;border-left:3px solid #4F46E5;padding-left:6px;margin:18px 0 8px}
+          .stat-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+          .stat-card{border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;flex:1 1 110px}
+          .stat-val{font-size:18px;font-weight:700;color:#4F46E5}.stat-lbl{font-size:11px;color:#374151;font-weight:600;margin-top:2px}
+          table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
+          th{background:#4F46E5;color:#fff;padding:6px 8px;text-align:left}
+          td{padding:5px 8px;border-bottom:1px solid #f1f5f9}
+          tr:nth-child(even) td{background:#f8fafc}
+          .two-col{display:flex;gap:16px}.two-col>div{flex:1 1 45%}
+          img{max-width:100%}
+          @media print{body{padding:12px}}
+        </style>
+      </head><body>
+        <div class="header">
+          ${logoHtml}
+          <h1>${churchName}</h1>
+          <h2>Analytics Report &nbsp;|&nbsp; ${startDate} &nbsp;to&nbsp; ${endDate}</h2>
+          <p>Generated: ${genTime}</p>
         </div>
-      </div>
-      ${data.topMembers?.length ? `<div class="section-title">Top Active Members</div>${makeTable(['#','Name','Days'], data.topMembers.map((m,i)=>[i+1,m.name,m.days]))}` : ''}
-    </body></html>`);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 500);
+
+        <div class="section-title">Summary</div>
+        <div class="stat-grid">
+          ${[
+            ['Total Events', summary.totalEvents, '#4F46E5'],
+            ['Total Check-ins', summary.totalCheckins, '#2563EB'],
+            ['Avg / Event', summary.avgPerEvent, '#0891B2'],
+            ['Active Members', `${summary.activeMembers} / ${summary.totalMembers}`, '#059669'],
+            ['Guests (period)', summary.guestTotal, '#D97706'],
+            ...(summary.convertedCount > 0 ? [['Converted', summary.convertedCount, '#7C3AED']] : []),
+          ].map(([l, v, c]) => `<div class="stat-card"><div class="stat-val" style="color:${c}">${v}</div><div class="stat-lbl">${l}</div></div>`).join('')}
+        </div>
+
+        ${chartImgHtml('attendance-trend')}
+        <div class="two-col">
+          <div>${chartImgHtml('member-growth')}</div>
+          <div>${chartImgHtml('service-breakdown')}</div>
+        </div>
+        <div class="two-col">
+          <div>${chartImgHtml('gender-pie')}</div>
+          <div>
+            ${data.statusBreakdown?.length ? `<div class="section-title">Member Status</div>${makeTable(['Status','Count','%'], data.statusBreakdown.map(r=>[r.name,r.value,r.percentage+'%']))}` : ''}
+          </div>
+        </div>
+        ${data.topMembers?.length ? `<div class="section-title">Top Active Members</div>${makeTable(['#','Name','Attendance Days'], data.topMembers.map((m,i)=>[i+1,m.name,m.days]))}` : ''}
+      </body></html>`);
+
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); win.close(); }, 800);
+    } catch (e) {
+      alert('Print failed: ' + e.message);
+    } finally {
+      setPrinting(false);
+    }
   };
 
   // ── render ────────────────────────────────────────────────────────────────
@@ -178,9 +213,9 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
           {loading ? '⏳ Loading…' : '🔄 Generate'}
         </button>
         {data && (
-          <button onClick={handlePrint}
-            style={{ padding: '7px 16px', background: '#059669', color: '#fff', border: 'none', borderRadius: 7, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
-            🖨️ Print / Save PDF
+          <button onClick={handlePrint} disabled={printing}
+            style={{ padding: '7px 16px', background: printing ? '#6ee7b7' : '#059669', color: '#fff', border: 'none', borderRadius: 7, fontWeight: 600, cursor: printing ? 'not-allowed' : 'pointer', fontSize: 12 }}>
+            {printing ? '⏳ Preparing…' : '🖨️ Print / Save PDF'}
           </button>
         )}
       </div>
@@ -215,7 +250,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
 
           {/* ── ROW 2: Attendance Trend (full width) ── */}
           {data.attendanceTrend?.length > 0 && (
-            <Card style={{ marginBottom: 12 }}>
+            <Card style={{ marginBottom: 12 }} className="analytics-chart-card" data-chart-id="attendance-trend">
               <SectionTitle icon="📅">Attendance Trend (by Week)</SectionTitle>
               <div style={{ width: '100%', height: 180 }}>
                 <ResponsiveContainer>
@@ -237,7 +272,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
 
             {data.memberGrowth?.length > 0 && (
-              <Card style={{ flex: '1 1 280px' }}>
+              <Card style={{ flex: '1 1 280px' }} className="analytics-chart-card" data-chart-id="member-growth">
                 <SectionTitle icon="📈">Member Growth (Last 7 Months)</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
@@ -260,7 +295,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
             )}
 
             {data.serviceBreakdown?.length > 0 && (
-              <Card style={{ flex: '1 1 280px' }}>
+              <Card style={{ flex: '1 1 280px' }} className="analytics-chart-card" data-chart-id="service-breakdown">
                 <SectionTitle icon="🏛️">Service Breakdown</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
@@ -285,7 +320,7 @@ const AnalyticsReport = ({ churchName = 'Church' }) => {
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
 
             {data.genderBreakdown?.length > 0 && (
-              <Card style={{ flex: '1 1 200px' }}>
+              <Card style={{ flex: '1 1 200px' }} className="analytics-chart-card" data-chart-id="gender-pie">
                 <SectionTitle icon="⚧">Gender Distribution</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
