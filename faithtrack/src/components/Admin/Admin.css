@@ -967,10 +967,8 @@ body {
 .main-content.profile-mode, .main-content.settings-mode {
   height: 100vh;
   overflow-y: auto;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  background-color: #f5f8ff;
+  display: block;
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
@@ -4990,7 +4988,8 @@ select.form-input {
   font-family: 'Poppins', sans-serif;
   padding: 2.5rem 3rem 4rem;
   width: 100%;
-  max-width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
   box-sizing: border-box;
   min-height: 100vh;
 }
@@ -5003,7 +5002,6 @@ select.form-input {
   gap: 16px;
   margin-bottom: 2rem;
   flex-wrap: wrap;
-  max-width: 1200px;
 }
 
 .stg-header-left {
@@ -5132,10 +5130,9 @@ select.form-input {
 /* ── Layout: sidebar + content on desktop ── */
 .stg-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 200px 1fr;
   gap: 2rem;
   align-items: start;
-  max-width: 1200px;
 }
 
 /* ── Tabs — vertical sidebar on desktop ── */
