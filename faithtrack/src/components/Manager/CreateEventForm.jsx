@@ -229,7 +229,7 @@ const CreateEventForm = () => {
                       const newStart = e.target.value;
                       setStartTime(newStart);
                       const preset = PRESETS.find(p => p.key === selectedPreset);
-                      const hours = preset ? preset.durationHours : 2;
+                      const hours = preset ? preset.durationHours : 4;
                       setEndTime(addHours(newStart, hours));
                     }}
                   />
