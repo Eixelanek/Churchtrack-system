@@ -713,10 +713,8 @@ try {
               LEFT JOIN qr_attendance qa ON qa.session_id = qs.id
               LEFT JOIN members m ON qa.member_id = m.id
               WHERE DATE(qs.event_datetime) BETWEEN :start_date2 AND :end_date2
-                AND (
-                    qs.event_id IS NULL
-                    OR EXISTS (SELECT 1 FROM events e WHERE e.id = qs.event_id)
-                )
+                AND qs.event_id IS NOT NULL
+                AND EXISTS (SELECT 1 FROM events e WHERE e.id = qs.event_id)
               GROUP BY qs.id
               ORDER BY qs.event_datetime DESC";
     

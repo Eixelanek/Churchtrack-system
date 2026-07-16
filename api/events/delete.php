@@ -30,6 +30,10 @@ try {
             exit();
         }
 
+        // Delete related qr_sessions first (and their qr_attendance via CASCADE if set, otherwise manually)
+        $db->prepare("DELETE qa FROM qr_attendance qa INNER JOIN qr_sessions qs ON qa.session_id = qs.id WHERE qs.event_id = :id")->execute([':id' => $id]);
+        $db->prepare("DELETE FROM qr_sessions WHERE event_id = :id")->execute([':id' => $id]);
+
         // Delete the event (attendance records will be deleted automatically due to CASCADE)
         $query = "DELETE FROM events WHERE id = :id";
         $stmt = $db->prepare($query);
