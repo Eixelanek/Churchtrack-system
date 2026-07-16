@@ -540,7 +540,7 @@ const AttendanceManagement = ({
         const id = attendee.id ?? attendee.member_id ?? attendee.memberId ?? attendee.memberID ?? null;
         const name = attendee.name || attendee.full_name || attendee.fullName || 'Member';
         const rawStatus = (attendee.status_code || attendee.status || attendee.attendance_status || '').toString().toLowerCase();
-        const status = rawStatus ? (rawStatus === 'present' || rawStatus === 'late' || rawStatus === 'checked in' ? 'Checked in' : rawStatus.replace(/(^|\s)\S/g, (s) => s.toUpperCase())) : 'Checked in';
+        const status = rawStatus ? (rawStatus === 'present' || rawStatus === 'late' || rawStatus === 'checked in' ? 'Present' : rawStatus.replace(/(^|\s)\S/g, (s) => s.toUpperCase())) : 'Present';
         const statusCode = rawStatus || 'checked_in';
         const time = attendee.time || attendee.check_in_time || attendee.checkInTime || '';
 
@@ -557,7 +557,7 @@ const AttendanceManagement = ({
         const id = guest.id ?? guest.guest_id ?? guest.guestId ?? `guest-${guest.session_id || guest.sessionId || Math.random()}`;
         const name = guest.full_name || guest.name || guest.display_name || 'Guest Attendee';
         const rawStatus = (guest.status_code || guest.status || guest.attendance_status || '').toString().toLowerCase();
-        const status = rawStatus ? (rawStatus === 'present' || rawStatus === 'late' || rawStatus === 'checked in' ? 'Checked in' : rawStatus.replace(/(^|\s)\S/g, (s) => s.toUpperCase())) : 'Checked in';
+        const status = rawStatus ? (rawStatus === 'present' || rawStatus === 'late' || rawStatus === 'checked in' ? 'Present' : rawStatus.replace(/(^|\s)\S/g, (s) => s.toUpperCase())) : 'Present';
         const statusCode = rawStatus || 'checked_in';
         const time = guest.time || guest.check_in_time || guest.checkInTime || '';
 
@@ -2046,11 +2046,11 @@ const AttendanceManagement = ({
                                               <span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}${ev.type ? ' · ' + ev.type : ''}</span>
                                             </div>
                                             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Attended</div></div>
+                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Present</div></div>
                                               <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div>
                                               <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Attendance Rate</div></div>
                                             </div>
-                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Attended (${d.attendees.length})</div>
+                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Present (${d.attendees.length})</div>
                                             <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
                                               <thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in Time</th></tr></thead>
                                               <tbody>${attRows}</tbody>

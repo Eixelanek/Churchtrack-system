@@ -84,8 +84,8 @@ try {
         $statusRaw   = strtolower($row['att_status'] ?? 'present');
         $statusLabel = match ($statusRaw) {
             'late'    => 'Late',
-            'present' => 'Checked in',
-            default   => 'Checked in',
+            'present' => 'Present',
+            default   => 'Present',
         };
 
         // Display check_in_time as-is — stored in PHT via MySQL connection +08:00
@@ -181,7 +181,7 @@ try {
         $initials = strtoupper(substr($parts[0] ?? 'G', 0, 1) . substr(end($parts) ?: 'T', 0, 1));
         $status = strtolower($gr['status'] ?? 'present');
         $statusLabel = match ($status) {
-            'present' => 'Checked in', 'late' => 'Late', 'absent' => 'Absent',
+            'present' => 'Present', 'late' => 'Late', 'absent' => 'Absent',
             default   => ucfirst($status),
         };
         $timeFormatted = '';

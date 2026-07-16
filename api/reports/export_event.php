@@ -88,8 +88,34 @@ try {
     $event = $evStmt->fetch(PDO::FETCH_ASSOC);
     if (!$event) { http_response_code(404); echo 'Event not found.'; exit(); }
 
-    // Attendees (members who scanned)
+    // Attendees — Source 1: attendance table (member QR per-member scans via manager)
     $attStmt = $db->prepare("
+        SELECT a.member_id, a.status AS att_status, a.check_in_time,
+               m.first_name, m.middle_name, m.surname, m.suffix
+        FROM attendance a
+        LEFT JOIN members m ON a.member_id = m.id
+        WHERE a.event_id = :eid
+        ORDER BY a.check_in_time ASC
+    ");
+    $attStmt->bindParam(':eid', $eventId, PDO::PARAM_INT);
+    $attStmt->execute();
+    $attendeeRows = $attStmt->fetchAll(PDO::FETCH_ASSOC);
+    $seenMemberIds = [];
+
+    $attendees = [];
+    foreach ($attendeeRows as $r) {
+        $name = !empty($r['first_name'])
+            ? trim($r['first_name']
+                . (!empty($r['middle_name']) ? ' ' . substr($r['middle_name'],0,1) . '.' : '')
+                . ' ' . $r['surname']
+                . (!empty($r['suffix']) && strtolower($r['suffix']) !== 'none' ? ' ' . $r['suffix'] : ''))
+            : 'Member';
+        $attendees[] = ['name' => $name, 'time' => fmtDateTime($r['check_in_time'])];
+        if ($r['member_id']) $seenMemberIds[(int)$r['member_id']] = true;
+    }
+
+    // Attendees — Source 2: legacy qr_attendance (backward compat)
+    $attStmt2 = $db->prepare("
         SELECT qa.member_id, qa.member_name,
                MIN(qa.checkin_datetime) AS checkin_time,
                m.first_name, m.middle_name, m.surname, m.suffix
@@ -100,21 +126,19 @@ try {
         GROUP BY qa.member_id, qa.member_name, m.first_name, m.middle_name, m.surname, m.suffix
         ORDER BY checkin_time ASC
     ");
-    $attStmt->bindParam(':eid', $eventId, PDO::PARAM_INT);
-    $attStmt->execute();
-    $attendeeRows = $attStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $attendees = array_map(function($r) {
-        if (!empty($r['first_name'])) {
-            $name = trim($r['first_name']
+    $attStmt2->bindParam(':eid', $eventId, PDO::PARAM_INT);
+    $attStmt2->execute();
+    foreach ($attStmt2->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        if ($r['member_id'] && isset($seenMemberIds[(int)$r['member_id']])) continue;
+        $name = !empty($r['first_name'])
+            ? trim($r['first_name']
                 . (!empty($r['middle_name']) ? ' ' . substr($r['middle_name'],0,1) . '.' : '')
                 . ' ' . $r['surname']
-                . (!empty($r['suffix']) && strtolower($r['suffix']) !== 'none' ? ' ' . $r['suffix'] : ''));
-        } else {
-            $name = $r['member_name'] ?: 'Guest';
-        }
-        return ['name' => $name, 'time' => fmtDateTime($r['checkin_time'])];
-    }, $attendeeRows);
+                . (!empty($r['suffix']) && strtolower($r['suffix']) !== 'none' ? ' ' . $r['suffix'] : ''))
+            : ($r['member_name'] ?: 'Member');
+        $attendees[] = ['name' => $name, 'time' => fmtDateTime($r['checkin_time'])];
+        if ($r['member_id']) $seenMemberIds[(int)$r['member_id']] = true;
+    }
 
     // Guest attendees
     $gStmt = $db->prepare("
@@ -133,19 +157,24 @@ try {
         $attendees[] = ['name' => trim($g['name'] ?: 'Guest'), 'time' => fmtDateTime($g['checkin_time'])];
     }
 
-    // Absentees (active members who did NOT scan)
+    // Absentees (active members who did NOT scan in either source)
     $absStmt = $db->prepare("
         SELECT m.first_name, m.middle_name, m.surname, m.suffix
         FROM members m
         WHERE m.status = 'active'
           AND NOT EXISTS (
+              SELECT 1 FROM attendance a
+              WHERE a.event_id = :eid AND a.member_id = m.id
+          )
+          AND NOT EXISTS (
               SELECT 1 FROM qr_attendance qa
               INNER JOIN qr_sessions qs ON qa.session_id = qs.id
-              WHERE qs.event_id = :eid AND qa.member_id = m.id
+              WHERE qs.event_id = :eid2 AND qa.member_id = m.id
           )
         ORDER BY m.surname ASC, m.first_name ASC
     ");
-    $absStmt->bindParam(':eid', $eventId, PDO::PARAM_INT);
+    $absStmt->bindParam(':eid',  $eventId, PDO::PARAM_INT);
+    $absStmt->bindParam(':eid2', $eventId, PDO::PARAM_INT);
     $absStmt->execute();
     $absentees = array_map(function($r) {
         return trim($r['first_name']
@@ -216,21 +245,21 @@ try {
         $total = count($attendees) + count($absentees);
         $rate  = $total > 0 ? round((count($attendees) / $total) * 100) : 0;
         $pdf->addSummaryBox([
-            'Attended'        => count($attendees),
+            'Present'         => count($attendees),
             'Absent'          => count($absentees),
             'Attendance Rate' => $rate . '%',
         ]);
 
-        // Attendees table
-        $pdf->addSubtitle('Attendees (' . count($attendees) . ')', 12);
+        // Present table
+        $pdf->addSubtitle('Present (' . count($attendees) . ')', 12);
         $attRows = [];
         foreach ($attendees as $i => $a) {
             $attRows[] = [$i + 1, $a['name'], $a['time']];
         }
         $pdf->addTable(['#', 'Name', 'Check-in Time'], $attRows ?: [['—', 'No attendees recorded', '']]);
 
-        // Absentees table
-        $pdf->addSubtitle('Absentees (' . count($absentees) . ')', 12);
+        // Absent table
+        $pdf->addSubtitle('Absent (' . count($absentees) . ')', 12);
         $absRows = [];
         foreach ($absentees as $i => $name) {
             $absRows[] = [$i + 1, $name];
@@ -325,7 +354,7 @@ try {
         $total = count($attendees) + count($absentees);
         $rate  = $total > 0 ? round((count($attendees) / $total) * 100) : 0;
         $summaryData = [
-            ['Attended',        count($attendees), 'FF16A34A'],
+            ['Present',         count($attendees), 'FF16A34A'],
             ['Absent',          count($absentees), 'FFDC2626'],
             ['Attendance Rate', $rate . '%',       'FF0049AF'],
         ];
@@ -340,7 +369,7 @@ try {
 
         // ── Attendees section ──
         $sheet->mergeCells("A{$row}:C{$row}");
-        $sheet->setCellValue("A{$row}", 'ATTENDEES (' . count($attendees) . ')');
+        $sheet->setCellValue("A{$row}", 'PRESENT (' . count($attendees) . ')');
         $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0049AF');
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -376,7 +405,7 @@ try {
 
         // ── Absentees section ──
         $sheet->mergeCells("A{$row}:C{$row}");
-        $sheet->setCellValue("A{$row}", 'ABSENTEES (' . count($absentees) . ')');
+        $sheet->setCellValue("A{$row}", 'ABSENT (' . count($absentees) . ')');
         $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle("A{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFDC2626');
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
