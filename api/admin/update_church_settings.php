@@ -88,6 +88,16 @@ try {
     if ($checkHeroSubtitleCol->rowCount() === 0) {
         $db->exec("ALTER TABLE church_settings ADD COLUMN homepage_hero_subtitle VARCHAR(255) NULL AFTER homepage_hero_title");
     }
+
+    // Ensure legal content columns exist
+    $checkTermsCol = $db->query("SHOW COLUMNS FROM church_settings LIKE 'terms_and_conditions'");
+    if ($checkTermsCol->rowCount() === 0) {
+        $db->exec("ALTER TABLE church_settings ADD COLUMN terms_and_conditions LONGTEXT NULL AFTER homepage_hero_subtitle");
+    }
+    $checkPrivacyCol = $db->query("SHOW COLUMNS FROM church_settings LIKE 'privacy_policy'");
+    if ($checkPrivacyCol->rowCount() === 0) {
+        $db->exec("ALTER TABLE church_settings ADD COLUMN privacy_policy LONGTEXT NULL AFTER terms_and_conditions");
+    }
     
     // Get posted data
     $data = json_decode(file_get_contents("php://input"));
@@ -109,6 +119,8 @@ try {
     $homepageImage6 = property_exists($data, 'homepage_image_6') ? $data->homepage_image_6 : null;
     $homepageHeroTitle = property_exists($data, 'homepage_hero_title') ? $data->homepage_hero_title : null;
     $homepageHeroSubtitle = property_exists($data, 'homepage_hero_subtitle') ? $data->homepage_hero_subtitle : null;
+    $termsAndConditions = property_exists($data, 'termsAndConditions') ? $data->termsAndConditions : null;
+    $privacyPolicy = property_exists($data, 'privacyPolicy') ? $data->privacyPolicy : null;
     
     if (!empty($churchName)) {
         // Check if settings exist
@@ -141,6 +153,8 @@ try {
                      homepage_image_6 = :homepage_image_6,
                      homepage_hero_title = :homepage_hero_title,
                      homepage_hero_subtitle = :homepage_hero_subtitle,
+                     terms_and_conditions = :terms_and_conditions,
+                     privacy_policy = :privacy_policy,
                      updated_at = NOW()
                      WHERE id = :settings_id";
             
@@ -163,6 +177,8 @@ try {
             $stmt->bindParam(":homepage_image_6", $homepageImage6);
             $stmt->bindParam(":homepage_hero_title", $homepageHeroTitle);
             $stmt->bindParam(":homepage_hero_subtitle", $homepageHeroSubtitle);
+            $stmt->bindParam(":terms_and_conditions", $termsAndConditions);
+            $stmt->bindParam(":privacy_policy", $privacyPolicy);
             $stmt->bindParam(":settings_id", $settingsId);
             
             if ($stmt->execute()) {
@@ -180,8 +196,8 @@ try {
             }
         } else {
             // Insert new settings
-            $query = "INSERT INTO church_settings (church_name, church_address, church_phone, church_email, church_logo, header_logo, help_center_email, help_center_phone, help_center_url, date_format, homepage_image_1, homepage_image_2, homepage_image_3, homepage_image_4, homepage_image_5, homepage_image_6, homepage_hero_title, homepage_hero_subtitle) 
-                     VALUES (:church_name, :church_address, :church_phone, :church_email, :church_logo, :header_logo, :help_center_email, :help_center_phone, :help_center_url, :date_format, :homepage_image_1, :homepage_image_2, :homepage_image_3, :homepage_image_4, :homepage_image_5, :homepage_image_6, :homepage_hero_title, :homepage_hero_subtitle)";
+            $query = "INSERT INTO church_settings (church_name, church_address, church_phone, church_email, church_logo, header_logo, help_center_email, help_center_phone, help_center_url, date_format, homepage_image_1, homepage_image_2, homepage_image_3, homepage_image_4, homepage_image_5, homepage_image_6, homepage_hero_title, homepage_hero_subtitle, terms_and_conditions, privacy_policy) 
+                     VALUES (:church_name, :church_address, :church_phone, :church_email, :church_logo, :header_logo, :help_center_email, :help_center_phone, :help_center_url, :date_format, :homepage_image_1, :homepage_image_2, :homepage_image_3, :homepage_image_4, :homepage_image_5, :homepage_image_6, :homepage_hero_title, :homepage_hero_subtitle, :terms_and_conditions, :privacy_policy)";
             
             $stmt = $db->prepare($query);
             $stmt->bindParam(":church_name", $churchName);
@@ -202,6 +218,8 @@ try {
             $stmt->bindParam(":homepage_image_6", $homepageImage6);
             $stmt->bindParam(":homepage_hero_title", $homepageHeroTitle);
             $stmt->bindParam(":homepage_hero_subtitle", $homepageHeroSubtitle);
+            $stmt->bindParam(":terms_and_conditions", $termsAndConditions);
+            $stmt->bindParam(":privacy_policy", $privacyPolicy);
             
             if ($stmt->execute()) {
                 http_response_code(200);

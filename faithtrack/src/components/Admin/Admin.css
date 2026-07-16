@@ -6137,3 +6137,10 @@ select.form-input {
   .stg-image-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stg-logo-preview { width: 60px; height: 60px; }
 }
+
+/* Legal textarea */
+.stg-textarea--legal {
+  min-height: 280px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}

@@ -93,9 +93,19 @@ try {
     if ($checkHeroSubtitleCol->rowCount() === 0) {
         $db->exec("ALTER TABLE church_settings ADD COLUMN homepage_hero_subtitle VARCHAR(255) NULL AFTER homepage_hero_title");
     }
+
+    // Ensure legal content columns exist
+    $checkTermsCol = $db->query("SHOW COLUMNS FROM church_settings LIKE 'terms_and_conditions'");
+    if ($checkTermsCol->rowCount() === 0) {
+        $db->exec("ALTER TABLE church_settings ADD COLUMN terms_and_conditions LONGTEXT NULL AFTER homepage_hero_subtitle");
+    }
+    $checkPrivacyCol = $db->query("SHOW COLUMNS FROM church_settings LIKE 'privacy_policy'");
+    if ($checkPrivacyCol->rowCount() === 0) {
+        $db->exec("ALTER TABLE church_settings ADD COLUMN privacy_policy LONGTEXT NULL AFTER terms_and_conditions");
+    }
     
     // Get church settings
-    $query = "SELECT church_name, church_address, church_phone, church_email, church_logo, header_logo, help_center_email, help_center_phone, help_center_url, date_format, homepage_image_1, homepage_image_2, homepage_image_3, homepage_image_4, homepage_image_5, homepage_image_6, homepage_hero_title, homepage_hero_subtitle FROM church_settings ORDER BY id LIMIT 1";
+    $query = "SELECT church_name, church_address, church_phone, church_email, church_logo, header_logo, help_center_email, help_center_phone, help_center_url, date_format, homepage_image_1, homepage_image_2, homepage_image_3, homepage_image_4, homepage_image_5, homepage_image_6, homepage_hero_title, homepage_hero_subtitle, terms_and_conditions, privacy_policy FROM church_settings ORDER BY id LIMIT 1";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
@@ -122,7 +132,9 @@ try {
                 "homepage_image_5" => $settings['homepage_image_5'],
                 "homepage_image_6" => $settings['homepage_image_6'],
                 "homepage_hero_title" => $settings['homepage_hero_title'],
-                "homepage_hero_subtitle" => $settings['homepage_hero_subtitle']
+                "homepage_hero_subtitle" => $settings['homepage_hero_subtitle'],
+                "termsAndConditions" => $settings['terms_and_conditions'],
+                "privacyPolicy" => $settings['privacy_policy']
             ]
         ]);
     } else {
@@ -147,7 +159,9 @@ try {
                 "homepage_image_5" => null,
                 "homepage_image_6" => null,
                 "homepage_hero_title" => "SHAPING FUTURES\nWITH FAITH",
-                "homepage_hero_subtitle" => "Join us for an uplifting experience"
+                "homepage_hero_subtitle" => "Join us for an uplifting experience",
+                "termsAndConditions" => null,
+                "privacyPolicy" => null
             ]
         ]);
     }
