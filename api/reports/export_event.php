@@ -57,19 +57,20 @@ function fmtDate(?string $dt): string {
 // ── fetch data ────────────────────────────────────────────────────────────────
 
 try {
-    $eventId = isset($_POST['event_id']) ? intval($_POST['event_id']) : 0;
-    $format  = strtolower(trim($_POST['format'] ?? 'pdf'));
+    // Support both POST (xlsx/pdf) and GET (json)
+    if (isset($_GET['event_id'])) {
+        $eventId = intval($_GET['event_id']);
+        $format  = strtolower(trim($_GET['format'] ?? 'json'));
+    } else {
+        $eventId = isset($_POST['event_id']) ? intval($_POST['event_id']) : 0;
+        $format  = strtolower(trim($_POST['format'] ?? 'pdf'));
+    }
 
     if (!$eventId) {
         http_response_code(400);
-        echo 'Event ID is required.';
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Event ID is required.']);
         exit();
-    }
-
-    // Also support GET for JSON
-    if (empty($eventId) && isset($_GET['event_id'])) {
-        $eventId = intval($_GET['event_id']);
-        $format  = strtolower(trim($_GET['format'] ?? 'json'));
     }
 
     $db = (new Database())->getConnection();
