@@ -23,11 +23,13 @@ const getTodayDate = () => {
 
 const fmt12 = (t) => {
   if (!t) return '';
-  // handle HH:MM:SS or HH:MM
-  const parts = String(t).split(':');
+  const s = String(t).trim();
+  // Already formatted (e.g. "2:00 PM") — return as-is
+  if (/[AaPp][Mm]/.test(s)) return s;
+  const parts = s.split(':');
   const h = parseInt(parts[0], 10);
   const m = parseInt(parts[1], 10);
-  if (isNaN(h) || isNaN(m)) return t;
+  if (isNaN(h) || isNaN(m)) return s;
   const period = h >= 12 ? 'PM' : 'AM';
   const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${hour}:${String(m).padStart(2, '0')} ${period}`;
