@@ -2141,10 +2141,11 @@ const AttendanceManagement = ({
 
                             {hasQrSessions ? (
                               <>
+                                <div className="att-sections-row">
                                 <div className="attendees-section">
                                   <div className="attendees-header-row">
                                     <div className="attendees-header-left">
-                                      <h3>Attendees</h3>
+                                      <h3>Present</h3>
                                       <span className="section-count">{attendeesCount}</span>
                                     </div>
                                     {attendeesList.length > INLINE_PREVIEW_LIMIT && (
@@ -2160,13 +2161,18 @@ const AttendanceManagement = ({
                                       </button>
                                     )}
                                   </div>
+                                  <div className="att-table-header">
+                                    <span>Name</span>
+                                    <span>Status</span>
+                                    <span>Check-in</span>
+                                  </div>
                                   <div className="attendees-grid">
                                     {attendeesList.length === 0 ? (
                                       <div className="empty-state">No attendees recorded yet.</div>
                                     ) : (
                                       attendeesPreview.map((attendee) => {
                                         const { primary, secondary } = splitDisplayName(attendee.name || 'Checked-in Guest');
-                                        const statusLabel = (attendee.status === 'Present' || attendee.status === 'present' ? 'PRESENT' : (attendee.status || 'Present').toUpperCase());
+                                        const statusLabel = (attendee.status === 'Present' || attendee.status === 'present' ? 'Present' : (attendee.status || 'Present'));
                                         const attendeeKey = `attendee-${attendee.memberId ?? 'guest'}-${attendee.checkInTime ?? 'time'}`;
                                         return (
                                           <div className="attendee-item-small checked" key={attendeeKey}>
@@ -2200,7 +2206,7 @@ const AttendanceManagement = ({
                                 <div className="attendees-section">
                                   <div className="attendees-header-row">
                                     <div className="attendees-header-left">
-                                      <h3>Absentees</h3>
+                                      <h3>Absent</h3>
                                       <span className="section-count">{absenteesCount}</span>
                                     </div>
                                     {absenteesList.length > INLINE_PREVIEW_LIMIT && (
@@ -2215,6 +2221,9 @@ const AttendanceManagement = ({
                                         View All
                                       </button>
                                     )}
+                                  </div>
+                                  <div className="att-table-header att-table-header--absent">
+                                    <span>Name</span>
                                   </div>
                                   <div className="attendees-grid">
                                     {absenteesList.length === 0 ? (
@@ -2240,7 +2249,7 @@ const AttendanceManagement = ({
                                                 {secondary && <span className="attendee-name-secondary">{secondary}</span>}
                                               </div>
                                             </div>
-                                            <span className="attendee-status status-absent">ABSENT</span>
+                                            <span className="attendee-status status-absent">Absent</span>
                                             <span className="attendee-checkin-time">—</span>
                                           </div>
                                         );
@@ -2248,6 +2257,7 @@ const AttendanceManagement = ({
                                     )}
                                   </div>
                                 </div>
+                                </div>{/* end att-sections-row */}
                               </>
                             ) : (
                               <div className="empty-state">No QR session was recorded for this event.</div>

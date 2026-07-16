@@ -3521,3 +3521,77 @@
     margin-top: 0;
   }
 }
+
+/* ── SIDE BY SIDE WRAPPER ── */
+.att-sections-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.att-sections-row .attendees-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(0,73,175,0.07);
+  overflow: hidden;
+}
+
+.att-sections-row .attendees-section .attendees-header-row {
+  padding: 10px 14px;
+  background: rgba(0,73,175,0.03);
+  border-bottom: 1px solid rgba(0,73,175,0.07);
+  margin-bottom: 0;
+}
+
+/* Table column headers */
+.att-table-header {
+  display: grid;
+  grid-template-columns: 28px 1fr 70px 80px;
+  gap: 12px;
+  padding: 7px 14px;
+  background: rgba(0,73,175,0.03);
+  border-bottom: 1px solid rgba(0,73,175,0.07);
+}
+
+.att-table-header span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.att-table-header--absent {
+  grid-template-columns: 28px 1fr 70px 40px;
+}
+
+/* Grid for absent section — simpler, no time column needed */
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small {
+  grid-template-columns: 28px 1fr 70px 40px;
+}
+
+/* Scrollable grid inside each section */
+.att-sections-row .attendees-grid {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 0;
+  border: none;
+}
+
+/* Remove outer border since card handles it */
+.att-sections-row .attendees-grid {
+  border: none;
+  border-radius: 0;
+}
+
+/* Mobile — stack vertically */
+@media (max-width: 760px) {
+  .att-sections-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
