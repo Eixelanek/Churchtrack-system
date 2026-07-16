@@ -2162,21 +2162,21 @@ const AttendanceManagement = ({
                                     )}
                                   </div>
                                   <div className="att-table-header">
+                                    <span>#</span>
                                     <span></span>
                                     <span>Name</span>
-                                    <span>Status</span>
                                     <span>Check-in</span>
                                   </div>
                                   <div className="attendees-grid">
                                     {attendeesList.length === 0 ? (
                                       <div className="empty-state">No attendees recorded yet.</div>
                                     ) : (
-                                      attendeesPreview.map((attendee) => {
+                                      attendeesPreview.map((attendee, idx) => {
                                         const { primary, secondary } = splitDisplayName(attendee.name || 'Checked-in Guest');
-                                        const statusLabel = (attendee.status === 'Present' || attendee.status === 'present' ? 'Present' : (attendee.status || 'Present'));
                                         const attendeeKey = `attendee-${attendee.memberId ?? 'guest'}-${attendee.checkInTime ?? 'time'}`;
                                         return (
                                           <div className="attendee-item-small checked" key={attendeeKey}>
+                                            <span className="att-row-num">{idx + 1}</span>
                                             <div className="attendee-avatar-small">
                                               {attendee.profile_picture ? (
                                                 <img 
@@ -2193,7 +2193,6 @@ const AttendanceManagement = ({
                                                 {secondary && <span className="attendee-name-secondary">{secondary}</span>}
                                               </div>
                                             </div>
-                                            <span className="attendee-status status-checked">{statusLabel}</span>
                                             <span className="attendee-checkin-time">
                                               {attendee.checkInTime ? formatModalCheckInClock(attendee.checkInTime) : '—'}
                                             </span>
@@ -2224,18 +2223,19 @@ const AttendanceManagement = ({
                                     )}
                                   </div>
                                   <div className="att-table-header att-table-header--absent">
+                                    <span>#</span>
                                     <span></span>
                                     <span>Name</span>
-                                    <span>Status</span>
                                   </div>
                                   <div className="attendees-grid">
                                     {absenteesList.length === 0 ? (
                                       <div className="empty-state">No absentees recorded.</div>
                                     ) : (
-                                      absenteesPreview.map((absentee) => {
+                                      absenteesPreview.map((absentee, idx) => {
                                         const { primary, secondary } = splitDisplayName(absentee.name || 'Member');
                                         return (
                                           <div className="attendee-item-small absent" key={`absent-${absentee.id}`}>
+                                            <span className="att-row-num">{idx + 1}</span>
                                             <div className="attendee-avatar-small absentee-avatar">
                                               {absentee.profile_picture ? (
                                                 <img 
@@ -2252,8 +2252,6 @@ const AttendanceManagement = ({
                                                 {secondary && <span className="attendee-name-secondary">{secondary}</span>}
                                               </div>
                                             </div>
-                                            <span className="attendee-status status-absent">Absent</span>
-                                            <span className="attendee-checkin-time">—</span>
                                           </div>
                                         );
                                       })

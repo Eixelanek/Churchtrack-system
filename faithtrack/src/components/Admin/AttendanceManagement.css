@@ -3838,3 +3838,56 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ============================================================
+   FINAL v2 — Remove status col, add row num, equal widths
+   ============================================================ */
+
+/* Equal width columns */
+.att-sections-row {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Present: # | avatar | name | time */
+.att-sections-row .attendees-section:nth-child(1) .attendee-item-small {
+  grid-template-columns: 20px 28px 1fr 72px !important;
+}
+
+.att-sections-row .attendees-section:nth-child(1) .att-table-header {
+  grid-template-columns: 20px 28px 1fr 72px !important;
+}
+
+/* Absent: # | avatar | name */
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small {
+  grid-template-columns: 20px 28px 1fr !important;
+}
+
+.att-sections-row .attendees-section:nth-child(2) .att-table-header {
+  grid-template-columns: 20px 28px 1fr !important;
+}
+
+/* Hide status badge in both tables — redundant */
+.att-sections-row .attendee-status {
+  display: none !important;
+}
+
+/* Hide time dash on absent */
+.att-sections-row .attendees-section:nth-child(2) .attendee-checkin-time {
+  display: none !important;
+}
+
+/* Row number styling */
+.att-row-num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #c0cce0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .att-sections-row {
+    grid-template-columns: 1fr !important;
+  }
+}
