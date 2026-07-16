@@ -2141,6 +2141,7 @@ const AttendanceManagement = ({
 
                             {hasQrSessions ? (
                               <>
+                                <div className="att-expanded-bottom">
                                 <div className="att-sections-row">
                                 <div className="attendees-section">
                                   <div className="attendees-header-row">
@@ -2259,6 +2260,56 @@ const AttendanceManagement = ({
                                   </div>
                                 </div>
                                 </div>{/* end att-sections-row */}
+
+                                {/* ── RIGHT: STATS PANEL ── */}
+                                <div className="att-stats-panel">
+                                  <div className="att-rate-circle-wrap">
+                                    <svg viewBox="0 0 120 120" className="att-rate-svg">
+                                      <defs>
+                                        <linearGradient id="att-rate-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                          <stop offset="0%" stopColor="#0049AF"/>
+                                          <stop offset="100%" stopColor="#1095D2"/>
+                                        </linearGradient>
+                                      </defs>
+                                      <circle cx="60" cy="60" r="50" className="att-rate-track"/>
+                                      <circle
+                                        cx="60" cy="60" r="50"
+                                        className="att-rate-fill"
+                                        strokeDasharray={`${Math.min(members.length > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / members.length) * 100) : 0, 100) * 3.14} 314`}
+                                        strokeDashoffset="78.5"
+                                      />
+                                    </svg>
+                                    <div className="att-rate-label">
+                                      <span className="att-rate-pct">
+                                        {members.length > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / members.length) * 100) : 0}%
+                                      </span>
+                                      <span className="att-rate-sub">Attendance</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Breakdown pills */}
+                                  <div className="att-breakdown">
+                                    <div className="att-breakdown-item">
+                                      <span className="att-breakdown-num att-bd--present">{attendeesCount}</span>
+                                      <span className="att-breakdown-label">Present</span>
+                                    </div>
+                                    <div className="att-breakdown-item">
+                                      <span className="att-breakdown-num att-bd--absent">{absenteesCount}</span>
+                                      <span className="att-breakdown-label">Absent</span>
+                                    </div>
+                                    <div className="att-breakdown-item">
+                                      <span className="att-breakdown-num att-bd--guest">{attendeesList.filter(a => !a.memberId).length}</span>
+                                      <span className="att-breakdown-label">Guests</span>
+                                    </div>
+                                    <div className="att-breakdown-item">
+                                      <span className="att-breakdown-num att-bd--late">
+                                        {attendeesList.filter(a => (a.status || '').toLowerCase() === 'late').length}
+                                      </span>
+                                      <span className="att-breakdown-label">Late</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                </div>{/* end att-expanded-bottom */}
                               </>
                             ) : (
                               <div className="empty-state">No QR session was recorded for this event.</div>

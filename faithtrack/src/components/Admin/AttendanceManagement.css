@@ -3891,3 +3891,162 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ============================================================
+   Expanded layout with stats panel on the right
+   ============================================================ */
+
+/* Make the expanded area a grid: [tables 2fr] [stats 1fr] */
+.att-expanded-cell .event-details-expanded,
+.member-card-wrapper .event-details-expanded {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto !important;
+}
+
+/* Rows that span full width */
+.event-details-expanded > .event-overview-row,
+.event-details-expanded > .event-summary-stats {
+  grid-column: 1 / -1 !important;
+}
+
+/* The tables+stats row */
+.att-expanded-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+/* Stack tables vertically inside left column */
+.att-sections-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 0 !important;
+}
+
+/* ── STATS PANEL ── */
+.att-stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,73,175,0.07);
+  box-shadow: 0 2px 12px rgba(0,73,175,0.05);
+  padding: 24px 18px;
+}
+
+/* Circular rate */
+.att-rate-circle-wrap {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.att-rate-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+
+.att-rate-track {
+  fill: none;
+  stroke: rgba(0,73,175,0.08);
+  stroke-width: 10;
+}
+
+.att-rate-fill {
+  fill: none;
+  stroke: url(#att-rate-grad);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+}
+
+.att-rate-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.att-rate-pct {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0049AF;
+  line-height: 1;
+}
+
+.att-rate-sub {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Breakdown pills */
+.att-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+.att-breakdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: #f5f8ff;
+  border-radius: 10px;
+  padding: 10px 8px;
+  border: 1px solid rgba(0,73,175,0.06);
+}
+
+.att-breakdown-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.att-bd--present { color: #16a34a; }
+.att-bd--absent  { color: #ef4444; }
+.att-bd--guest   { color: #0049AF; }
+.att-bd--late    { color: #ca8a04; }
+
+.att-breakdown-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .att-expanded-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .att-stats-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .att-rate-circle-wrap {
+    width: 80px;
+    height: 80px;
+  }
+}
