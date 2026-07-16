@@ -4393,3 +4393,174 @@
     padding: 14px !important;
   }
 }
+
+/* ============================================================
+   MOBILE FIX — Single authoritative block, placed last
+   Overrides all previous conflicting rules
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+  /* Expanded padding */
+  .event-details-expanded {
+    padding: 14px !important;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* Overview header — stack */
+  .event-overview-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .event-overview-title {
+    font-size: 0.95rem !important;
+  }
+
+  .event-overview-meta {
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+
+  .event-overview-meta .meta-item {
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+
+  /* Summary stats — single column on mobile */
+  .event-summary-stats {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    border-radius: 10px !important;
+  }
+
+  .summary-title-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .summary-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .summary-stat-item {
+    padding: 10px !important;
+    text-align: left !important;
+  }
+
+  .summary-stat-value {
+    font-size: 1.2rem !important;
+  }
+
+  .summary-stat-percentage,
+  .summary-stat-subtext {
+    font-size: 0.7rem !important;
+  }
+
+  /* Export buttons */
+  .event-export-btns {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .event-export-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Present/Absent — STACK VERTICALLY */
+  .att-expanded-bottom {
+    margin-top: 12px !important;
+  }
+
+  .att-sections-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Each section full width */
+  .att-sections-row .attendees-section {
+    width: 100% !important;
+  }
+
+  /* Present table — 3 cols on mobile (hide # on very small) */
+  .att-sections-row .attendees-section:nth-child(1) .attendee-item-small,
+  .att-sections-row .attendees-section:nth-child(1) .att-table-header {
+    grid-template-columns: 20px 28px 1fr 70px !important;
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  /* Absent table — 3 cols */
+  .att-sections-row .attendees-section:nth-child(2) .attendee-item-small,
+  .att-sections-row .attendees-section:nth-child(2) .att-table-header {
+    grid-template-columns: 20px 28px 1fr !important;
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  /* Names — allow wrapping */
+  .attendee-name-primary {
+    font-size: 0.82rem !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-break: break-word !important;
+  }
+
+  .attendee-name-secondary {
+    font-size: 0.72rem !important;
+    white-space: normal !important;
+  }
+
+  /* Max height */
+  .att-sections-row .attendees-grid {
+    max-height: 240px !important;
+  }
+
+  /* Attendees header row */
+  .att-sections-row .attendees-section .attendees-header-row {
+    padding: 8px 10px !important;
+  }
+
+  /* View All button — ensure visible */
+  .view-all-btn {
+    white-space: nowrap !important;
+    font-size: 0.72rem !important;
+    padding: 3px 10px !important;
+  }
+
+  /* Section count badge */
+  .section-count {
+    font-size: 0.68rem !important;
+    padding: 2px 7px !important;
+  }
+
+  /* Check-in time text */
+  .attendee-checkin-time {
+    font-size: 0.72rem !important;
+  }
+}
+
+/* Very small screens — hide check-in time */
+@media (max-width: 380px) {
+  .att-sections-row .attendees-section:nth-child(1) .attendee-item-small,
+  .att-sections-row .attendees-section:nth-child(1) .att-table-header {
+    grid-template-columns: 24px 1fr !important;
+  }
+
+  .att-sections-row .attendees-section:nth-child(1) .att-row-num,
+  .att-sections-row .attendees-section:nth-child(1) .att-table-header span:first-child,
+  .att-sections-row .attendees-section:nth-child(1) .attendee-checkin-time,
+  .att-sections-row .attendees-section:nth-child(1) .att-table-header span:nth-child(4) {
+    display: none !important;
+  }
+}
