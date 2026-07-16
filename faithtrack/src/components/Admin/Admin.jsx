@@ -2086,7 +2086,7 @@ const Admin = () => {
   // Add top bar navigation with logo, nav links, notifications, and profile
   return (
     <div className="admin-container">
-      <header className="topbar-nav">
+      <header className={`topbar-nav${showSettingsView || showProfileView ? ' topbar-nav--hidden' : ''}`}>
         <div className="topbar-left">
           <button className="mobile-menu-btn" onClick={() => setShowMobileMenu(!showMobileMenu)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -2643,8 +2643,9 @@ const Admin = () => {
                   )}
                 </div>
 
-                {/* ── Tabs ── */}
-                <div className="stg-tabs">
+                {/* ── Tabs + Content ── */}
+                <div className="stg-layout">
+                  <div className="stg-tabs">
                   {[
                     { id: 'identity', label: 'Church Identity', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
                     { id: 'homepage', label: 'Homepage', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> },
@@ -2660,10 +2661,10 @@ const Admin = () => {
                       {tab.label}
                     </button>
                   ))}
-                </div>
+                  </div>
 
-                {/* ── Tab Panels ── */}
-                <div className="stg-body">
+                  {/* ── Tab Panels ── */}
+                  <div className="stg-body">
 
                   {/* CHURCH IDENTITY */}
                   {settingsTab === 'identity' && (
@@ -2934,6 +2935,7 @@ const Admin = () => {
                     </div>
                   )}
 
+                </div>
                 </div>
               </div>
             ) : (
