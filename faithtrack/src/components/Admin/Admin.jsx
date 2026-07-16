@@ -1006,8 +1006,18 @@ const Admin = () => {
     style.id = 'report-print-style';
     style.textContent = `
       @media print {
+        html, body {
+          overflow: visible !important;
+          height: auto !important;
+        }
         body > *:not(#report-print-container) { display: none !important; }
-        #report-print-container { display: block !important; }
+        #report-print-container {
+          display: block !important;
+          position: relative !important;
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+        }
       }
       #report-print-container {
         display: none;
@@ -1015,6 +1025,8 @@ const Admin = () => {
         font-size: 12px;
         color: #1e293b;
         padding: 24px;
+        overflow: visible;
+        height: auto;
       }
       #report-print-container .p-header { text-align: center; margin-bottom: 16px; }
       #report-print-container .p-logo { height: 60px; object-fit: contain; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }

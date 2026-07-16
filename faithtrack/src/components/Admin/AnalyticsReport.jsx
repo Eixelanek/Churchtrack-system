@@ -175,8 +175,18 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
       styleEl.id = 'analytics-print-style';
       styleEl.textContent = `
         @media print {
+          html, body {
+            overflow: visible !important;
+            height: auto !important;
+          }
           body > *:not(#analytics-print-container) { display: none !important; }
-          #analytics-print-container { display: block !important; }
+          #analytics-print-container {
+            display: block !important;
+            position: relative !important;
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+          }
         }
         #analytics-print-container {
           display: none;
@@ -184,6 +194,8 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
           font-size: 12px;
           color: #1e293b;
           padding: 20px;
+          overflow: visible;
+          height: auto;
         }
         #analytics-print-container .print-header { text-align: center; margin-bottom: 16px; }
         #analytics-print-container .print-logo { height: 60px; object-fit: contain; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }
