@@ -23,7 +23,11 @@ const getTodayDate = () => {
 
 const fmt12 = (t) => {
   if (!t) return '';
-  const [h, m] = t.split(':').map(Number);
+  // handle HH:MM:SS or HH:MM
+  const parts = String(t).split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return t;
   const period = h >= 12 ? 'PM' : 'AM';
   const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${hour}:${String(m).padStart(2, '0')} ${period}`;
