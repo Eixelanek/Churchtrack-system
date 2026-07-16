@@ -12,6 +12,7 @@
   padding: 28px 32px 40px;
   background: #f5f8ff;
   min-height: calc(100vh - 72px);
+  box-sizing: border-box;
 }
 
 /* ── HEADER ── */
@@ -308,9 +309,16 @@
   grid-template-columns: 1fr 340px;
   gap: 20px;
   align-items: start;
+  flex: 1;
 }
 
 /* Camera card */
+.mqrs-camera-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .mqrs-camera-card {
   background: #fff;
   border-radius: 20px;
@@ -319,18 +327,22 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  min-height: calc(100vh - 220px);
 }
 
 .mqrs-camera-error {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  flex: 1;
   padding: 48px 24px;
   color: #dc2626;
   text-align: center;
   font-size: 0.9rem;
+  min-height: 300px;
 }
 
 /* Viewfinder */
@@ -338,7 +350,8 @@
   position: relative;
   width: 100%;
   background: #0a1a3a;
-  aspect-ratio: 4 / 3;
+  flex: 1;
+  min-height: 300px;
   overflow: hidden;
   display: flex;
   align-items: center;
