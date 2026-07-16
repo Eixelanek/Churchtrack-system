@@ -98,13 +98,31 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
 
     setPrinting(true);
     try {
-      // Capture each chart card as a PNG image
+      // Step 1: Capture charts BEFORE injecting any print styles
+      // Temporarily make modal body overflow visible so html2canvas can capture all cards
+      const modalBody = document.querySelector('.modal-body');
+      const originalOverflow = modalBody ? modalBody.style.overflow : null;
+      if (modalBody) modalBody.style.overflow = 'visible';
+
       const chartCards = printRef.current.querySelectorAll('.analytics-chart-card');
       const chartImages = {};
       for (const card of chartCards) {
-        const canvas = await html2canvas(card, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
+        // Scroll card into view so html2canvas can capture it
+        card.scrollIntoView({ block: 'nearest' });
+        await new Promise(r => setTimeout(r, 80)); // brief wait for render
+        const canvas = await html2canvas(card, {
+          scale: 1.5,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          scrollX: 0,
+          scrollY: -window.scrollY,
+        });
         chartImages[card.dataset.chartId] = canvas.toDataURL('image/png');
       }
+
+      // Restore modal overflow
+      if (modalBody && originalOverflow !== null) modalBody.style.overflow = originalOverflow;
 
       const summary = data.summary;
       const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
