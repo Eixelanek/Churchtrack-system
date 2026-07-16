@@ -2022,23 +2022,57 @@ const AttendanceManagement = ({
                                   <div className="event-export-btns">
                                     <button
                                       className="event-export-btn"
-                                      title="Export PDF"
-                                      onClick={(e) => {
+                                      title="Print / Save PDF"
+                                      onClick={async (e) => {
                                         e.stopPropagation();
-                                        const form = document.createElement('form');
-                                        form.method = 'POST';
-                                        form.action = `${API_BASE_URL}/api/reports/export_event.php`;
-                                        form.target = '_blank';
-                                        const fmtInput = document.createElement('input');
-                                        fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'pdf';
-                                        const idInput = document.createElement('input');
-                                        idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = event.id;
-                                        form.appendChild(fmtInput); form.appendChild(idInput);
-                                        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+                                        try {
+                                          const res = await fetch(`${API_BASE_URL}/api/reports/export_event.php?event_id=${event.id}&format=json`);
+                                          const d = await res.json();
+                                          if (!d.success) { alert('Failed to load event data.'); return; }
+                                          const ev = d.event;
+                                          const logo = d.churchLogo ? `<img src="${d.churchLogo}" style="height:60px;object-fit:contain;display:block;margin:0 auto 6px;" />` : '';
+                                          const total = d.attendees.length + d.absentees.length;
+                                          const rate  = total > 0 ? Math.round((d.attendees.length / total) * 100) : 0;
+                                          const attRows = d.attendees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">No attendees recorded</td></tr>`;
+                                          const absRows = d.absentees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center;color:#94a3b8">All active members attended</td></tr>`;
+                                          const html = `
+                                            <div style="text-align:center;margin-bottom:16px">${logo}
+                                              <h1 style="font-size:20px;font-weight:700;margin:0">${d.churchName}</h1>
+                                              <h2 style="font-size:13px;color:#64748b;font-weight:400;margin:4px 0 0">Event Attendance Report</h2>
+                                              <p style="font-size:11px;color:#94a3b8;margin:4px 0 0">Generated: ${d.generatedAt}</p>
+                                            </div>
+                                            <div style="background:#f8fafc;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px">
+                                              <b>${ev.title}</b><br/>
+                                              <span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}${ev.type ? ' · ' + ev.type : ''}</span>
+                                            </div>
+                                            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Attended</div></div>
+                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div>
+                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Attendance Rate</div></div>
+                                            </div>
+                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Attended (${d.attendees.length})</div>
+                                            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
+                                              <thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in Time</th></tr></thead>
+                                              <tbody>${attRows}</tbody>
+                                            </table>
+                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #dc2626;padding-left:6px;margin:14px 0 6px">Absent (${d.absentees.length})</div>
+                                            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
+                                              <thead><tr><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">Name</th></tr></thead>
+                                              <tbody>${absRows}</tbody>
+                                            </table>`;
+                                          document.getElementById('evt-print-div')?.remove();
+                                          document.getElementById('evt-print-sty')?.remove();
+                                          const div = document.createElement('div'); div.id='evt-print-div'; div.innerHTML=html;
+                                          document.body.appendChild(div);
+                                          const sty = document.createElement('style'); sty.id='evt-print-sty';
+                                          sty.textContent=`@media print{html,body{overflow:visible!important;height:auto!important}body>*:not(#evt-print-div){display:none!important}#evt-print-div{display:block!important;position:relative!important;overflow:visible!important;height:auto!important;max-height:none!important}}#evt-print-div{display:none;font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:24px}#evt-print-div table td{padding:4px 7px;border-bottom:1px solid #f1f5f9}#evt-print-div table tr:nth-child(even) td{background:#f8fafc}`;
+                                          document.head.appendChild(sty);
+                                          setTimeout(()=>{window.print();setTimeout(()=>{div.remove();sty.remove();},2000);},100);
+                                        } catch(err) { alert('Print failed: ' + err.message); }
                                       }}
                                     >
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                      PDF
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                                      Print
                                     </button>
                                     <button
                                       className="event-export-btn"
@@ -2123,7 +2157,7 @@ const AttendanceManagement = ({
                                     ) : (
                                       attendeesPreview.map((attendee) => {
                                         const { primary, secondary } = splitDisplayName(attendee.name || 'Checked-in Guest');
-                                        const statusLabel = (attendee.status === 'Present' || attendee.status === 'present' ? 'CHECKED IN' : (attendee.status || 'Checked in').toUpperCase());
+                                        const statusLabel = (attendee.status === 'Present' || attendee.status === 'present' ? 'PRESENT' : (attendee.status || 'Present').toUpperCase());
                                         const attendeeKey = `attendee-${attendee.memberId ?? 'guest'}-${attendee.checkInTime ?? 'time'}`;
                                         return (
                                           <div className="attendee-item-small checked" key={attendeeKey}>
@@ -3323,7 +3357,7 @@ const AttendanceManagement = ({
                       {filtered.map((person, idx) => {
                         const { primary, secondary } = splitDisplayName(person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member'));
                         const statusLabel = selectedEventDetails.activeTab === 'attendees'
-                          ? (person.status === 'Present' || person.status === 'present' ? 'CHECKED IN' : (person.status || 'Checked in').toUpperCase())
+                          ? (person.status === 'Present' || person.status === 'present' ? 'PRESENT' : (person.status || 'Present').toUpperCase())
                           : 'ABSENT';
                         return (
                           <li className={`full-list-item ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`} key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? idx}`}>

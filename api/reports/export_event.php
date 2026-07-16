@@ -66,8 +66,13 @@ try {
         exit();
     }
 
-    $db = (new Database())->getConnection();
+    // Also support GET for JSON
+    if (empty($eventId) && isset($_GET['event_id'])) {
+        $eventId = intval($_GET['event_id']);
+        $format  = strtolower(trim($_GET['format'] ?? 'json'));
+    }
 
+    $db = (new Database())->getConnection();
     // Church settings
     $churchSettings = null;
     try {
@@ -154,6 +159,27 @@ try {
     $eventTime   = !empty($event['start_time']) ? date('g:i A', strtotime($event['start_time'])) : '';
     $eventLoc    = $event['location'] ?? '';
     $generatedAt = (new DateTime())->setTimezone(new DateTimeZone('Asia/Manila'))->format('F d, Y g:i A');
+
+    // ── JSON (for client-side print) ─────────────────────────────────────────
+    if ($format === 'json') {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success'      => true,
+            'event'        => [
+                'title'    => $eventTitle,
+                'date'     => $eventDate,
+                'time'     => $eventTime,
+                'location' => $eventLoc,
+                'type'     => $event['event_type'] ?? '',
+            ],
+            'churchName'   => $churchName,
+            'churchLogo'   => $churchSettings['church_logo'] ?? null,
+            'attendees'    => $attendees,
+            'absentees'    => array_values(array_map(fn($n) => ['name' => $n], $absentees)),
+            'generatedAt'  => $generatedAt,
+        ]);
+        exit();
+    }
 
     // ── PDF ──────────────────────────────────────────────────────────────────
     if ($format === 'pdf') {
