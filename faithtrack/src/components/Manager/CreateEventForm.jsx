@@ -41,6 +41,7 @@ const CreateEventForm = () => {
   const [messageType, setMessageType]       = useState('success');
   const [events, setEvents]                 = useState([]);
   const [eventsLoading, setEventsLoading]   = useState(true);
+  const [searchQuery, setSearchQuery]       = useState('');
 
   const fetchEvents = useCallback(async () => {
     setEventsLoading(true);
@@ -278,22 +279,38 @@ const CreateEventForm = () => {
         <div className="ev-list-col">
           <div className="ev-card ev-list-card">
             <div className="ev-list-top">
-              <div>
-                <p className="ev-section-label">All Events</p>
+              <div className="ev-list-top-left">
+                <p className="ev-section-label" style={{ margin: 0 }}>All Events</p>
+                {!eventsLoading && <span className="ev-count-badge">{events.length}</span>}
               </div>
-              <button type="button" className="ev-refresh-btn" onClick={fetchEvents}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                </svg>
-                Refresh
-              </button>
+              <div className="ev-list-top-right">
+                <div className="ev-search-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search events…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="ev-search-input"
+                  />
+                </div>
+                <button type="button" className="ev-refresh-btn" onClick={fetchEvents}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+                    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                  </svg>
+                  Refresh
+                </button>
+              </div>
             </div>
 
             <div className="ev-table-wrap">
               <table className="ev-table">
                 <thead>
                   <tr>
+                    <th>#</th>
                     <th>Event</th>
                     <th>Date</th>
                     <th>Time</th>
@@ -304,7 +321,7 @@ const CreateEventForm = () => {
                 <tbody>
                   {eventsLoading ? (
                     <tr>
-                      <td colSpan="5" className="ev-table-empty">
+                      <td colSpan="6" className="ev-table-empty">
                         <div className="ev-loading">
                           <div className="ev-spinner-sm"/>
                           <span>Loading events…</span>
@@ -313,17 +330,34 @@ const CreateEventForm = () => {
                     </tr>
                   ) : events.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="ev-table-empty">
+                      <td colSpan="6" className="ev-table-empty">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
                           <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
                         <p>No events yet.</p>
-                        <span>Create your first event using the form.</span>
+                        <span>Create your first event using the form on the left.</span>
                       </td>
                     </tr>
-                  ) : (
-                    events.map((event) => (
+                  ) : (() => {
+                    const filtered = events.filter(e =>
+                      e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      e.date?.includes(searchQuery) ||
+                      (e.status || '').toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                    if (filtered.length === 0) return (
+                      <tr>
+                        <td colSpan="6" className="ev-table-empty">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="28" height="28">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                          </svg>
+                          <p>No results for "{searchQuery}"</p>
+                          <span>Try a different search term.</span>
+                        </td>
+                      </tr>
+                    );
+                    return filtered.map((event, idx) => (
                       <tr key={event.id}>
+                        <td className="ev-td-num">{idx + 1}</td>
                         <td className="ev-td-title">{event.title}</td>
                         <td className="ev-td-meta">
                           {event.date
@@ -341,8 +375,8 @@ const CreateEventForm = () => {
                         </td>
                         <td className="ev-td-center">{event.totalAttendees ?? 0}</td>
                       </tr>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
