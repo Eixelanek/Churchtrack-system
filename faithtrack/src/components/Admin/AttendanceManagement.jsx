@@ -1637,65 +1637,29 @@ const AttendanceManagement = ({
 
   return (
     <div className="attendance-management">
-      <div className="members-directory-header">
-        <div className="header-text">
+
+      {/* ── PAGE HEADER ── */}
+      <div className="arm-header">
+        <div className="arm-header-left">
           <h1>Attendance Records</h1>
-          <p className="directory-subtitle">Track and view detailed attendance history</p>
+          <p>Track and view detailed attendance history</p>
         </div>
         {isManager && (onManualCheckInClick || onGuestCheckInClick) && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div className="arm-header-actions">
             {onManualCheckInClick && (
-              <button
-                type="button"
-                onClick={onManualCheckInClick}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="8.5" cy="7" r="4"></circle>
-                  <line x1="20" y1="8" x2="14" y2="14"></line>
-                  <line x1="14" y1="8" x2="20" y2="14"></line>
+              <button type="button" className="arm-action-btn arm-action-btn--green" onClick={onManualCheckInClick}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                  <line x1="20" y1="8" x2="14" y2="14"/><line x1="14" y1="8" x2="20" y2="14"/>
                 </svg>
                 Manual Check-In
               </button>
             )}
             {onGuestCheckInClick && (
-              <button
-                type="button"
-                onClick={onGuestCheckInClick}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#7c3aed',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              <button type="button" className="arm-action-btn arm-action-btn--purple" onClick={onGuestCheckInClick}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
                 Guest Check-In
               </button>
@@ -1704,106 +1668,64 @@ const AttendanceManagement = ({
         )}
       </div>
 
-      {/* Stats Cards - New Design */}
-      <div className="stats-cards-grid">
-        <div className="stat-card-new blue">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
+      {/* ── STAT CARDS ── */}
+      <div className="arm-stats-row">
+        <div className="arm-stat-card">
+          <div className="arm-stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-label-small">Total Events</div>
-            <div className="stat-value-large">{showStatsLoading ? '...' : attendanceStats.totalRecords}</div>
-            <div className="stat-sublabel">All Records</div>
+          <div className="arm-stat-body">
+            <span className="arm-stat-label">Total Events</span>
+            <span className="arm-stat-value">{showStatsLoading ? '...' : attendanceStats.totalRecords}</span>
+            <span className="arm-stat-sub">All Records</span>
           </div>
         </div>
 
-        <div className="stat-card-new green">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        <div className="arm-stat-card">
+          <div className="arm-stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-label-small">Average</div>
-            <div className="stat-value-large">{showStatsLoading ? '...' : (attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService)}</div>
-            <div className="stat-sublabel">Per Service</div>
+          <div className="arm-stat-body">
+            <span className="arm-stat-label">Average</span>
+            <span className="arm-stat-value">{showStatsLoading ? '...' : (attendanceStats.averagePerService.toFixed ? attendanceStats.averagePerService.toFixed(1) : attendanceStats.averagePerService)}</span>
+            <span className="arm-stat-sub">Per Service</span>
           </div>
         </div>
 
-        <div className="stat-card-new purple">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        <div className="arm-stat-card">
+          <div className="arm-stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-label-small">Rate</div>
-            <div className="stat-value-large">{showStatsLoading ? '...' : (attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate)}%</div>
-            <div className="stat-sublabel">Attendance</div>
+          <div className="arm-stat-body">
+            <span className="arm-stat-label">Attendance Rate</span>
+            <span className="arm-stat-value">{showStatsLoading ? '...' : (attendanceStats.attendanceRate.toFixed ? attendanceStats.attendanceRate.toFixed(1) : attendanceStats.attendanceRate)}%</span>
+            <span className="arm-stat-sub">Overall</span>
           </div>
         </div>
       </div>
 
-      <div className="attendance-status-toggle">
-        <div className="attendance-tabs">
-          <button
-            type="button"
-            className={`attendance-tab ${attendanceStatusFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setAttendanceStatusFilter('all')}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            className={`attendance-tab ${attendanceStatusFilter === 'active' ? 'active' : ''}`}
-            onClick={() => setAttendanceStatusFilter('active')}
-          >
-            Active
-          </button>
-          <button
-            type="button"
-            className={`attendance-tab ${attendanceStatusFilter === 'completed' ? 'active' : ''}`}
-            onClick={() => setAttendanceStatusFilter('completed')}
-          >
-            Completed
-          </button>
-          
-          {/* Multi-Select Button in Tab Header */}
-          {!isManager && (
-            <button
-              onClick={() => {
-                setMultiSelectMode(!multiSelectMode);
-                if (multiSelectMode) {
-                  setSelectedEvents(new Set());
-                }
-              }}
-              className="multi-select-tab-btn"
-              style={{
-                marginLeft: 'auto',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '8px',
-                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                color: multiSelectMode ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
-            </button>
-          )}
+      {/* ── FILTER TABS ── */}
+      <div className="arm-tabs-row">
+        <div className="arm-tabs">
+          <button className={`arm-tab ${attendanceStatusFilter === 'all' ? 'active' : ''}`} onClick={() => setAttendanceStatusFilter('all')}>All</button>
+          <button className={`arm-tab ${attendanceStatusFilter === 'active' ? 'active' : ''}`} onClick={() => setAttendanceStatusFilter('active')}>Active</button>
+          <button className={`arm-tab ${attendanceStatusFilter === 'completed' ? 'active' : ''}`} onClick={() => setAttendanceStatusFilter('completed')}>Completed</button>
         </div>
+        {!isManager && (
+          <button
+            className={`arm-multiselect-btn ${multiSelectMode ? 'active' : ''}`}
+            onClick={() => { setMultiSelectMode(!multiSelectMode); if (multiSelectMode) setSelectedEvents(new Set()); }}
+          >
+            {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+          </button>
+        )}
       </div>
 
       {/* Events List Cards */}
