@@ -1061,22 +1061,16 @@ const Admin = () => {
     const rows = reportData.records.map(r => {
       const date = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
       const time = r.time ? formatReportTimeLabel(r.time) : '—';
-      const memPct = r.totalCheckins ? Math.round((r.memberCheckins / r.totalCheckins) * 100) + '%' : '—';
-      const gstPct = r.totalCheckins ? Math.round((r.guestCheckins / r.totalCheckins) * 100) + '%' : '—';
-      const lastIn = r.lastCheckinName && r.lastCheckinName !== '—' ? r.lastCheckinName : '—';
       return `<tr>
-        <td>${date}</td><td>${time}</td><td>${r.title ?? ''}</td>
+        <td>${date}</td>
+        <td>${time}</td>
+        <td>${r.title ?? ''}</td>
+        <td>${r.type ?? '—'}</td>
         <td style="text-align:center">${r.totalCheckins ?? 0}</td>
         <td style="text-align:center">${r.memberCheckins ?? 0}</td>
         <td style="text-align:center">${r.guestCheckins ?? 0}</td>
-        <td style="text-align:center">${memPct}</td>
-        <td style="text-align:center">${gstPct}</td>
-        <td>${lastIn}</td>
       </tr>`;
     }).join('');
-
-    const totMemPct = reportData.totalAttendance ? Math.round((reportData.totalMemberCheckins / reportData.totalAttendance) * 100) + '%' : '—';
-    const totGstPct = reportData.totalAttendance ? Math.round((reportData.totalGuestCheckins / reportData.totalAttendance) * 100) + '%' : '—';
 
     const printContent = `
       <div class="p-header">${logoHtml}<h1>${churchName}</h1><h2>Attendance Report</h2>
@@ -1091,16 +1085,13 @@ const Admin = () => {
         <div class="p-stat" style="border-top-color:#D97706"><div class="p-val" style="color:#D97706">${reportData.totalGuestCheckins ?? 0}</div><div class="p-lbl">Guest Check-ins</div></div>
       </div>
       <table class="p-table">
-        <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Total</th><th>Members</th><th>Guests</th><th>Mem %</th><th>Guest %</th><th>Last Check-in</th></tr></thead>
+        <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Type</th><th>Total</th><th>Members</th><th>Guests</th></tr></thead>
         <tbody>${rows}</tbody>
         <tfoot><tr style="font-weight:700;background:#f1f5f9">
-          <td colspan="3" style="text-align:right;padding:5px 7px">Totals</td>
+          <td colspan="4" style="text-align:right;padding:5px 7px">Totals</td>
           <td style="text-align:center">${reportData.totalAttendance ?? 0}</td>
           <td style="text-align:center">${reportData.totalMemberCheckins ?? 0}</td>
           <td style="text-align:center">${reportData.totalGuestCheckins ?? 0}</td>
-          <td style="text-align:center">${totMemPct}</td>
-          <td style="text-align:center">${totGstPct}</td>
-          <td></td>
         </tr></tfoot>
       </table>`;
 
@@ -3983,12 +3974,10 @@ const Admin = () => {
                       <th>Date</th>
                       <th>Time</th>
                       <th>Service</th>
+                      <th>Type</th>
                       <th className="numeric-col">Total</th>
                       <th className="numeric-col">Members</th>
                       <th className="numeric-col">Guests</th>
-                      <th className="numeric-col">Member %</th>
-                      <th className="numeric-col">Guest %</th>
-                      <th className="wide-col">Last Check-in</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3997,22 +3986,10 @@ const Admin = () => {
                         <td>{formatReportDateLabel(record.date)}</td>
                         <td>{formatReportTimeLabel(record.time)}</td>
                         <td>{record.title}</td>
+                        <td>{record.type || '—'}</td>
                         <td className="numeric-col">{renderCountPill(record.totalCheckins, 'total')}</td>
                         <td className="numeric-col">{renderCountPill(record.memberCheckins, 'member')}</td>
                         <td className="numeric-col">{renderCountPill(record.guestCheckins, 'guest')}</td>
-                        <td className="numeric-col">{computePercentLabel(record.memberCheckins, record.totalCheckins)}</td>
-                        <td className="numeric-col">{computePercentLabel(record.guestCheckins, record.totalCheckins)}</td>
-                        <td className="wide-col">
-                          {(() => {
-                            const { name, timestamp } = formatLastCheckinDisplay(record);
-                            return (
-                              <div className="last-checkin-cell">
-                                <span className="last-checkin-name">{name || '—'}</span>
-                                {timestamp && <span className="last-checkin-time">{timestamp}</span>}
-                              </div>
-                            );
-                          })()}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
