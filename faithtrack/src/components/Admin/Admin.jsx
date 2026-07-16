@@ -5,6 +5,7 @@ import logoImage from '../../assets/logo2.png';
 import AttendanceManagement from './AttendanceManagement';
 import MembersManagement from './MembersManagement';
 import ContactMessages from './ContactMessages';
+import AnalyticsReport from './AnalyticsReport';
 import { updateFavicon } from '../../utils/churchSettings';
 import { API_BASE_URL } from '../../config/api';
 import { resolveProfilePicUrl } from '../../utils/profilePicture';
@@ -3794,10 +3795,26 @@ const Admin = () => {
                     color: reportType === 'membership' ? 'white' : '#666',
                     fontWeight: '600',
                     cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0'
+                    borderRadius: '8px 8px 0 0',
+                    marginRight: '5px'
                   }}
                 >
                   👥 Membership Report
+                </button>
+                <button
+                  className={`report-tab ${reportType === 'analytics' ? 'active' : ''}`}
+                  onClick={() => setReportType('analytics')}
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    background: reportType === 'analytics' ? '#4F46E5' : 'transparent',
+                    color: reportType === 'analytics' ? 'white' : '#666',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    borderRadius: '8px 8px 0 0'
+                  }}
+                >
+                  📈 Analytics Report
                 </button>
               </div>
 
@@ -3923,12 +3940,13 @@ const Admin = () => {
                   </div>
                 </div>
               )}
+              {reportType === 'analytics' && (
+                <AnalyticsReport churchName={churchName} />
+              )}
             </div>
           </div>
         </div>
       )}
-
-      {/* Schedule Modal */}
       {showScheduleModal && (
         <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
           <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
