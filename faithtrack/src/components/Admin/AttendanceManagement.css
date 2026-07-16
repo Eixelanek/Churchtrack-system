@@ -2722,6 +2722,8 @@
   border: 1px solid rgba(0,73,175,0.07);
   box-shadow: 0 2px 16px rgba(0,73,175,0.06);
   overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .att-table {
@@ -2853,13 +2855,42 @@
 
 /* Mobile */
 @media (max-width: 760px) {
+  /* Hide: # (1), Day (4), Attendees (5) — keep Date (3), Event (2), Status (6), chevron (7) */
+  .att-table thead th:nth-child(1),
+  .att-table tbody td:nth-child(1),
+  .att-table thead th:nth-child(4),
+  .att-table tbody td:nth-child(4),
   .att-table thead th:nth-child(5),
   .att-table tbody td:nth-child(5) { display: none; }
 
   .att-table thead th,
   .att-table tbody td { padding: 12px 10px; font-size: 0.82rem; }
 
+  /* Event title: allow wrapping */
+  .att-td-title {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Status badge: prevent clipping */
+  .att-status-badge {
+    white-space: nowrap;
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
   .att-table-wrap { border-radius: 12px; }
+}
+
+@media (max-width: 480px) {
+  /* Also hide Date (3) on very small screens */
+  .att-table thead th:nth-child(3),
+  .att-table tbody td:nth-child(3) { display: none; }
+
+  .att-table thead th,
+  .att-table tbody td { padding: 10px 8px; }
+
+  .att-td-title { max-width: 140px; }
 }
 
 /* ============================================================
