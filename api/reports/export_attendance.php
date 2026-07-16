@@ -176,7 +176,6 @@ function outputAttendanceXlsx(array $reportData, ?array $churchSettings = null):
     $sheet->getStyle('A' . $headerRow . ':I' . $headerRow)->getFill()
         ->setFillType(Fill::FILL_SOLID)
         ->getStartColor()->setARGB('FF1D4ED8');
-
     $row = $headerRow + 1;
     foreach ($reportData['records'] as $record) {
         $sheet->setCellValue('A' . $row, formatExcelDateLabel($record['date'] ?? null));
@@ -334,7 +333,7 @@ function outputAttendanceCsv(array $reportData, ?array $churchSettings = null): 
     
     // Table header
     fputcsv($output, []);
-    fputcsv($output, ['Date', 'Event', 'Type', 'Total', 'Members', 'Guests', 'Last Check-in']);
+    fputcsv($output, ['Date', 'Event', 'Total', 'Members', 'Guests', 'Last Check-in']);
     
     // Data rows
     foreach ($reportData['records'] as $record) {
@@ -344,7 +343,6 @@ function outputAttendanceCsv(array $reportData, ?array $churchSettings = null): 
         fputcsv($output, [
             $date,
             $record['title'] ?? '',
-            $record['type'] ?? '',
             $record['totalCheckins'] ?? 0,
             $record['memberCheckins'] ?? 0,
             $record['guestCheckins'] ?? 0,
@@ -385,7 +383,7 @@ function outputAttendancePdfSimple(array $reportData, ?array $churchSettings = n
     ];
     $pdf->addSummaryBox($summary);
     
-    $headers = ['Date', 'Event', 'Type', 'Total', 'Members', 'Guests', 'Last Check-in'];
+    $headers = ['Date', 'Event', 'Total', 'Members', 'Guests', 'Last Check-in'];
     $rows = [];
     
     foreach ($reportData['records'] as $record) {
@@ -395,7 +393,6 @@ function outputAttendancePdfSimple(array $reportData, ?array $churchSettings = n
         $rows[] = [
             $date,
             $record['title'] ?? '',
-            $record['type'] ?? '',
             $record['totalCheckins'] ?? 0,
             $record['memberCheckins'] ?? 0,
             $record['guestCheckins'] ?? 0,
@@ -463,7 +460,7 @@ function outputAttendancePdfMpdf(array $reportData, ?array $churchSettings = nul
     
     $html .= '<table>';
     $html .= '<thead><tr>';
-    $html .= '<th>Date</th><th>Event</th><th>Type</th><th class="numeric">Total</th><th class="numeric">Members</th><th class="numeric">Guests</th><th>Last Check-in</th>';
+    $html .= '<th>Date</th><th>Event</th><th class="numeric">Total</th><th class="numeric">Members</th><th class="numeric">Guests</th><th>Last Check-in</th>';
     $html .= '</tr></thead><tbody>';
     
     foreach ($reportData['records'] as $record) {
@@ -473,7 +470,6 @@ function outputAttendancePdfMpdf(array $reportData, ?array $churchSettings = nul
         $html .= '<tr>';
         $html .= '<td>' . htmlspecialchars($date) . '</td>';
         $html .= '<td>' . htmlspecialchars($record['title'] ?? '') . '</td>';
-        $html .= '<td>' . htmlspecialchars($record['type'] ?? '') . '</td>';
         $html .= '<td class="numeric">' . ($record['totalCheckins'] ?? 0) . '</td>';
         $html .= '<td class="numeric">' . ($record['memberCheckins'] ?? 0) . '</td>';
         $html .= '<td class="numeric">' . ($record['guestCheckins'] ?? 0) . '</td>';
