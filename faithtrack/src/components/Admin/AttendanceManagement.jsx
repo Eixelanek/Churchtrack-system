@@ -653,6 +653,9 @@ const AttendanceManagement = ({
       setEventToAction(null);
       setShowViewDetailsModal(false);
       setSelectedEvent(null);
+      setShowEventDetailsModal(false);
+      setSelectedEventDetails(null);
+      setModalSearchTerm('');
       setTimeError('');
       setModalMouseDownTarget(null);
     }
@@ -1822,377 +1825,113 @@ const AttendanceManagement = ({
             <tbody>
               {filteredAttendanceEvents.map((event, idx) => {
                 const eventDate = new Date(event.date);
-                const dayNumber = eventDate.getDate();
                 const monthDay = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'long' });
-                const isExpanded = expandedServiceId === event.id;
                 const status = (event.status || 'upcoming').toLowerCase();
 
+                const openEventModal = () => {
+                  // Load details if not already cached, then open modal
+                  const openModal = (detailsData) => {
+                    const detailsEvent = detailsData?.event || {};
+                    const resolvedTitle = detailsEvent.title || event.title || 'Untitled Event';
+                    const { dateLabel, timeLabel } = formatDateTimeDisplay(
+                      detailsEvent.date || event.date,
+                      detailsEvent.startTime || detailsEvent.start_time || event.startTime || event.start_time
+                    );
+                    const locationLabel = detailsEvent.location || event.location || 'Not specified';
+                    const attendeesList = detailsData?.attendees || [];
+                    const absenteesList = detailsData?.absentees || [];
+                    const attendeesCount = detailsEvent.totalAttendees ?? attendeesList.length ?? event.totalAttendees ?? 0;
+                    const absenteesCount = detailsEvent.absentCount ?? absenteesList.length;
+
+                    setSelectedEventDetails({
+                      eventId: event.id,
+                      title: resolvedTitle,
+                      dateLabel,
+                      timeLabel,
+                      location: locationLabel,
+                      attendees: attendeesList,
+                      absentees: absenteesList,
+                      attendeesCount,
+                      absenteesCount,
+                      memberCount: members.length,
+                      activeTab: 'attendees',
+                      loading: false,
+                    });
+                    setShowEventDetailsModal(true);
+                  };
+
+                  if (eventDetailsMap[event.id]) {
+                    openModal(eventDetailsMap[event.id]);
+                  } else {
+                    // Show modal immediately with loading state
+                    setSelectedEventDetails({
+                      eventId: event.id,
+                      title: event.title || 'Untitled Event',
+                      dateLabel: '',
+                      timeLabel: '',
+                      location: event.location || 'Not specified',
+                      attendees: [],
+                      absentees: [],
+                      attendeesCount: event.totalAttendees || 0,
+                      absenteesCount: 0,
+                      memberCount: members.length,
+                      activeTab: 'attendees',
+                      loading: true,
+                    });
+                    setShowEventDetailsModal(true);
+                    loadEventDetails(event.id).then((data) => {
+                      if (data) {
+                        setEventDetailsMap((prev) => ({ ...prev, [event.id]: data }));
+                        openModal(data);
+                      } else {
+                        setSelectedEventDetails((prev) => prev ? { ...prev, loading: false } : prev);
+                      }
+                    });
+                  }
+                };
+
                 return (
-                  <>
-                    <tr
-                      key={event.id}
-                      className={`att-table-row ${isExpanded ? 'att-row-expanded' : ''}`}
-                      onClick={() => {
-                        const isCurrentlyExpanded = expandedServiceId === event.id;
-                        const nextExpandedId = isCurrentlyExpanded ? null : event.id;
-                        setExpandedServiceId(nextExpandedId);
-                        if (!isCurrentlyExpanded && !eventDetailsMap[event.id]) {
-                          setEventDetailsLoading((prev) => ({ ...prev, [event.id]: true }));
-                          loadEventDetails(event.id)
-                            .then((data) => {
-                              if (data) setEventDetailsMap((prev) => ({ ...prev, [event.id]: data }));
-                            })
-                            .finally(() => {
-                              setEventDetailsLoading((prev) => ({ ...prev, [event.id]: false }));
-                            });
-                        }
-                      }}
-                    >
-                      {multiSelectMode && (
-                        <td onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            className="att-checkbox"
-                            checked={selectedEvents.has(event.id)}
-                            onChange={() => toggleEventSelection(event.id)}
-                          />
-                        </td>
-                      )}
-                      <td className="att-td-num">{idx + 1}</td>
-                      <td className="att-td-title">{event.title}</td>
-                      <td className="att-td-meta">{monthDay}</td>
-                      <td className="att-td-meta">{dayName}</td>
-                      <td className="att-td-count">
-                        {(() => {
-                          const detailsData = eventDetailsMap[event.id];
-                          if (detailsData?.attendees) return detailsData.attendees.length;
-                          return event.totalAttendees || 0;
-                        })()}
+                  <tr
+                    key={event.id}
+                    className="att-table-row att-table-row--clickable"
+                    onClick={() => {
+                      if (multiSelectMode) return;
+                      openEventModal();
+                    }}
+                  >
+                    {multiSelectMode && (
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="att-checkbox"
+                          checked={selectedEvents.has(event.id)}
+                          onChange={() => toggleEventSelection(event.id)}
+                        />
                       </td>
-                      <td>
-                        <span className={`att-status-badge att-status--${status}`}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="att-td-chevron">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`att-chevron ${isExpanded ? 'open' : ''}`}>
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr key={`${event.id}-details`} className="att-expanded-row">
-                        <td colSpan={multiSelectMode ? 8 : 7} className="att-expanded-cell">
-                          <div className="event-details-expanded">
-                            {eventDetailsLoading[event.id] && (
-                              <div className="event-details-loading">Loading event details...</div>
-                            )}
-
-                            {!eventDetailsLoading[event.id] && (
-                      (() => {
+                    )}
+                    <td className="att-td-num">{idx + 1}</td>
+                    <td className="att-td-title">{event.title}</td>
+                    <td className="att-td-meta">{monthDay}</td>
+                    <td className="att-td-meta">{dayName}</td>
+                    <td className="att-td-count">
+                      {(() => {
                         const detailsData = eventDetailsMap[event.id];
-                        const detailsEvent = detailsData?.event || {};
-                        const resolvedTitle = detailsEvent.title || event.title || 'Untitled Event';
-                        const statusLabel = formatStatusLabel(detailsEvent.status || event.status);
-                        const { dateLabel, timeLabel } = formatDateTimeDisplay(
-                          detailsEvent.date || event.date,
-                          detailsEvent.startTime || detailsEvent.start_time || event.startTime || event.start_time
-                        );
-
-                        const allAttendees = detailsData?.attendees || [];
-                        const allAbsentees = detailsData?.absentees || [];
-                        const attendeesList = allAttendees;
-                        const absenteesList = allAbsentees;
-                        const attendeesPreview = attendeesList.slice(0, INLINE_PREVIEW_LIMIT);
-                        const absenteesPreview = absenteesList.slice(0, INLINE_PREVIEW_LIMIT);
-                        const attendeesCount = detailsEvent.totalAttendees ?? attendeesList.length ?? event.totalAttendees ?? 0;
-                        const absenteesCount = detailsEvent.absentCount ?? absenteesList.length;
-        const hasQrSessions = true; // attendance always shown — no longer gated on QR sessions
-                        const locationLabel = detailsEvent.location || event.location || 'Not specified';
-
-                        const openFullListsModal = (initialTab = 'attendees') => {
-                          setSelectedEventDetails({
-                            title: resolvedTitle,
-                            dateLabel,
-                            timeLabel,
-                            location: locationLabel,
-                            attendees: attendeesList,
-                            absentees: absenteesList,
-                            activeTab: initialTab,
-                          });
-                          setShowEventDetailsModal(true);
-                        };
-
-                        return (
-                          <>
-                            <div className="event-overview-row">
-                              <div>
-                                <h3 className="event-overview-title">{resolvedTitle}</h3>
-                                <div className="event-overview-meta">
-                                  <div className="meta-item">
-                                    <span className="meta-label">Date</span>
-                                    <span className="meta-value">{dateLabel}</span>
-                                  </div>
-                                  <div className="meta-item">
-                                    <span className="meta-label">Time</span>
-                                    <span className="meta-value">{timeLabel}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Event Summary Stats */}
-                            {hasQrSessions && (
-                              <div className="event-summary-stats">
-                                <div className="summary-title-row">
-                                  <h3 className="summary-title">Event Summary</h3>
-                                  <div className="event-export-btns">
-                                    <button
-                                      className="event-export-btn"
-                                      title="Print / Save PDF"
-                                      onClick={async (e) => {
-                                        e.stopPropagation();
-                                        try {
-                                          const res = await fetch(`${API_BASE_URL}/api/reports/export_event.php?event_id=${event.id}&format=json`);
-                                          const d = await res.json();
-                                          if (!d.success) { alert('Failed to load event data.'); return; }
-                                          const ev = d.event;
-                                          const logo = d.churchLogo ? `<img src="${d.churchLogo}" style="height:60px;object-fit:contain;display:block;margin:0 auto 6px;" />` : '';
-                                          const total = d.attendees.length + d.absentees.length;
-                                          const rate  = total > 0 ? Math.round((d.attendees.length / total) * 100) : 0;
-                                          const attRows = d.attendees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">No attendees recorded</td></tr>`;
-                                          const absRows = d.absentees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center;color:#94a3b8">All active members attended</td></tr>`;
-                                          const html = `
-                                            <div style="text-align:center;margin-bottom:16px">${logo}
-                                              <h1 style="font-size:20px;font-weight:700;margin:0">${d.churchName}</h1>
-                                              <h2 style="font-size:13px;color:#64748b;font-weight:400;margin:4px 0 0">Event Attendance Report</h2>
-                                              <p style="font-size:11px;color:#94a3b8;margin:4px 0 0">Generated: ${d.generatedAt}</p>
-                                            </div>
-                                            <div style="background:#f8fafc;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px">
-                                              <b>${ev.title}</b><br/>
-                                              <span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}${ev.type ? ' · ' + ev.type : ''}</span>
-                                            </div>
-                                            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Present</div></div>
-                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div>
-                                              <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Attendance Rate</div></div>
-                                            </div>
-                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Present (${d.attendees.length})</div>
-                                            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
-                                              <thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in Time</th></tr></thead>
-                                              <tbody>${attRows}</tbody>
-                                            </table>
-                                            <div style="font-weight:700;font-size:12px;border-left:3px solid #dc2626;padding-left:6px;margin:14px 0 6px">Absent (${d.absentees.length})</div>
-                                            <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
-                                              <thead><tr><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">Name</th></tr></thead>
-                                              <tbody>${absRows}</tbody>
-                                            </table>`;
-                                          document.getElementById('evt-print-div')?.remove();
-                                          document.getElementById('evt-print-sty')?.remove();
-                                          const div = document.createElement('div'); div.id='evt-print-div'; div.innerHTML=html;
-                                          document.body.appendChild(div);
-                                          const sty = document.createElement('style'); sty.id='evt-print-sty';
-                                          sty.textContent=`@media print{html,body{overflow:visible!important;height:auto!important}body>*:not(#evt-print-div){display:none!important}#evt-print-div{display:block!important;position:relative!important;overflow:visible!important;height:auto!important;max-height:none!important}}#evt-print-div{display:none;font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:24px}#evt-print-div table td{padding:4px 7px;border-bottom:1px solid #f1f5f9}#evt-print-div table tr:nth-child(even) td{background:#f8fafc}`;
-                                          document.head.appendChild(sty);
-                                          setTimeout(()=>{window.print();setTimeout(()=>{div.remove();sty.remove();},2000);},100);
-                                        } catch(err) { alert('Print failed: ' + err.message); }
-                                      }}
-                                    >
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                                      Print
-                                    </button>
-                                    <button
-                                      className="event-export-btn"
-                                      title="Export Excel"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const form = document.createElement('form');
-                                        form.method = 'POST';
-                                        form.action = `${API_BASE_URL}/api/reports/export_event.php`;
-                                        form.target = '_blank';
-                                        const fmtInput = document.createElement('input');
-                                        fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'xlsx';
-                                        const idInput = document.createElement('input');
-                                        idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = event.id;
-                                        form.appendChild(fmtInput); form.appendChild(idInput);
-                                        document.body.appendChild(form); form.submit(); document.body.removeChild(form);
-                                      }}
-                                    >
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                                      Excel
-                                    </button>
-                                  </div>
-                                </div>
-                                <div className="summary-stats-grid">
-                                  <div className="summary-stat-item">
-                                    <div className="summary-stat-label">Total Attendees</div>
-                                    <div className="summary-stat-value">{attendeesCount}</div>
-                                  </div>
-                                  <div className="summary-stat-item">
-                                    <div className="summary-stat-label">Members</div>
-                                    <div className="summary-stat-value">
-                                      {attendeesList.filter(a => a.memberId).length}
-                                      <span className="summary-stat-percentage">
-                                        ({attendeesCount > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / attendeesCount) * 100) : 0}%)
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="summary-stat-item">
-                                    <div className="summary-stat-label">Guests</div>
-                                    <div className="summary-stat-value">
-                                      {attendeesList.filter(a => !a.memberId).length}
-                                      <span className="summary-stat-percentage">
-                                        ({attendeesCount > 0 ? Math.round((attendeesList.filter(a => !a.memberId).length / attendeesCount) * 100) : 0}%)
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="summary-stat-item">
-                                    <div className="summary-stat-label">Attendance Rate</div>
-                                    <div className="summary-stat-value">
-                                      {members.length > 0 ? Math.round((attendeesList.filter(a => a.memberId).length / members.length) * 100) : 0}%
-                                      <span className="summary-stat-subtext">of active members</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {hasQrSessions ? (
-                              <>
-                                <div className="att-expanded-bottom">
-                                <div className="att-sections-row">
-                                <div className="attendees-section">
-                                  <div className="attendees-header-row">
-                                    <div className="attendees-header-left">
-                                      <h3>Present</h3>
-                                      <span className="section-count">{attendeesCount}</span>
-                                    </div>
-                                    {attendeesList.length > INLINE_PREVIEW_LIMIT && (
-                                      <button
-                                        type="button"
-                                        className="view-all-btn"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openFullListsModal('attendees');
-                                        }}
-                                      >
-                                        View All
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div className="att-table-header">
-                                    <span>#</span>
-                                    <span></span>
-                                    <span>Name</span>
-                                    <span>Check-in</span>
-                                  </div>
-                                  <div className="attendees-grid">
-                                    {attendeesList.length === 0 ? (
-                                      <div className="empty-state">No attendees recorded yet.</div>
-                                    ) : (
-                                      attendeesPreview.map((attendee, idx) => {
-                                        const { primary, secondary } = splitDisplayName(attendee.name || 'Checked-in Guest');
-                                        const attendeeKey = `attendee-${attendee.memberId ?? 'guest'}-${attendee.checkInTime ?? 'time'}`;
-                                        return (
-                                          <div className="attendee-item-small checked" key={attendeeKey}>
-                                            <span className="att-row-num">{idx + 1}</span>
-                                            <div className="attendee-avatar-small">
-                                              {attendee.profile_picture ? (
-                                                <img 
-                                                  src={resolveProfilePicUrl(attendee.profile_picture)} 
-                                                  alt={attendee.name} 
-                                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
-                                                  onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = attendee.initials; }}
-                                                />
-                                              ) : attendee.initials}
-                                            </div>
-                                            <div className="attendee-main">
-                                              <div className="attendee-name-line">
-                                                <span className="attendee-name-primary">{primary}</span>
-                                                {secondary && <span className="attendee-name-secondary">{secondary}</span>}
-                                              </div>
-                                            </div>
-                                            <span className="attendee-checkin-time">
-                                              {attendee.checkInTime ? formatModalCheckInClock(attendee.checkInTime) : '—'}
-                                            </span>
-                                          </div>
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="attendees-section">
-                                  <div className="attendees-header-row">
-                                    <div className="attendees-header-left">
-                                      <h3>Absent</h3>
-                                      <span className="section-count">{absenteesCount}</span>
-                                    </div>
-                                    {absenteesList.length > INLINE_PREVIEW_LIMIT && (
-                                      <button
-                                        type="button"
-                                        className="view-all-btn"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          openFullListsModal('absentees');
-                                        }}
-                                      >
-                                        View All
-                                      </button>
-                                    )}
-                                  </div>
-                                  <div className="att-table-header att-table-header--absent">
-                                    <span>#</span>
-                                    <span></span>
-                                    <span>Name</span>
-                                  </div>
-                                  <div className="attendees-grid">
-                                    {absenteesList.length === 0 ? (
-                                      <div className="empty-state">No absentees recorded.</div>
-                                    ) : (
-                                      absenteesPreview.map((absentee, idx) => {
-                                        const { primary, secondary } = splitDisplayName(absentee.name || 'Member');
-                                        return (
-                                          <div className="attendee-item-small absent" key={`absent-${absentee.id}`}>
-                                            <span className="att-row-num">{idx + 1}</span>
-                                            <div className="attendee-avatar-small absentee-avatar">
-                                              {absentee.profile_picture ? (
-                                                <img 
-                                                  src={resolveProfilePicUrl(absentee.profile_picture)} 
-                                                  alt={absentee.name} 
-                                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
-                                                  onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = absentee.initials; }}
-                                                />
-                                              ) : absentee.initials}
-                                            </div>
-                                            <div className="attendee-main">
-                                              <div className="attendee-name-line">
-                                                <span className="attendee-name-primary">{primary}</span>
-                                                {secondary && <span className="attendee-name-secondary">{secondary}</span>}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                </div>
-                                </div>{/* end att-sections-row */}
-                                </div>{/* end att-expanded-bottom */}
-                              </>
-                            ) : (
-                              <div className="empty-state">No QR session was recorded for this event.</div>
-                            )}
-                          </>
-                        );
-                      })()
-                    )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
+                        if (detailsData?.attendees) return detailsData.attendees.length;
+                        return event.totalAttendees || 0;
+                      })()}
+                    </td>
+                    <td>
+                      <span className={`att-status-badge att-status--${status}`}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="att-td-chevron">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="att-chevron">
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -3224,115 +2963,244 @@ const AttendanceManagement = ({
 
       {/* Event Details Modal */}
       {showEventDetailsModal && selectedEventDetails && (
-        <div className="modal-overlay" onClick={() => { setShowEventDetailsModal(false); setModalSearchTerm(''); }}>
-          <div className="modal-content event-details-modal-large" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{selectedEventDetails.title}</h2>
-              <button className="modal-close-btn" onClick={() => setShowEventDetailsModal(false)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
+        <div className="modal-overlay" onMouseDown={handleModalMouseDown} onClick={handleModalClose}>
+          <div className="modal-content edet-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* ── Modal Header ── */}
+            <div className="edet-header">
+              <div className="edet-header-left">
+                <h2 className="edet-title">{selectedEventDetails.title}</h2>
+                {(selectedEventDetails.dateLabel || selectedEventDetails.timeLabel) && (
+                  <p className="edet-subtitle">
+                    {selectedEventDetails.dateLabel}
+                    {selectedEventDetails.dateLabel && selectedEventDetails.timeLabel && <span className="edet-dot">·</span>}
+                    {selectedEventDetails.timeLabel}
+                    {selectedEventDetails.location && selectedEventDetails.location !== 'Not specified' && (
+                      <><span className="edet-dot">·</span>{selectedEventDetails.location}</>
+                    )}
+                  </p>
+                )}
+              </div>
+              <button
+                className="edet-close-btn"
+                onClick={() => { setShowEventDetailsModal(false); setModalSearchTerm(''); }}
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
 
-            <div className="modal-body" style={{ padding: '0.6rem 0.85rem 0.85rem', background: '#f8fbff', display: 'flex', flexDirection: 'column', gap: '0.35rem', overflowY: 'auto', flex: 1, minHeight: 0 }}>
-              <div className="event-summary-large redesigned">
-                <div className="summary-block schedule">
-                  <div className="summary-heading">Schedule</div>
-                  <div className="summary-line">
-                    {selectedEventDetails.dateLabel}
-                    <span className="dot" aria-hidden="true"></span>
-                    {selectedEventDetails.timeLabel}
+            {selectedEventDetails.loading ? (
+              <div className="edet-loading">
+                <div className="loading-spinner"></div>
+                <span>Loading event details…</span>
+              </div>
+            ) : (
+              <>
+                {/* ── Summary Stats ── */}
+                <div className="edet-stats-row">
+                  <div className="edet-stat edet-stat--green">
+                    <span className="edet-stat-value">{selectedEventDetails.attendeesCount}</span>
+                    <span className="edet-stat-label">Present</span>
+                  </div>
+                  <div className="edet-stat edet-stat--red">
+                    <span className="edet-stat-value">{selectedEventDetails.absenteesCount}</span>
+                    <span className="edet-stat-label">Absent</span>
+                  </div>
+                  <div className="edet-stat edet-stat--blue">
+                    <span className="edet-stat-value">
+                      {selectedEventDetails.attendeesList
+                        ? selectedEventDetails.attendeesList.filter(a => a.memberId).length
+                        : selectedEventDetails.attendees.filter(a => a.memberId).length}
+                    </span>
+                    <span className="edet-stat-label">Members</span>
+                  </div>
+                  <div className="edet-stat edet-stat--purple">
+                    <span className="edet-stat-value">
+                      {selectedEventDetails.memberCount > 0
+                        ? Math.round((selectedEventDetails.attendees.filter(a => a.memberId).length / selectedEventDetails.memberCount) * 100)
+                        : 0}%
+                    </span>
+                    <span className="edet-stat-label">Rate</span>
                   </div>
                 </div>
-                <div className="summary-block participation">
-                  <div className="summary-heading">Participation</div>
-                  <div className="summary-row">
-                    <span className="summary-chip attendees">
-                      <span className="chip-count">{selectedEventDetails.attendees.length}</span>
-                      <span className="chip-label">Attendees</span>
-                    </span>
-                    <span className="summary-chip absentees">
-                      <span className="chip-count">{selectedEventDetails.absentees.length}</span>
-                      <span className="chip-label">Absentees</span>
-                    </span>
-                  </div>
+
+                {/* ── Export Buttons ── */}
+                <div className="edet-export-row">
+                  <button
+                    className="event-export-btn"
+                    title="Print / Save PDF"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const res = await fetch(`${API_BASE_URL}/api/reports/export_event.php?event_id=${selectedEventDetails.eventId}&format=json`);
+                        const d = await res.json();
+                        if (!d.success) { alert('Failed to load event data.'); return; }
+                        const ev = d.event;
+                        const logo = d.churchLogo ? `<img src="${d.churchLogo}" style="height:60px;object-fit:contain;display:block;margin:0 auto 6px;" />` : '';
+                        const total = d.attendees.length + d.absentees.length;
+                        const rate  = total > 0 ? Math.round((d.attendees.length / total) * 100) : 0;
+                        const attRows = d.attendees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">No attendees recorded</td></tr>`;
+                        const absRows = d.absentees.map((a, i) => `<tr><td>${i+1}</td><td>${a.name}</td></tr>`).join('') || `<tr><td colspan="2" style="text-align:center;color:#94a3b8">All active members attended</td></tr>`;
+                        const html = `
+                          <div style="text-align:center;margin-bottom:16px">${logo}
+                            <h1 style="font-size:20px;font-weight:700;margin:0">${d.churchName}</h1>
+                            <h2 style="font-size:13px;color:#64748b;font-weight:400;margin:4px 0 0">Event Attendance Report</h2>
+                            <p style="font-size:11px;color:#94a3b8;margin:4px 0 0">Generated: ${d.generatedAt}</p>
+                          </div>
+                          <div style="background:#f8fafc;border-radius:8px;padding:12px 16px;margin-bottom:14px;font-size:12px">
+                            <b>${ev.title}</b><br/>
+                            <span style="color:#64748b">${ev.date}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}${ev.type ? ' · ' + ev.type : ''}</span>
+                          </div>
+                          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #059669;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#059669">${d.attendees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Present</div></div>
+                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #dc2626;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#dc2626">${d.absentees.length}</div><div style="font-size:10px;font-weight:600;color:#374151">Absent</div></div>
+                            <div style="flex:1 1 100px;border:1px solid #e5e7eb;border-top:3px solid #4F46E5;border-radius:6px;padding:8px 12px"><div style="font-size:18px;font-weight:700;color:#4F46E5">${rate}%</div><div style="font-size:10px;font-weight:600;color:#374151">Attendance Rate</div></div>
+                          </div>
+                          <div style="font-weight:700;font-size:12px;border-left:3px solid #059669;padding-left:6px;margin:14px 0 6px">Present (${d.attendees.length})</div>
+                          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
+                            <thead><tr><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Name</th><th style="background:#059669;color:#fff;padding:5px 7px;text-align:left">Check-in Time</th></tr></thead>
+                            <tbody>${attRows}</tbody>
+                          </table>
+                          <div style="font-weight:700;font-size:12px;border-left:3px solid #dc2626;padding-left:6px;margin:14px 0 6px">Absent (${d.absentees.length})</div>
+                          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px">
+                            <thead><tr><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">#</th><th style="background:#dc2626;color:#fff;padding:5px 7px;text-align:left">Name</th></tr></thead>
+                            <tbody>${absRows}</tbody>
+                          </table>`;
+                        document.getElementById('evt-print-div')?.remove();
+                        document.getElementById('evt-print-sty')?.remove();
+                        const div = document.createElement('div'); div.id='evt-print-div'; div.innerHTML=html;
+                        document.body.appendChild(div);
+                        const sty = document.createElement('style'); sty.id='evt-print-sty';
+                        sty.textContent=`@media print{html,body{overflow:visible!important;height:auto!important}body>*:not(#evt-print-div){display:none!important}#evt-print-div{display:block!important;position:relative!important;overflow:visible!important;height:auto!important;max-height:none!important}}#evt-print-div{display:none;font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:24px}#evt-print-div table td{padding:4px 7px;border-bottom:1px solid #f1f5f9}#evt-print-div table tr:nth-child(even) td{background:#f8fafc}`;
+                        document.head.appendChild(sty);
+                        setTimeout(()=>{window.print();setTimeout(()=>{div.remove();sty.remove();},2000);},100);
+                      } catch(err) { alert('Print failed: ' + err.message); }
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Print
+                  </button>
+                  <button
+                    className="event-export-btn"
+                    title="Export Excel"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const form = document.createElement('form');
+                      form.method = 'POST';
+                      form.action = `${API_BASE_URL}/api/reports/export_event.php`;
+                      form.target = '_blank';
+                      const fmtInput = document.createElement('input');
+                      fmtInput.type = 'hidden'; fmtInput.name = 'format'; fmtInput.value = 'xlsx';
+                      const idInput = document.createElement('input');
+                      idInput.type = 'hidden'; idInput.name = 'event_id'; idInput.value = selectedEventDetails.eventId;
+                      form.appendChild(fmtInput); form.appendChild(idInput);
+                      document.body.appendChild(form); form.submit(); document.body.removeChild(form);
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    Excel
+                  </button>
                 </div>
-              </div>
 
-              <div className="full-list-tabs">
-                <button
-                  type="button"
-                  className={`full-list-tab ${selectedEventDetails.activeTab === 'attendees' ? 'active' : ''}`}
-                  onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' })); setModalSearchTerm(''); }}                >
-                  Attendees ({selectedEventDetails.attendees.length})
-                </button>
-                <button
-                  type="button"
-                  className={`full-list-tab ${selectedEventDetails.activeTab === 'absentees' ? 'active' : ''}`}
-                  onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' })); setModalSearchTerm(''); }}                >
-                  Absentees ({selectedEventDetails.absentees.length})
-                </button>
-              </div>
+                {/* ── Tabs ── */}
+                <div className="full-list-tabs">
+                  <button
+                    type="button"
+                    className={`full-list-tab ${selectedEventDetails.activeTab === 'attendees' ? 'active' : ''}`}
+                    onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'attendees' })); setModalSearchTerm(''); }}
+                  >
+                    Present ({selectedEventDetails.attendees.length})
+                  </button>
+                  <button
+                    type="button"
+                    className={`full-list-tab ${selectedEventDetails.activeTab === 'absentees' ? 'active' : ''}`}
+                    onClick={() => { setSelectedEventDetails((prev) => ({ ...prev, activeTab: 'absentees' })); setModalSearchTerm(''); }}
+                  >
+                    Absent ({selectedEventDetails.absentees.length})
+                  </button>
+                </div>
 
-              {/* Search bar */}
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                <svg style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none', zIndex: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input
-                  style={{ width: '100%', padding: '8px 32px 8px 34px', border: '1.5px solid #e2e8f0', borderRadius: '8px', fontSize: '0.875rem', color: '#1e293b', background: '#fff', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
-                  type="text"
-                  placeholder="Search by name…"
-                  value={modalSearchTerm}
-                  onChange={(e) => setModalSearchTerm(e.target.value)}
-                />
-                {modalSearchTerm && (
-                  <button style={{ position: 'absolute', right: '8px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '1.1rem', cursor: 'pointer', lineHeight: 1, padding: 0 }} onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
-                )}
-              </div>
+                {/* ── Search ── */}
+                <div className="edet-search-wrap">
+                  <svg className="edet-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input
+                    className="edet-search-input"
+                    type="text"
+                    placeholder="Search by name…"
+                    value={modalSearchTerm}
+                    onChange={(e) => setModalSearchTerm(e.target.value)}
+                  />
+                  {modalSearchTerm && (
+                    <button className="edet-search-clear" onClick={() => setModalSearchTerm('')} aria-label="Clear search">×</button>
+                  )}
+                </div>
 
-              <div className="full-list-container">
-                {(() => {
-                  const rawList = selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees;
-                  const filtered = modalSearchTerm.trim()
-                    ? rawList.filter(p => (p.name || '').toLowerCase().includes(modalSearchTerm.toLowerCase()))
-                    : rawList;
-                  if (filtered.length === 0) {
-                    return <div className="empty-state">{modalSearchTerm ? 'No results found.' : (selectedEventDetails.activeTab === 'attendees' ? 'No QR attendees recorded yet.' : 'No absentees recorded.')}</div>;
-                  }
-                  return (
-                    <ul className="full-list">
-                      {filtered.map((person, idx) => {
-                        const { primary, secondary } = splitDisplayName(person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member'));
-                        const statusLabel = selectedEventDetails.activeTab === 'attendees'
-                          ? (person.status === 'Present' || person.status === 'present' ? 'PRESENT' : (person.status || 'Present').toUpperCase())
-                          : 'ABSENT';
-                        return (
-                          <li className={`full-list-item ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`} key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? idx}`}>
-                            <div className={`full-list-accent ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}></div>
-                            <div className={`full-list-avatar ${selectedEventDetails.activeTab === 'attendees' ? 'checked' : 'absent'}`}>
-                              {person.initials || '??'}
-                            </div>
-                            <div className="full-list-main">
-                              <div className="full-list-name">
-                                <span className="full-list-primary">{primary}</span>
-                                {secondary && <span className="full-list-secondary">{secondary}</span>}
+                {/* ── List ── */}
+                <div className="full-list-container">
+                  {(() => {
+                    const rawList = selectedEventDetails.activeTab === 'attendees' ? selectedEventDetails.attendees : selectedEventDetails.absentees;
+                    const filtered = modalSearchTerm.trim()
+                      ? rawList.filter(p => (p.name || '').toLowerCase().includes(modalSearchTerm.toLowerCase()))
+                      : rawList;
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="empty-state">
+                          {modalSearchTerm
+                            ? 'No results found.'
+                            : (selectedEventDetails.activeTab === 'attendees' ? 'No attendees recorded yet.' : 'No absentees recorded.')}
+                        </div>
+                      );
+                    }
+                    return (
+                      <ul className="full-list">
+                        {filtered.map((person, i) => {
+                          const { primary, secondary } = splitDisplayName(
+                            person.name || (selectedEventDetails.activeTab === 'attendees' ? 'Checked-in Guest' : 'Member')
+                          );
+                          const isAttendee = selectedEventDetails.activeTab === 'attendees';
+                          const statusLabel = isAttendee
+                            ? (person.status === 'Present' || person.status === 'present' ? 'PRESENT' : (person.status || 'Present').toUpperCase())
+                            : 'ABSENT';
+                          return (
+                            <li
+                              className={`full-list-item ${isAttendee ? 'checked' : 'absent'}`}
+                              key={`${selectedEventDetails.activeTab}-${person.memberId ?? person.id ?? i}`}
+                            >
+                              <div className={`full-list-accent ${isAttendee ? 'checked' : 'absent'}`}></div>
+                              <div className={`full-list-avatar ${isAttendee ? 'checked' : 'absent'}`}>
+                                {person.profile_picture ? (
+                                  <img
+                                    src={resolveProfilePicUrl(person.profile_picture)}
+                                    alt={person.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                                    onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = person.initials || '??'; }}
+                                  />
+                                ) : (person.initials || '??')}
                               </div>
-                              {selectedEventDetails.activeTab === 'attendees' && person.checkInTime && (
-                                <div className="full-list-subtext">
-                                  Checked in at {formatModalCheckInClock(person.checkInTime)}
+                              <div className="full-list-main">
+                                <div className="full-list-name">
+                                  <span className="full-list-primary">{primary}</span>
+                                  {secondary && <span className="full-list-secondary">{secondary}</span>}
                                 </div>
-                              )}
-                            </div>
-                            <span className={`full-list-status ${selectedEventDetails.activeTab === 'attendees' ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  );
-                })()}
-              </div>
-            </div>
+                                {isAttendee && person.checkInTime && (
+                                  <div className="full-list-subtext">
+                                    Checked in at {formatModalCheckInClock(person.checkInTime)}
+                                  </div>
+                                )}
+                              </div>
+                              <span className={`full-list-status ${isAttendee ? 'status-checked' : 'status-absent'}`}>{statusLabel}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
