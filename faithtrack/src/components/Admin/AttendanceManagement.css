@@ -3671,3 +3671,170 @@
     grid-template-columns: 28px 1fr 64px;
   }
 }
+
+/* ============================================================
+   FINAL OVERRIDE — Expanded attendance tables
+   Scoped to .att-sections-row to avoid all conflicts
+   ============================================================ */
+
+/* Remove the broken pseudo-element header */
+.att-sections-row .attendees-section .attendees-header-row::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Remove the fake grid on the header-row */
+.att-sections-row .attendees-section .attendees-header-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 14px !important;
+  background: rgba(0,73,175,0.03) !important;
+  border-bottom: 1px solid rgba(0,73,175,0.07) !important;
+  margin-bottom: 0 !important;
+}
+
+/* ── Present table: avatar | name | status | time ── */
+.att-sections-row .attendees-section:nth-child(1) .attendee-item-small {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 72px 76px !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 9px 14px !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0,73,175,0.05) !important;
+}
+
+.att-sections-row .attendees-section:nth-child(1) .attendee-item-small::before {
+  display: none !important;
+}
+
+.att-sections-row .attendees-section:nth-child(1) .attendee-item-small.checked {
+  border-left: 3px solid #22c55e !important;
+}
+
+/* Present column header — must match 4-col grid */
+.att-sections-row .attendees-section:nth-child(1) .att-table-header {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 72px 76px !important;
+  gap: 8px !important;
+  padding: 7px 14px !important;
+  background: rgba(0,73,175,0.03) !important;
+  border-bottom: 1px solid rgba(0,73,175,0.07) !important;
+}
+
+/* ── Absent table: avatar | name | status ── */
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 72px !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 9px 14px !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(0,73,175,0.05) !important;
+}
+
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small::before {
+  display: none !important;
+}
+
+.att-sections-row .attendees-section:nth-child(2) .attendee-item-small.absent {
+  border-left: 3px solid #ef4444 !important;
+  background: #fff !important;
+}
+
+/* Hide the time dash on absent */
+.att-sections-row .attendees-section:nth-child(2) .attendee-checkin-time {
+  display: none !important;
+}
+
+/* Absent column header — must match 3-col grid */
+.att-sections-row .attendees-section:nth-child(2) .att-table-header {
+  display: grid !important;
+  grid-template-columns: 28px 1fr 72px !important;
+  gap: 8px !important;
+  padding: 7px 14px !important;
+  background: rgba(0,73,175,0.03) !important;
+  border-bottom: 1px solid rgba(0,73,175,0.07) !important;
+}
+
+/* Column header text */
+.att-sections-row .att-table-header span {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  color: #7a8a9a !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  white-space: nowrap !important;
+}
+
+/* Avatar spacer header — invisible */
+.att-sections-row .att-table-header span:first-child {
+  visibility: hidden !important;
+}
+
+/* Status + Time centered */
+.att-sections-row .att-table-header span:nth-child(3),
+.att-sections-row .att-table-header span:nth-child(4) {
+  text-align: center !important;
+}
+
+/* Data cell alignments */
+.att-sections-row .attendee-status {
+  text-align: center !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 50px !important;
+  white-space: nowrap !important;
+}
+
+.att-sections-row .attendee-checkin-time {
+  text-align: center !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  color: #5a6a85 !important;
+  white-space: nowrap !important;
+}
+
+.att-sections-row .attendee-name-primary {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: #0a1a3a !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.att-sections-row .attendee-name-secondary {
+  font-size: 0.75rem !important;
+  color: #5a6a85 !important;
+  white-space: nowrap !important;
+}
+
+/* Section sizing */
+.att-sections-row {
+  display: grid !important;
+  grid-template-columns: 3fr 2fr !important;
+  gap: 16px !important;
+  margin-top: 20px !important;
+}
+
+/* Max height + scroll */
+.att-sections-row .attendees-grid {
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Mobile */
+@media (max-width: 760px) {
+  .att-sections-row {
+    grid-template-columns: 1fr !important;
+  }
+}
