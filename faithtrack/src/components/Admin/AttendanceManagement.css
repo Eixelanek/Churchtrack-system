@@ -4675,6 +4675,12 @@
   flex-shrink: 0;
   transition: background 0.2s;
   margin-top: 2px;
+  line-height: 0;
+}
+
+.edet-close-btn svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 .edet-close-btn:hover {
