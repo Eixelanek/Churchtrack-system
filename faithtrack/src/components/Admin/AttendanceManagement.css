@@ -4273,3 +4273,123 @@
   .arm-header-left h1 { font-size: 1.4rem; }
   .arm-action-btn { padding: 9px 14px; font-size: 0.82rem; }
 }
+
+/* ============================================================
+   Expanded Event Row — Mobile Responsive
+   ============================================================ */
+
+@media (max-width: 760px) {
+
+  /* Expanded cell padding */
+  .att-expanded-cell .event-details-expanded,
+  .event-details-expanded {
+    padding: 14px 14px 18px !important;
+  }
+
+  /* Event overview — stack vertically */
+  .event-overview-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .event-overview-title {
+    font-size: 1rem !important;
+  }
+
+  .event-overview-meta {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  /* Summary stats — 2 columns on mobile */
+  .event-summary-stats {
+    padding: 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .summary-title-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .summary-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .summary-stat-item {
+    padding: 10px 12px !important;
+  }
+
+  .summary-stat-value {
+    font-size: 1.2rem !important;
+  }
+
+  /* Export buttons — stack or wrap */
+  .event-export-btns {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* Present / Absent tables — stack vertically */
+  .att-expanded-bottom {
+    margin-top: 14px !important;
+  }
+
+  .att-sections-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Table headers and items — tighter padding */
+  .att-sections-row .att-table-header,
+  .att-sections-row .attendee-item-small {
+    padding: 7px 10px !important;
+    gap: 8px !important;
+  }
+
+  /* Present: hide check-in time on very small screens */
+  @media (max-width: 400px) {
+    .att-sections-row .attendees-section:nth-child(1) .attendee-item-small,
+    .att-sections-row .attendees-section:nth-child(1) .att-table-header {
+      grid-template-columns: 20px 26px 1fr !important;
+    }
+
+    .att-sections-row .attendees-section:nth-child(1) .attendee-checkin-time,
+    .att-sections-row .attendees-section:nth-child(1) .att-table-header span:nth-child(4) {
+      display: none !important;
+    }
+  }
+
+  /* Attendees grid max-height smaller on mobile */
+  .att-sections-row .attendees-grid {
+    max-height: 220px !important;
+  }
+
+  /* evd-header if present */
+  .evd-header {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .evd-header-right {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .evd-meta-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Stats panel if visible */
+  .att-stats-panel {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    padding: 14px !important;
+  }
+}

@@ -1940,9 +1940,6 @@ const AttendanceManagement = ({
                                   </div>
                                 </div>
                               </div>
-                              <span className={`status-pill status-${(detailsEvent.status || event.status || '').toLowerCase()}`}>
-                                {statusLabel}
-                              </span>
                             </div>
 
                             {/* Event Summary Stats */}
