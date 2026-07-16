@@ -4050,3 +4050,15 @@
     height: 80px;
   }
 }
+
+/* Remove stats panel, make tables full width */
+.att-expanded-bottom {
+  display: block !important;
+  margin-top: 20px !important;
+}
+
+.att-expanded-bottom .att-sections-row {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+.att-stats-panel { display: none !important; }
