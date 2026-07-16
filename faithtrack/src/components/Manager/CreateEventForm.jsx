@@ -371,8 +371,8 @@ const CreateEventForm = () => {
                             : '—'}
                         </td>
                         <td className="ev-td-meta">
-                          {event.time ? fmt12(event.time) : '—'}
-                          {event.endTime ? ` – ${fmt12(event.endTime)}` : ''}
+                          {event.time || '—'}
+                          {event.endTime ? ` – ${event.endTime}` : ''}
                         </td>
                         <td>
                           <span className={`ev-status-badge ev-status--${event.status || 'upcoming'}`}>
