@@ -92,67 +92,42 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
     }
   }, [startDate, endDate]);
 
-  // ── print — captures charts as images via html2canvas ────────────────────
+  // ── print — captures charts, injects hidden print div, calls window.print() ─
   const handlePrint = async () => {
     if (!data || !printRef.current) return;
 
     setPrinting(true);
     try {
-      // Capture every Card that contains a chart
+      // Capture each chart card as a PNG image
       const chartCards = printRef.current.querySelectorAll('.analytics-chart-card');
-      const chartImages = [];
+      const chartImages = {};
       for (const card of chartCards) {
         const canvas = await html2canvas(card, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
-        chartImages.push({ id: card.dataset.chartId, src: canvas.toDataURL('image/png') });
+        chartImages[card.dataset.chartId] = canvas.toDataURL('image/png');
       }
 
       const summary = data.summary;
       const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
 
       const makeTable = (headers, rows) => `
-        <table>
+        <table class="print-table">
           <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
           <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>`;
 
       const logoHtml = churchLogo
-        ? `<img src="${churchLogo}" alt="logo" style="height:60px;object-fit:contain;margin-bottom:6px;" /><br/>`
+        ? `<img src="${churchLogo}" class="print-logo" alt="logo" />`
         : '';
 
-      const chartImgHtml = (id) => {
-        const found = chartImages.find(c => c.id === id);
-        return found ? `<img src="${found.src}" style="width:100%;margin-bottom:12px;border-radius:8px;" />` : '';
-      };
+      const chartImg = (id) => chartImages[id]
+        ? `<img src="${chartImages[id]}" class="chart-img" />`
+        : '';
 
-      const win = window.open('', '_blank', 'width=1100,height=900');
-      if (!win) { alert('Pop-up blocked. Please allow pop-ups for this site.'); return; }
-
-      win.document.write(`<!DOCTYPE html><html><head>
-        <title>${churchName} – Analytics Report</title>
-        <style>
-          *{box-sizing:border-box;margin:0;padding:0}
-          body{font-family:Arial,sans-serif;font-size:12px;color:#1e293b;padding:28px}
-          .header{text-align:center;margin-bottom:20px}
-          .header h1{font-size:20px;font-weight:700}
-          .header h2{font-size:14px;color:#64748b;margin-top:4px}
-          .header p{font-size:11px;color:#94a3b8;margin-top:4px}
-          .section-title{font-weight:700;font-size:13px;border-left:3px solid #4F46E5;padding-left:6px;margin:18px 0 8px}
-          .stat-grid{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
-          .stat-card{border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;flex:1 1 110px}
-          .stat-val{font-size:18px;font-weight:700;color:#4F46E5}.stat-lbl{font-size:11px;color:#374151;font-weight:600;margin-top:2px}
-          table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px}
-          th{background:#4F46E5;color:#fff;padding:6px 8px;text-align:left}
-          td{padding:5px 8px;border-bottom:1px solid #f1f5f9}
-          tr:nth-child(even) td{background:#f8fafc}
-          .two-col{display:flex;gap:16px}.two-col>div{flex:1 1 45%}
-          img{max-width:100%}
-          @media print{body{padding:12px}}
-        </style>
-      </head><body>
-        <div class="header">
+      const printContent = `
+        <div class="print-header">
           ${logoHtml}
           <h1>${churchName}</h1>
-          <h2>Analytics Report &nbsp;|&nbsp; ${startDate} &nbsp;to&nbsp; ${endDate}</h2>
+          <h2>Analytics Report &nbsp;|&nbsp; ${startDate} to ${endDate}</h2>
           <p>Generated: ${genTime}</p>
         </div>
 
@@ -168,23 +143,77 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
           ].map(([l, v, c]) => `<div class="stat-card"><div class="stat-val" style="color:${c}">${v}</div><div class="stat-lbl">${l}</div></div>`).join('')}
         </div>
 
-        ${chartImgHtml('attendance-trend')}
+        ${chartImg('attendance-trend')}
+
         <div class="two-col">
-          <div>${chartImgHtml('member-growth')}</div>
-          <div>${chartImgHtml('service-breakdown')}</div>
+          <div>${chartImg('member-growth')}</div>
+          <div>${chartImg('service-breakdown')}</div>
         </div>
+
         <div class="two-col">
-          <div>${chartImgHtml('gender-pie')}</div>
+          <div>${chartImg('gender-pie')}</div>
           <div>
-            ${data.statusBreakdown?.length ? `<div class="section-title">Member Status</div>${makeTable(['Status','Count','%'], data.statusBreakdown.map(r=>[r.name,r.value,r.percentage+'%']))}` : ''}
+            ${data.statusBreakdown?.length ? `<div class="section-title">Member Status</div>${makeTable(['Status','Count','%'], data.statusBreakdown.map(r => [r.name, r.value, r.percentage + '%']))}` : ''}
           </div>
         </div>
-        ${data.topMembers?.length ? `<div class="section-title">Top Active Members</div>${makeTable(['#','Name','Attendance Days'], data.topMembers.map((m,i)=>[i+1,m.name,m.days]))}` : ''}
-      </body></html>`);
 
-      win.document.close();
-      win.focus();
-      setTimeout(() => { win.print(); win.close(); }, 800);
+        ${data.topMembers?.length ? `<div class="section-title">Top Active Members</div>${makeTable(['#','Name','Attendance Days'], data.topMembers.map((m, i) => [i + 1, m.name, m.days]))}` : ''}
+      `;
+
+      // Inject hidden print container into current document
+      let printDiv = document.getElementById('analytics-print-container');
+      if (printDiv) printDiv.remove();
+      printDiv = document.createElement('div');
+      printDiv.id = 'analytics-print-container';
+      printDiv.innerHTML = printContent;
+      document.body.appendChild(printDiv);
+
+      // Inject print styles
+      let styleEl = document.getElementById('analytics-print-style');
+      if (styleEl) styleEl.remove();
+      styleEl = document.createElement('style');
+      styleEl.id = 'analytics-print-style';
+      styleEl.textContent = `
+        @media print {
+          body > *:not(#analytics-print-container) { display: none !important; }
+          #analytics-print-container { display: block !important; }
+        }
+        #analytics-print-container {
+          display: none;
+          font-family: Arial, sans-serif;
+          font-size: 12px;
+          color: #1e293b;
+          padding: 20px;
+        }
+        #analytics-print-container .print-header { text-align: center; margin-bottom: 16px; }
+        #analytics-print-container .print-logo { height: 60px; object-fit: contain; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }
+        #analytics-print-container h1 { font-size: 20px; font-weight: 700; margin: 0; }
+        #analytics-print-container h2 { font-size: 13px; color: #64748b; margin: 4px 0 0; font-weight: 400; }
+        #analytics-print-container p  { font-size: 11px; color: #94a3b8; margin: 4px 0 0; }
+        #analytics-print-container .section-title { font-weight: 700; font-size: 12px; border-left: 3px solid #4F46E5; padding-left: 6px; margin: 14px 0 6px; }
+        #analytics-print-container .stat-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        #analytics-print-container .stat-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 12px; flex: 1 1 100px; }
+        #analytics-print-container .stat-val { font-size: 17px; font-weight: 700; }
+        #analytics-print-container .stat-lbl { font-size: 10px; color: #374151; font-weight: 600; margin-top: 2px; }
+        #analytics-print-container .chart-img { width: 100%; border-radius: 6px; margin-bottom: 10px; display: block; }
+        #analytics-print-container .two-col { display: flex; gap: 12px; }
+        #analytics-print-container .two-col > div { flex: 1 1 45%; }
+        #analytics-print-container .print-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; }
+        #analytics-print-container .print-table th { background: #4F46E5; color: #fff; padding: 5px 7px; text-align: left; }
+        #analytics-print-container .print-table td { padding: 4px 7px; border-bottom: 1px solid #f1f5f9; }
+        #analytics-print-container .print-table tr:nth-child(even) td { background: #f8fafc; }
+      `;
+      document.head.appendChild(styleEl);
+
+      // Trigger print
+      window.print();
+
+      // Cleanup after print dialog closes
+      setTimeout(() => {
+        printDiv.remove();
+        styleEl.remove();
+      }, 2000);
+
     } catch (e) {
       alert('Print failed: ' + e.message);
     } finally {

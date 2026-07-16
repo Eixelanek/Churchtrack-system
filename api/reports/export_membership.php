@@ -588,7 +588,11 @@ try {
     $format = isset($_GET['format']) ? strtolower($_GET['format']) : 'xlsx';
 
     // Generate report in requested format
-    if ($format === 'csv') {
+    if ($format === 'json') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => $members]);
+        exit;
+    } elseif ($format === 'csv') {
         outputMembershipCsv($members, $churchSettings);
     } elseif ($format === 'pdf') {
         // Use simple PDF generator that doesn't require external libraries

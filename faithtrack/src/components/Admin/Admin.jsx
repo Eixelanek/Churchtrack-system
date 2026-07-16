@@ -885,11 +885,50 @@ const Admin = () => {
     }
   };
 
-  const exportMembershipPdf = async () => {
+  const printMembershipReport = async () => {
     try {
-      window.open(`${API_BASE_URL}/api/reports/export_membership.php?status=${membershipStatus}&format=pdf`, '_blank');
-    } catch (error) {
-      console.error('Error exporting membership PDF:', error);
+      // Fetch member data as JSON
+      const res = await fetch(`${API_BASE_URL}/api/reports/export_membership.php?status=${membershipStatus}&format=json`);
+      const result = await res.json();
+      if (!result.success) { alert('Failed to load membership data.'); return; }
+      const members = result.data ?? result.members ?? [];
+
+      const activeCount   = members.filter(m => (m.status || '').toLowerCase() === 'active').length;
+      const inactiveCount = members.filter(m => (m.status || '').toLowerCase() === 'inactive').length;
+      const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+      const logoHtml = churchLogo ? `<img src="${churchLogo}" class="p-logo" alt="logo" />` : '';
+
+      const rows = members.map((m, i) => {
+        const bday = m.birthday ? new Date(m.birthday).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+        const joined = m.created_at ? new Date(m.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+        const statusColor = (m.status || '').toLowerCase() === 'active' ? '#059669' : '#D97706';
+        return `<tr>
+          <td>${i + 1}</td>
+          <td>${m.name ?? ''}</td>
+          <td>${m.email ?? ''}</td>
+          <td>${m.contact_number ?? ''}</td>
+          <td>${bday}</td>
+          <td>${m.gender ?? ''}</td>
+          <td style="color:${statusColor};font-weight:600">${m.status ? m.status.charAt(0).toUpperCase() + m.status.slice(1).toLowerCase() : ''}</td>
+          <td>${joined}</td>
+        </tr>`;
+      }).join('');
+
+      const printContent = `
+        <div class="p-header">${logoHtml}<h1>${churchName}</h1><h2>Membership Report</h2><p>Generated: ${genTime}</p></div>
+        <div class="p-summary">
+          <div class="p-stat"><div class="p-val">${members.length}</div><div class="p-lbl">Total Members</div></div>
+          <div class="p-stat" style="border-top-color:#059669"><div class="p-val" style="color:#059669">${activeCount}</div><div class="p-lbl">Active</div></div>
+          <div class="p-stat" style="border-top-color:#D97706"><div class="p-val" style="color:#D97706">${inactiveCount}</div><div class="p-lbl">Inactive</div></div>
+        </div>
+        <table class="p-table">
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Contact</th><th>Birthday</th><th>Gender</th><th>Status</th><th>Joined</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+
+      injectAndPrint(printContent);
+    } catch (e) {
+      alert('Print failed: ' + e.message);
     }
   };
 
@@ -952,37 +991,108 @@ const Admin = () => {
     }
   };
 
-  const exportReportPdf = async () => {
-    try {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `${API_BASE_URL}/api/reports/export_attendance.php`;
-      form.target = '_blank';
-      
-      const formatInput = document.createElement('input');
-      formatInput.type = 'hidden';
-      formatInput.name = 'format';
-      formatInput.value = 'pdf';
-      form.appendChild(formatInput);
-      
-      const startInput = document.createElement('input');
-      startInput.type = 'hidden';
-      startInput.name = 'startDate';
-      startInput.value = reportStartDate;
-      form.appendChild(startInput);
-      
-      const endInput = document.createElement('input');
-      endInput.type = 'hidden';
-      endInput.name = 'endDate';
-      endInput.value = reportEndDate;
-      form.appendChild(endInput);
-      
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-    } catch (error) {
+  // ── shared print helper ──────────────────────────────────────────────────
+  const injectAndPrint = (printContent) => {
+    // Remove old elements if any
+    document.getElementById('report-print-container')?.remove();
+    document.getElementById('report-print-style')?.remove();
 
-    }
+    const div = document.createElement('div');
+    div.id = 'report-print-container';
+    div.innerHTML = printContent;
+    document.body.appendChild(div);
+
+    const style = document.createElement('style');
+    style.id = 'report-print-style';
+    style.textContent = `
+      @media print {
+        body > *:not(#report-print-container) { display: none !important; }
+        #report-print-container { display: block !important; }
+      }
+      #report-print-container {
+        display: none;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        color: #1e293b;
+        padding: 24px;
+      }
+      #report-print-container .p-header { text-align: center; margin-bottom: 16px; }
+      #report-print-container .p-logo { height: 60px; object-fit: contain; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto; }
+      #report-print-container h1 { font-size: 20px; font-weight: 700; margin: 0; }
+      #report-print-container h2 { font-size: 14px; color: #64748b; margin: 4px 0 0; font-weight: 400; }
+      #report-print-container p  { font-size: 11px; color: #94a3b8; margin: 4px 0 0; }
+      #report-print-container .p-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+      #report-print-container .p-stat { border: 1px solid #e5e7eb; border-top: 3px solid #4F46E5; border-radius: 6px; padding: 8px 14px; flex: 1 1 120px; }
+      #report-print-container .p-val { font-size: 18px; font-weight: 700; color: #4F46E5; }
+      #report-print-container .p-lbl { font-size: 10px; font-weight: 600; color: #374151; margin-top: 2px; }
+      #report-print-container .p-section { font-weight: 700; font-size: 12px; border-left: 3px solid #4F46E5; padding-left: 6px; margin: 14px 0 6px; }
+      #report-print-container .p-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; }
+      #report-print-container .p-table th { background: #4F46E5; color: #fff; padding: 5px 7px; text-align: left; font-size: 11px; }
+      #report-print-container .p-table td { padding: 4px 7px; border-bottom: 1px solid #f1f5f9; }
+      #report-print-container .p-table tr:nth-child(even) td { background: #f8fafc; }
+    `;
+    document.head.appendChild(style);
+
+    window.print();
+
+    setTimeout(() => {
+      div.remove();
+      style.remove();
+    }, 2000);
+  };
+
+  const printAttendanceReport = () => {
+    if (!reportData) return;
+    const genTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+    const logoHtml = churchLogo ? `<img src="${churchLogo}" class="p-logo" alt="logo" />` : '';
+
+    const rows = reportData.records.map(r => {
+      const date = r.date ? new Date(`${r.date}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const time = r.time ? formatReportTimeLabel(r.time) : '—';
+      const memPct = r.totalCheckins ? Math.round((r.memberCheckins / r.totalCheckins) * 100) + '%' : '—';
+      const gstPct = r.totalCheckins ? Math.round((r.guestCheckins / r.totalCheckins) * 100) + '%' : '—';
+      const lastIn = r.lastCheckinName && r.lastCheckinName !== '—' ? r.lastCheckinName : '—';
+      return `<tr>
+        <td>${date}</td><td>${time}</td><td>${r.title ?? ''}</td>
+        <td style="text-align:center">${r.totalCheckins ?? 0}</td>
+        <td style="text-align:center">${r.memberCheckins ?? 0}</td>
+        <td style="text-align:center">${r.guestCheckins ?? 0}</td>
+        <td style="text-align:center">${memPct}</td>
+        <td style="text-align:center">${gstPct}</td>
+        <td>${lastIn}</td>
+      </tr>`;
+    }).join('');
+
+    const totMemPct = reportData.totalAttendance ? Math.round((reportData.totalMemberCheckins / reportData.totalAttendance) * 100) + '%' : '—';
+    const totGstPct = reportData.totalAttendance ? Math.round((reportData.totalGuestCheckins / reportData.totalAttendance) * 100) + '%' : '—';
+
+    const printContent = `
+      <div class="p-header">${logoHtml}<h1>${churchName}</h1><h2>Attendance Report</h2>
+        <p>Period: ${reportData.dateRange?.start ?? reportStartDate} to ${reportData.dateRange?.end ?? reportEndDate}</p>
+        <p>Generated: ${genTime}</p>
+      </div>
+      <div class="p-summary">
+        <div class="p-stat"><div class="p-val">${reportData.totalEvents ?? 0}</div><div class="p-lbl">Total Events</div></div>
+        <div class="p-stat" style="border-top-color:#2563EB"><div class="p-val" style="color:#2563EB">${reportData.totalAttendance ?? 0}</div><div class="p-lbl">Total Check-ins</div></div>
+        <div class="p-stat" style="border-top-color:#0891B2"><div class="p-val" style="color:#0891B2">${reportAveragePerEvent}</div><div class="p-lbl">Avg / Event</div></div>
+        <div class="p-stat" style="border-top-color:#059669"><div class="p-val" style="color:#059669">${reportData.totalMemberCheckins ?? 0}</div><div class="p-lbl">Member Check-ins</div></div>
+        <div class="p-stat" style="border-top-color:#D97706"><div class="p-val" style="color:#D97706">${reportData.totalGuestCheckins ?? 0}</div><div class="p-lbl">Guest Check-ins</div></div>
+      </div>
+      <table class="p-table">
+        <thead><tr><th>Date</th><th>Time</th><th>Service</th><th>Total</th><th>Members</th><th>Guests</th><th>Mem %</th><th>Guest %</th><th>Last Check-in</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr style="font-weight:700;background:#f1f5f9">
+          <td colspan="3" style="text-align:right;padding:5px 7px">Totals</td>
+          <td style="text-align:center">${reportData.totalAttendance ?? 0}</td>
+          <td style="text-align:center">${reportData.totalMemberCheckins ?? 0}</td>
+          <td style="text-align:center">${reportData.totalGuestCheckins ?? 0}</td>
+          <td style="text-align:center">${totMemPct}</td>
+          <td style="text-align:center">${totGstPct}</td>
+          <td></td>
+        </tr></tfoot>
+      </table>`;
+
+    injectAndPrint(printContent);
   };
 
   useEffect(() => {
@@ -3901,8 +4011,8 @@ const Admin = () => {
                     <button className="btn-primary" onClick={exportReportXlsx}>
                       📥 Download Excel
                     </button>
-                    <button className="btn-primary" onClick={exportReportPdf} style={{ marginLeft: '10px' }}>
-                      📄 Download PDF
+                    <button className="btn-primary" onClick={printAttendanceReport} style={{ marginLeft: '10px' }}>
+                      🖨️ Print / Save PDF
                     </button>
                   </div>
                 </>
@@ -3934,8 +4044,8 @@ const Admin = () => {
                     <button className="btn-primary" onClick={exportMembershipXlsx}>
                       📥 Download Excel
                     </button>
-                    <button className="btn-primary" onClick={exportMembershipPdf} style={{ marginLeft: '10px' }}>
-                      📄 Download PDF
+                    <button className="btn-primary" onClick={printMembershipReport} style={{ marginLeft: '10px' }}>
+                      🖨️ Print / Save PDF
                     </button>
                   </div>
                 </div>
