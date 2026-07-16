@@ -3214,3 +3214,200 @@
 @media (max-width: 480px) {
   .summary-stats-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ============================================================
+   Attendees / Absentees — Table Layout (CSS override)
+   ============================================================ */
+
+/* Convert the grid container to a table wrapper */
+.attendees-grid {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  border: 1px solid rgba(0,73,175,0.07);
+}
+
+/* Fake table using CSS — override the existing grid item styles */
+.attendee-item-small {
+  display: grid;
+  grid-template-columns: 28px 1fr 80px 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(0,73,175,0.05);
+  background: #fff;
+  transition: background 0.15s;
+}
+
+.attendee-item-small:last-child {
+  border-bottom: none;
+}
+
+.attendee-item-small:hover {
+  background: #f5f8ff;
+}
+
+/* Remove the pseudo ::before accent line — use border-left instead */
+.attendee-item-small::before {
+  display: none;
+}
+
+.attendee-item-small.checked {
+  border-left: 3px solid #22c55e;
+}
+
+.attendee-item-small.absent {
+  border-left: 3px solid #ef4444;
+  background: #fff;
+}
+
+/* Avatar — fixed size, no overflow issues */
+.attendee-avatar-small {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0049AF, #1095D2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.attendee-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.absentee-avatar {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Name column */
+.attendee-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.attendee-name-line {
+  display: flex;
+  gap: 4px;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.attendee-name-primary {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0a1a3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attendee-name-secondary {
+  font-size: 0.75rem;
+  color: #5a6a85;
+  white-space: nowrap;
+}
+
+/* Status badge column */
+.attendee-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.attendee-status.status-checked { background: #dcfce7; color: #16a34a; }
+.attendee-status.status-absent  { background: #fee2e2; color: #dc2626; }
+
+/* Add a fake "table header" row above the grid via CSS on the section */
+.attendees-section .attendees-header-row {
+  margin-bottom: 0;
+  padding: 10px 14px 10px 17px;
+  background: rgba(0,73,175,0.03);
+  border-radius: 10px 10px 0 0;
+  border: 1px solid rgba(0,73,175,0.07);
+  border-bottom: none;
+  display: grid;
+  grid-template-columns: 28px 1fr 80px 90px;
+  gap: 12px;
+  align-items: center;
+}
+
+.attendees-header-left {
+  display: contents;
+}
+
+/* Column header labels */
+.attendees-header-left h3 {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin: 0;
+  grid-column: 1 / 3;
+}
+
+/* We need to inject Type and Time headers — done via CSS content tricks */
+.attendees-section .attendees-header-row::after {
+  content: 'Status  |  Time';
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  grid-column: 3 / 5;
+  white-space: nowrap;
+}
+
+/* Check-in time — use the existing status slot and add time via data attribute */
+/* Since JSX shows status in .attendee-status, we need to show time too */
+/* Add time display — target the last column slot */
+.attendee-item-small .attendee-checkin-time {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #5a6a85;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .attendee-item-small {
+    grid-template-columns: 28px 1fr 70px;
+  }
+
+  /* Hide time on very small screens */
+  .attendee-item-small .attendee-checkin-time {
+    display: none;
+  }
+
+  .attendees-section .attendees-header-row {
+    grid-template-columns: 28px 1fr 70px;
+  }
+
+  .attendees-section .attendees-header-row::after {
+    content: 'Status';
+    grid-column: 3 / 4;
+  }
+}

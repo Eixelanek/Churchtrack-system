@@ -2187,6 +2187,9 @@ const AttendanceManagement = ({
                                               </div>
                                             </div>
                                             <span className="attendee-status status-checked">{statusLabel}</span>
+                                            <span className="attendee-checkin-time">
+                                              {attendee.checkInTime ? formatModalCheckInClock(attendee.checkInTime) : '—'}
+                                            </span>
                                           </div>
                                         );
                                       })
@@ -2238,6 +2241,7 @@ const AttendanceManagement = ({
                                               </div>
                                             </div>
                                             <span className="attendee-status status-absent">ABSENT</span>
+                                            <span className="attendee-checkin-time">—</span>
                                           </div>
                                         );
                                       })
