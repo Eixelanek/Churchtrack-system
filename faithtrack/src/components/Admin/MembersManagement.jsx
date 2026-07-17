@@ -1848,64 +1848,56 @@ ChurchTrack System`;
 
   return (
     <div className="members-management">
+      {/* ── HEADER ── */}
       <div className="members-directory-header">
         <div className="header-text">
           <h1>Members Directory</h1>
           <p className="directory-subtitle">View members and their family connections</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <div style={{ position: 'relative' }}>
-            <button 
-              className="export-report-btn" 
+        <div className="header-actions">
+          <div className="mm-export-wrap">
+            <button
+              className="mm-export-btn"
               onClick={() => {
-                const exportMenu = document.getElementById('export-menu');
+                const exportMenu = document.getElementById('mm-export-menu');
                 exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
               }}
               title="Export Membership Report"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
               Export Report
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
               </svg>
             </button>
-            <div 
-              id="export-menu" 
-              className="export-dropdown-menu"
-              style={{ display: 'none' }}
-            >
-              <button 
-                onClick={() => {
-                  const status = activeTab === 'all_members' ? 'all' : activeTab === 'inactive' ? 'inactive' : 'active';
-                  window.open(`${backendBaseUrl}/api/reports/export_membership.php?status=${status}&format=xlsx`, '_blank');
-                  document.getElementById('export-menu').style.display = 'none';
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
+            <div id="mm-export-menu" className="mm-export-menu" style={{ display: 'none' }}>
+              <button onClick={() => {
+                const status = activeTab === 'all_members' ? 'all' : activeTab === 'inactive' ? 'inactive' : 'active';
+                window.open(`${backendBaseUrl}/api/reports/export_membership.php?status=${status}&format=xlsx`, '_blank');
+                document.getElementById('mm-export-menu').style.display = 'none';
+              }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
                 Excel (.xlsx)
               </button>
-              <button 
-                onClick={() => {
-                  const status = activeTab === 'all_members' ? 'all' : activeTab === 'inactive' ? 'inactive' : 'active';
-                  window.open(`${backendBaseUrl}/api/reports/export_membership.php?status=${status}&format=pdf`, '_blank');
-                  document.getElementById('export-menu').style.display = 'none';
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="8" y1="13" x2="16" y2="13"></line>
-                  <line x1="8" y1="17" x2="16" y2="17"></line>
+              <button onClick={() => {
+                const status = activeTab === 'all_members' ? 'all' : activeTab === 'inactive' ? 'inactive' : 'active';
+                window.open(`${backendBaseUrl}/api/reports/export_membership.php?status=${status}&format=pdf`, '_blank');
+                document.getElementById('mm-export-menu').style.display = 'none';
+              }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="8" y1="13" x2="16" y2="13"/>
+                  <line x1="8" y1="17" x2="16" y2="17"/>
                 </svg>
                 PDF (.pdf)
               </button>
@@ -1913,11 +1905,11 @@ ChurchTrack System`;
           </div>
           {allowMemberMutations && (
             <button className="add-member-btn" onClick={() => setShowAddUserModal(true)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <line x1="20" y1="8" x2="20" y2="14"></line>
-                <line x1="23" y1="11" x2="17" y2="11"></line>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
               </svg>
               Add Member
             </button>
@@ -1925,73 +1917,73 @@ ChurchTrack System`;
         </div>
       </div>
 
-      {/* New Stat Cards Row */}
-      <div className="members-new-stat-cards">
-        <div className="new-stat-card blue">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      {/* ── STAT CARDS ── */}
+      <div className="mm-stat-cards">
+        <div className="mm-stat-card mm-blue">
+          <div className="mm-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{loading ? '...' : totalMembersCount}</div>
-            <div className="stat-text">Total Members</div>
+          <div className="mm-stat-content">
+            <div className="mm-stat-label">Total Members</div>
+            <div className="mm-stat-value">{loading ? '—' : totalMembersCount}</div>
           </div>
         </div>
-        
-        <div className="new-stat-card green">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <polyline points="17 11 19 13 23 9"></polyline>
+
+        <div className="mm-stat-card mm-green">
+          <div className="mm-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <polyline points="17 11 19 13 23 9"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{loading ? '...' : activeMembersCount}</div>
-            <div className="stat-text">Active</div>
+          <div className="mm-stat-content">
+            <div className="mm-stat-label">Active</div>
+            <div className="mm-stat-value">{loading ? '—' : activeMembersCount}</div>
           </div>
         </div>
-        
-        <div className="new-stat-card orange">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
+
+        <div className="mm-stat-card mm-amber">
+          <div className="mm-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{loading ? '...' : inactiveMembersCount}</div>
-            <div className="stat-text">Inactive</div>
+          <div className="mm-stat-content">
+            <div className="mm-stat-label">Inactive</div>
+            <div className="mm-stat-value">{loading ? '—' : inactiveMembersCount}</div>
           </div>
         </div>
-        
-        <div className="new-stat-card purple">
-          <div className="stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
+
+        <div className="mm-stat-card mm-purple">
+          <div className="mm-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <line x1="20" y1="8" x2="20" y2="14"/>
+              <line x1="23" y1="11" x2="17" y2="11"/>
             </svg>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{loading ? '...' : pendingRequests.length}</div>
-            <div className="stat-text">Pending Requests</div>
+          <div className="mm-stat-content">
+            <div className="mm-stat-label">Pending Requests</div>
+            <div className="mm-stat-value">{loading ? '—' : pendingRequests.length}</div>
           </div>
         </div>
       </div>
 
-      {/* Search Bar and Tabs Row */}
-      <div className="members-search-tabs-row">
-        {/* Search Bar */}
-        <div className="members-search-bar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
+      {/* ── TOOLBAR: SEARCH + TABS + FILTER ── */}
+      <div className="mm-toolbar">
+        {/* Search */}
+        <div className="mm-search-bar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
           </svg>
           <input
             type="text"
@@ -2009,86 +2001,45 @@ ChurchTrack System`;
           )}
         </div>
 
-        {/* New Tabs Design */}
-        <div className="members-new-tabs">
-          <button 
-            className={`new-tab ${activeTab === 'all_members' ? 'active' : ''}`}
-            onClick={() => setActiveTab('all_members')}
-          >
-            All Members
-          </button>
-          <button 
-            className={`new-tab ${activeTab === 'inactive' ? 'active' : ''}`}
-            onClick={() => setActiveTab('inactive')}
-          >
-            Inactive
-          </button>
-          <button 
-            className={`new-tab ${activeTab === 'guests' ? 'active' : ''}`}
-            onClick={() => setActiveTab('guests')}
-          >
+        {/* Tabs */}
+        <div className="mm-tabs">
+          <button className={`mm-tab ${activeTab === 'all_members' ? 'active' : ''}`} onClick={() => setActiveTab('all_members')}>All Members</button>
+          <button className={`mm-tab ${activeTab === 'inactive' ? 'active' : ''}`} onClick={() => setActiveTab('inactive')}>Inactive</button>
+          <button className={`mm-tab ${activeTab === 'guests' ? 'active' : ''}`} onClick={() => setActiveTab('guests')}>
             Guests
-            {eligibleGuestsCount > 0 && <span className="tab-badge">{eligibleGuestsCount}</span>}
+            {eligibleGuestsCount > 0 && <span className="mm-tab-badge">{eligibleGuestsCount}</span>}
           </button>
-          <button 
-            className={`new-tab ${activeTab === 'pending_requests' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pending_requests')}
-          >
+          <button className={`mm-tab ${activeTab === 'pending_requests' ? 'active' : ''}`} onClick={() => setActiveTab('pending_requests')}>
             Requests
-            {pendingRequests.length > 0 && <span className="tab-badge">{pendingRequests.length}</span>}
+            {pendingRequests.length > 0 && <span className="mm-tab-badge">{pendingRequests.length}</span>}
           </button>
-          <button 
-            className={`new-tab ${activeTab === 'rejected' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rejected')}
-          >
-            Rejected
-          </button>
-          <button 
-            className={`new-tab ${activeTab === 'birthdays' ? 'active' : ''}`}
-            onClick={() => setActiveTab('birthdays')}
-          >
-            Birthdays
-          </button>
-          
-          {/* Multi-Select Button in Tab Header */}
+          <button className={`mm-tab ${activeTab === 'rejected' ? 'active' : ''}`} onClick={() => setActiveTab('rejected')}>Rejected</button>
+          <button className={`mm-tab ${activeTab === 'birthdays' ? 'active' : ''}`} onClick={() => setActiveTab('birthdays')}>Birthdays</button>
+
           {(activeTab === 'all_members' || activeTab === 'inactive' || activeTab === 'guests' || activeTab === 'pending_requests' || activeTab === 'rejected') && allowMemberMutations && (
             <button
               onClick={() => {
                 setMultiSelectMode(!multiSelectMode);
                 if (multiSelectMode) {
-                  if (activeTab === 'guests') {
-                    setSelectedGuests(new Set());
-                  } else {
-                    setSelectedMembers(new Set());
-                  }
+                  if (activeTab === 'guests') setSelectedGuests(new Set());
+                  else setSelectedMembers(new Set());
                 }
               }}
-              className="multi-select-tab-btn"
-              style={{
-                marginLeft: 'auto',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '8px',
-                background: multiSelectMode ? '#3b82f6' : '#e5e7eb',
-                color: multiSelectMode ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
+              className={`mm-multiselect-btn${multiSelectMode ? ' active' : ''}`}
             >
-              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
+              {multiSelectMode
+                ? <><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Multi-Select On</>
+                : 'Multi-Select'}
             </button>
           )}
         </div>
 
+        {/* Referral filter */}
         {activeTab === 'all_members' && (
-          <div className="referral-filter">
-            <label htmlFor="referral-filter-select">Filter by Referral:</label>
+          <div className="mm-referral-filter">
+            <label htmlFor="mm-referral-select">Filter by Referral:</label>
             <select
-              id="referral-filter-select"
-              className="referral-filter-select"
+              id="mm-referral-select"
               value={referralFilter}
               onChange={(e) => setReferralFilter(e.target.value)}
             >
@@ -2100,8 +2051,7 @@ ChurchTrack System`;
         )}
       </div>
 
-      <div className="top-controls">
-      </div>
+
 
       {showAlertModal && (
         <div style={{
