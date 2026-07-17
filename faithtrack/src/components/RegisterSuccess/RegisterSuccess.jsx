@@ -59,17 +59,10 @@ const RegisterSuccess = () => {
     <div className="rs-page">
       {/* Top bar */}
       <div className="rs-topbar">
-        <button className="rs-back-btn" onClick={() => navigate('/login')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
-          </svg>
-          Sign In
-        </button>
         <div className="rs-topbar-brand">
           <img src={logoImage} alt="logo" />
           <span>ChurchTrack</span>
         </div>
-        <div style={{ width: 80 }} />
       </div>
 
       <div className="rs-body">
