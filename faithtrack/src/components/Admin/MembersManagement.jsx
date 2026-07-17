@@ -2621,505 +2621,328 @@ ChurchTrack System`;
 
       {activeTab === 'guests' && (
         <>
-          {multiSelectMode && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              border: '1px solid #bfdbfe'
-            }}>
-              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
-                {selectedGuests.size} selected
-              </span>
-              <button
-                onClick={clearGuestSelection}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => selectAllGuests(sortedGuests)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Select All
-              </button>
+          {multiSelectMode && canManageGuests && (
+            <div className="mm-multiselect-bar">
+              <span>{selectedGuests.size} selected</span>
+              <button onClick={clearGuestSelection}>Clear</button>
+              <button onClick={() => selectAllGuests(sortedGuests)}>Select All</button>
               {selectedGuests.size > 0 && (
-                <div style={{ marginLeft: 'auto' }}>
-                  <button
-                    onClick={handleBulkDeleteGuests}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '4px',
-                      background: '#ef4444',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Delete Selected
-                  </button>
-                </div>
+                <button className="mm-delete-selected-btn" onClick={handleBulkDeleteGuests}>Delete Selected</button>
               )}
             </div>
           )}
-        <div className="members-cards-container">
-          {sortedGuests.length > 0 ? (
-            sortedGuests.map((guest) => {
-              const membershipRemaining = Number.isFinite(guest.remaining_for_membership)
-                ? guest.remaining_for_membership
-              : null;
-              const statusLabel = guest.status ? guest.status.charAt(0).toUpperCase() + guest.status.slice(1) : 'Active';
-              const isGuestActive = String(guest.status || 'active').toLowerCase() === 'active';
-              const isReadyForConversion = isGuestActive && membershipRemaining === 0;
-              const isExpanded = expandedGuestId === guest.id;
-              const isConvertingThisGuest = convertGuestSaving && guestToConvert?.id === guest.id;
-              return (
-                <div key={guest.id || guest.full_name} className={`member-card-wrapper ${isExpanded ? 'expanded' : ''}`}>
-                  <div className="member-card guest-card" onClick={() => toggleGuestExpand(guest.id)}>
-                    {multiSelectMode && canManageGuests && (
-                      <input 
-                        type="checkbox" 
-                        className="member-card-checkbox"
-                        checked={selectedGuests.has(guest.id)}
-                        onChange={() => toggleGuestSelection(guest.id)}
-                      />
-                    )}
-                    <div className="member-avatar guest">
-                      {getInitials(guest.name)}
-                    </div>
-                    <div className="member-details">
-                      <div className="member-name">{guest.name}</div>
-                      <div className="member-email">{guest.email || 'No email provided'}</div>
-                    </div>
-                    <div className="member-badges">
-                      <span className={`status-badge-new ${guest.status || 'active'} guest`}>
-                        {statusLabel}
-                      </span>
-                      <span className="guest-visit-badge">
-                        Visits: {guest.total_visits || 0}
-                      </span>
-                      {isReadyForConversion && (
-                        <span className="guest-ready-badge" title="Eligible for membership conversion">
-                          Ready for membership
-                        </span>
-                      )}
-                      {canManageGuests && (
-                        <button
-                          type="button"
-                          className="delete-member-btn guest"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteGuestClick(guest);
-                          }}
-                          title="Delete Guest"
+          <div className="mm-table-wrap">
+            {sortedGuests.length === 0 ? (
+              <div className="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+                <h3>No Guests</h3>
+                <p>Active visitors appear here until they are converted to members.</p>
+              </div>
+            ) : (
+              <table className="mm-table">
+                <thead>
+                  <tr>
+                    {multiSelectMode && canManageGuests && <th style={{ width: '40px' }}></th>}
+                    <th>#</th>
+                    <th>Guest</th>
+                    <th>Status</th>
+                    <th>Visits</th>
+                    <th>Invited By</th>
+                    <th>Until Membership</th>
+                    <th>Actions</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedGuests.map((guest, idx) => {
+                    const membershipRemaining = Number.isFinite(guest.remaining_for_membership) ? guest.remaining_for_membership : null;
+                    const statusLabel = guest.status ? guest.status.charAt(0).toUpperCase() + guest.status.slice(1) : 'Active';
+                    const isGuestActive = String(guest.status || 'active').toLowerCase() === 'active';
+                    const isReadyForConversion = isGuestActive && membershipRemaining === 0;
+                    const isExpanded = expandedGuestId === guest.id;
+                    const isConvertingThisGuest = convertGuestSaving && guestToConvert?.id === guest.id;
+                    return (
+                      <React.Fragment key={guest.id || guest.full_name}>
+                        <tr
+                          className={`mm-table-row${isExpanded ? ' mm-row-expanded' : ''}`}
+                          onClick={() => toggleGuestExpand(guest.id)}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div className="guest-details-expanded">
-                      <div className="guest-expanded-row">
-                        <div className="guest-expanded-info">
-                          <div className="guest-info-item">
-                            <span className="guest-info-label">Contact Number</span>
-                            <span className="guest-info-value">{guest.phone || 'Not provided'}</span>
-                          </div>
-                          <div className="guest-info-item">
-                            <span className="guest-info-label">Invited By</span>
-                            <span className="guest-info-value">{guest.invited_by_name || guest.invited_by_text || '—'}</span>
-                          </div>
-                          <div className="guest-info-item">
-                            <span className="guest-info-label">First Visit</span>
-                            <span className="guest-info-value">{guest.first_visit_date ? formatDate(guest.first_visit_date) : '—'}</span>
-                          </div>
-                          <div className="guest-info-item">
-                            <span className="guest-info-label">Last Visit</span>
-                            <span className="guest-info-value">{formatDateTimeDisplay(guest.last_attended)}</span>
-                          </div>
-                        </div>
-                        <div className="guest-expanded-stats">
-                          <div className="guest-stat">
-                            <span className="guest-stat-label">Sunday Streak</span>
-                            <span className="guest-stat-value">{guest.sunday_visit_count || 0}</span>
-                          </div>
-                          {membershipRemaining !== null && (
-                            <div className="guest-stat">
-                              <span className="guest-stat-label">Until Membership</span>
-                              <span className="guest-stat-value">
-                                {membershipRemaining === 0 ? 'Completed' : `${membershipRemaining} more`}
-                              </span>
-                            </div>
+                          {multiSelectMode && canManageGuests && (
+                            <td onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" className="att-checkbox" checked={selectedGuests.has(guest.id)} onChange={() => toggleGuestSelection(guest.id)} />
+                            </td>
                           )}
-                        </div>
-                      </div>
-                      {canManageGuests && isReadyForConversion && (
-                        <div className="guest-convert-actions">
-                          <button
-                            type="button"
-                            className="guest-convert-btn"
-                            disabled={isConvertingThisGuest}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openConvertGuestModal(guest);
-                            }}
-                          >
-                            {isConvertingThisGuest ? 'Converting…' : 'Convert to Member'}
-                          </button>
-                          <p className="guest-convert-note">
-                            After conversion, this guest moves to All Members and is removed from this list.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <div className="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <polyline points="17 11 19 13 23 9"></polyline>
-              </svg>
-              <h3>No Guests</h3>
-              <p>Active visitors appear here until they are converted to members.</p>
-            </div>
-          )}
-        </div>
+                          <td className="mm-td-num">{idx + 1}</td>
+                          <td className="mm-td-member">
+                            <div className="mm-member-cell">
+                              <div className="member-avatar guest">{getInitials(guest.name)}</div>
+                              <div>
+                                <div className="mm-member-name">{guest.name}</div>
+                                <div className="mm-member-email">{guest.email || 'No email'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="mm-td-status">
+                            <span className={`mm-status-badge mm-status--guest`}>{statusLabel}</span>
+                            {isReadyForConversion && <span className="mm-badge mm-badge--ready" style={{ marginLeft: 6 }}>Ready</span>}
+                          </td>
+                          <td className="mm-td-meta">{guest.total_visits || 0}</td>
+                          <td className="mm-td-meta">{guest.invited_by_name || guest.invited_by_text || '—'}</td>
+                          <td className="mm-td-meta">
+                            {membershipRemaining === null ? '—' : membershipRemaining === 0 ? <span className="mm-badge mm-badge--ready">Completed</span> : `${membershipRemaining} more`}
+                          </td>
+                          <td className="mm-td-actions" onClick={(e) => e.stopPropagation()}>
+                            <div className="mm-action-btns">
+                              {canManageGuests && isReadyForConversion && (
+                                <button type="button" className="mm-convert-btn" disabled={isConvertingThisGuest} onClick={(e) => { e.stopPropagation(); openConvertGuestModal(guest); }}>
+                                  {isConvertingThisGuest ? '…' : 'Convert'}
+                                </button>
+                              )}
+                              {canManageGuests && (
+                                <button type="button" className="mm-action-btn mm-action-btn--delete" onClick={(e) => { e.stopPropagation(); handleDeleteGuestClick(guest); }} title="Delete Guest">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="mm-td-chevron">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`att-chevron${isExpanded ? ' open' : ''}`} style={{ width: 18, height: 18 }}>
+                              <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="mm-expanded-row">
+                            <td colSpan={multiSelectMode && canManageGuests ? 10 : 9} className="mm-expanded-cell">
+                              <div className="guest-details-expanded">
+                                <div className="guest-expanded-row">
+                                  <div className="guest-expanded-info">
+                                    <div className="guest-info-item">
+                                      <span className="guest-info-label">Contact Number</span>
+                                      <span className="guest-info-value">{guest.phone || 'Not provided'}</span>
+                                    </div>
+                                    <div className="guest-info-item">
+                                      <span className="guest-info-label">Invited By</span>
+                                      <span className="guest-info-value">{guest.invited_by_name || guest.invited_by_text || '—'}</span>
+                                    </div>
+                                    <div className="guest-info-item">
+                                      <span className="guest-info-label">First Visit</span>
+                                      <span className="guest-info-value">{guest.first_visit_date ? formatDate(guest.first_visit_date) : '—'}</span>
+                                    </div>
+                                    <div className="guest-info-item">
+                                      <span className="guest-info-label">Last Visit</span>
+                                      <span className="guest-info-value">{formatDateTimeDisplay(guest.last_attended)}</span>
+                                    </div>
+                                  </div>
+                                  <div className="guest-expanded-stats">
+                                    <div className="guest-stat">
+                                      <span className="guest-stat-label">Sunday Streak</span>
+                                      <span className="guest-stat-value">{guest.sunday_visit_count || 0}</span>
+                                    </div>
+                                    {membershipRemaining !== null && (
+                                      <div className="guest-stat">
+                                        <span className="guest-stat-label">Until Membership</span>
+                                        <span className="guest-stat-value">{membershipRemaining === 0 ? 'Completed' : `${membershipRemaining} more`}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {canManageGuests && isReadyForConversion && (
+                                  <div className="guest-convert-actions">
+                                    <button type="button" className="guest-convert-btn" disabled={isConvertingThisGuest} onClick={(e) => { e.stopPropagation(); openConvertGuestModal(guest); }}>
+                                      {isConvertingThisGuest ? 'Converting…' : 'Convert to Member'}
+                                    </button>
+                                    <p className="guest-convert-note">After conversion, this guest moves to All Members and is removed from this list.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </>
       )}
 
       {activeTab === 'rejected' && (
         <>
           {multiSelectMode && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              border: '1px solid #bfdbfe'
-            }}>
-              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
-                {selectedMembers.size} selected
-              </span>
-              <button
-                onClick={clearMemberSelection}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => selectAllMembers(sortedRejected)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Select All
-              </button>
+            <div className="mm-multiselect-bar">
+              <span>{selectedMembers.size} selected</span>
+              <button onClick={clearMemberSelection}>Clear</button>
+              <button onClick={() => selectAllMembers(sortedRejected)}>Select All</button>
               {selectedMembers.size > 0 && (
-                <div style={{ marginLeft: 'auto' }}>
-                  <button
-                    onClick={handleBulkDeleteMembers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '4px',
-                      background: '#ef4444',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Delete Selected
-                  </button>
-                </div>
+                <button className="mm-delete-selected-btn" onClick={handleBulkDeleteMembers}>Delete Selected</button>
               )}
             </div>
           )}
-        <div className="members-cards-container">
-          {sortedRejected.map(request => {
-            const rejectedByManager = request.manager_status === 'rejected';
-            const rejectedLabel = rejectedByManager ? 'Rejected by Manager' : 'Rejected by Admin';
-            const reviewerTimestamp = request.manager_reviewed_at && rejectedByManager
-              ? new Date(request.manager_reviewed_at).toLocaleString()
-              : request.updated_at
-                ? new Date(request.updated_at).toLocaleString()
-                : null;
-
-            return (
-            <div key={request.id} className="member-card">
-              {multiSelectMode && allowMemberMutations && (
-                <input 
-                  type="checkbox" 
-                  className="member-card-checkbox"
-                  checked={selectedMembers.has(request.id)}
-                  onChange={() => toggleMemberSelection(request.id)}
-                />
-              )}
-              <div className="member-avatar rejected">
-                {getInitials(request.name)}
+          <div className="mm-table-wrap">
+            {sortedRejected.length === 0 ? (
+              <div className="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <h3>No Rejected Requests</h3>
+                <p>Rejected membership requests will appear here</p>
               </div>
-              <div className="member-details">
-                <div className="member-name">{request.name}</div>
-                <div className="member-email">{request.email || 'No email'}</div>
-                {request.rejection_reason && (
-                  <div className="member-reason" style={{ marginTop: '0.4rem', color: '#ef4444', fontWeight: 600 }}>
-                    Reason: <span style={{ fontWeight: 500, color: '#991b1b' }}>{request.rejection_reason}</span>
-                  </div>
-                )}
-                <div className="member-meta" style={{ marginTop: '0.25rem', fontSize: '0.85rem', color: '#475569' }}>
-                  {rejectedLabel}
-                  {reviewerTimestamp && (
-                    <span style={{ color: '#64748b', marginLeft: '0.35rem' }}>
-                      • {reviewerTimestamp}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="member-badges">
-                <span className="status-badge-new rejected">
-                  Rejected
-                </span>
-                <button 
-                  className="delete-member-btn" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteUser(request);
-                  }}
-                  title="Delete Request"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          );})}
-          {sortedRejected.length === 0 && (
-            <div className="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
-              <h3>No Rejected Requests</h3>
-              <p>Rejected membership requests will appear here</p>
-            </div>
-          )}
-        </div>
+            ) : (
+              <table className="mm-table">
+                <thead>
+                  <tr>
+                    {multiSelectMode && allowMemberMutations && <th style={{ width: '40px' }}></th>}
+                    <th>#</th>
+                    <th>Member</th>
+                    <th>Email</th>
+                    <th>Rejection Reason</th>
+                    <th>Rejected By</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRejected.map((request, idx) => {
+                    const rejectedByManager = request.manager_status === 'rejected';
+                    const rejectedLabel = rejectedByManager ? 'Manager' : 'Admin';
+                    const reviewerTimestamp = request.manager_reviewed_at && rejectedByManager
+                      ? new Date(request.manager_reviewed_at).toLocaleString()
+                      : request.updated_at ? new Date(request.updated_at).toLocaleString() : '—';
+                    return (
+                      <tr key={request.id} className="mm-table-row">
+                        {multiSelectMode && allowMemberMutations && (
+                          <td onClick={(e) => e.stopPropagation()}>
+                            <input type="checkbox" className="att-checkbox" checked={selectedMembers.has(request.id)} onChange={() => toggleMemberSelection(request.id)} />
+                          </td>
+                        )}
+                        <td className="mm-td-num">{idx + 1}</td>
+                        <td className="mm-td-member">
+                          <div className="mm-member-cell">
+                            <div className="member-avatar rejected">{getInitials(request.name)}</div>
+                            <div className="mm-member-name">{request.name}</div>
+                          </div>
+                        </td>
+                        <td className="mm-td-meta">{request.email || '—'}</td>
+                        <td className="mm-td-meta" style={{ maxWidth: 220 }}>
+                          {request.rejection_reason
+                            ? <span style={{ color: '#991b1b', fontWeight: 500 }}>{request.rejection_reason}</span>
+                            : <span style={{ color: '#94a3b8' }}>—</span>}
+                        </td>
+                        <td className="mm-td-meta">
+                          <span className="mm-status-badge mm-status--rejected">{rejectedLabel}</span>
+                        </td>
+                        <td className="mm-td-meta" style={{ whiteSpace: 'nowrap' }}>{reviewerTimestamp}</td>
+                        <td className="mm-td-actions" onClick={(e) => e.stopPropagation()}>
+                          <div className="mm-action-btns">
+                            <button type="button" className="mm-action-btn mm-action-btn--delete" onClick={(e) => { e.stopPropagation(); handleDeleteUser(request); }} title="Delete Request">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
         </>
       )}
 
       {activeTab === 'pending_requests' && (
         <>
           {multiSelectMode && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              backgroundColor: '#f0f9ff',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              border: '1px solid #bfdbfe'
-            }}>
-              <span style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: '500' }}>
-                {selectedMembers.size} selected
-              </span>
-              <button
-                onClick={clearMemberSelection}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => selectAllMembers(sortedRequests)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '4px',
-                  background: 'white',
-                  color: '#1e40af',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Select All
-              </button>
+            <div className="mm-multiselect-bar">
+              <span>{selectedMembers.size} selected</span>
+              <button onClick={clearMemberSelection}>Clear</button>
+              <button onClick={() => selectAllMembers(sortedRequests)}>Select All</button>
               {selectedMembers.size > 0 && (
-                <div style={{ marginLeft: 'auto' }}>
-                  <button
-                    onClick={handleBulkDeleteMembers}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '4px',
-                      background: '#ef4444',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Delete Selected
-                  </button>
-                </div>
+                <button className="mm-delete-selected-btn" onClick={handleBulkDeleteMembers}>Delete Selected</button>
               )}
             </div>
           )}
-        <div className="members-cards-container">
-          {sortedRequests.map(request => {
-            const awaitingManager = request.manager_status !== 'approved';
-            const statusNote = !awaitingManager
-              ? (isManagerScope ? null : null)
-              : (isManagerScope ? null : 'Waiting for manager approval.');
-            return (
-            <div key={request.id} className="member-card">
-              {multiSelectMode && allowMemberMutations && (
-                <input 
-                  type="checkbox" 
-                  className="member-card-checkbox"
-                  checked={selectedMembers.has(request.id)}
-                  onChange={() => toggleMemberSelection(request.id)}
-                />
-              )}
-              <div className="member-avatar pending">
-                {getInitials(request.name)}
-              </div>
-              <div className="member-details">
-                <div className="member-name">{request.name}</div>
-                <div className="member-email">{request.email || 'No email'}</div>
-                {request.is_referred && request.referrer_name && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#64748b' }}>
-                    <span style={{ fontWeight: 500 }}>Referred by:</span> {request.referrer_name}
-                    {!request.referrer_id && (
-                      <span style={{ marginLeft: '0.5rem', color: '#ef4444', fontStyle: 'italic' }}>
-                        (Deleted Member)
-                      </span>
-                    )}
-                    {request.relationship_to_referrer && (
-                      <span style={{ marginLeft: '0.5rem', color: '#94a3b8' }}>
-                        ({request.relationship_to_referrer})
-                      </span>
-                    )}
-                  </div>
-                )}
-                {!request.is_referred && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                    Not referred
-                  </div>
-                )}
-              </div>
-              <div className="request-actions">
-                {statusNote && (
-                  <div className={`request-status-note ${awaitingManager ? 'pending' : 'forwarded'} ${isManagerScope ? 'manager' : 'admin'}`}>
-                    {statusNote}
-                  </div>
-                )}
-
-                <div className="request-action-buttons">
-                  {(!awaitingManager || isManagerScope) && (
-                    <>
-                      <button 
-                        className="request-action-btn approve" 
-                        onClick={() => handleApproveRequest(request)}
-                        title="Approve Request"
-                        disabled={!isManagerScope && awaitingManager}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                        Approve
-                      </button>
-                      <button 
-                        className="request-action-btn reject" 
-                        onClick={() => handleRejectRequest(request)}
-                        title="Reject Request"
-                        disabled={!isManagerScope && awaitingManager}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          );})}
-          {sortedRequests.length === 0 && (
+        <div className="mm-table-wrap">
+          {sortedRequests.length === 0 ? (
             <div className="empty-state">
               <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <line x1="20" y1="8" x2="20" y2="14"></line>
-                <line x1="23" y1="11" x2="17" y2="11"></line>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
               </svg>
               <h3>No Pending Requests</h3>
               <p>New membership requests will appear here for approval</p>
             </div>
+          ) : (
+            <table className="mm-table">
+              <thead>
+                <tr>
+                  {multiSelectMode && allowMemberMutations && <th style={{ width: '40px' }}></th>}
+                  <th>#</th>
+                  <th>Applicant</th>
+                  <th>Email</th>
+                  <th>Referred By</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRequests.map((request, idx) => {
+                  const awaitingManager = request.manager_status !== 'approved';
+                  const statusNote = !awaitingManager
+                    ? (isManagerScope ? null : null)
+                    : (isManagerScope ? null : 'Waiting for manager approval.');
+                  return (
+                    <tr key={request.id} className="mm-table-row">
+                      {multiSelectMode && allowMemberMutations && (
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <input type="checkbox" className="att-checkbox" checked={selectedMembers.has(request.id)} onChange={() => toggleMemberSelection(request.id)} />
+                        </td>
+                      )}
+                      <td className="mm-td-num">{idx + 1}</td>
+                      <td className="mm-td-member">
+                        <div className="mm-member-cell">
+                          <div className="member-avatar pending">{getInitials(request.name)}</div>
+                          <div className="mm-member-name">{request.name}</div>
+                        </div>
+                      </td>
+                      <td className="mm-td-meta">{request.email || '—'}</td>
+                      <td className="mm-td-meta">
+                        {request.is_referred && request.referrer_name
+                          ? <>{request.referrer_name}{!request.referrer_id && <span style={{ color: '#ef4444', marginLeft: 4, fontSize: '0.72rem' }}>(Deleted)</span>}</>
+                          : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not referred</span>}
+                      </td>
+                      <td className="mm-td-status">
+                        {statusNote
+                          ? <span className="mm-status-badge mm-status--pending">Awaiting Manager</span>
+                          : <span className="mm-status-badge mm-status--pending">Pending</span>}
+                      </td>
+                      <td className="mm-td-actions" onClick={(e) => e.stopPropagation()}>
+                        <div className="mm-action-btns">
+                          {(!awaitingManager || isManagerScope) && (
+                            <>
+                              <button className="mm-req-btn mm-req-btn--approve" onClick={() => handleApproveRequest(request)} title="Approve">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Approve
+                              </button>
+                              <button className="mm-req-btn mm-req-btn--reject" onClick={() => handleRejectRequest(request)} title="Reject">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           )}
         </div>
         </>
@@ -3172,48 +2995,58 @@ ChurchTrack System`;
             
             return (
               <>
-                {/* NEW: All Birthdays Section - Members Card Style */}
+                {/* All Birthdays — table */}
                 {showAll && filteredAllBirthdays.length > 0 && (
-                  <div className="birthday-section">
-                    <div className="members-cards-container">
-                      {filteredAllBirthdays.map(member => {
-                        const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-                        const birthDate = new Date(member.birthday);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const nextBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-                        nextBirthday.setHours(0, 0, 0, 0);
-                        if (nextBirthday < today) {
-                          nextBirthday.setFullYear(today.getFullYear() + 1);
-                        }
-                        const diffMs = nextBirthday.getTime() - today.getTime();
-                        const daysUntil = Math.round(diffMs / (1000 * 60 * 60 * 24));
-                        
-                        return (
-                          <div key={member.id} className="member-card">
-                            <div className="member-avatar" style={{ overflow: 'hidden' }}>
-                              {member.profile_picture ? (
-                                <img
-                                  src={resolveProfilePicUrl(member.profile_picture)}
-                                  alt={member.name}
-                                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                                  onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = initials; }}
-                                />
-                              ) : initials}
-                            </div>
-                            <div className="member-details">
-                              <div className="member-name">{member.name}</div>
-                              <div className="member-email">{formatDate(member.birthday)}</div>
-                            </div>
-                            <div className="member-badges">
-                              <span className="status-badge-new active">
-                                {daysUntil === 0 ? 'Today!' : `${daysUntil} ${daysUntil === 1 ? 'day' : 'days'}`}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <div className="mm-table-wrap">
+                    <table className="mm-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Member</th>
+                          <th>Birthday</th>
+                          <th>Age</th>
+                          <th>Days Until</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredAllBirthdays.map((member, idx) => {
+                          const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                          const birthDate = new Date(member.birthday);
+                          const todayBd = new Date();
+                          todayBd.setHours(0, 0, 0, 0);
+                          const nextBirthday = new Date(todayBd.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+                          nextBirthday.setHours(0, 0, 0, 0);
+                          if (nextBirthday < todayBd) nextBirthday.setFullYear(todayBd.getFullYear() + 1);
+                          const daysUntil = Math.round((nextBirthday.getTime() - todayBd.getTime()) / (1000 * 60 * 60 * 24));
+                          const age = calculateAge(member.birthday);
+                          return (
+                            <tr key={member.id} className="mm-table-row">
+                              <td className="mm-td-num">{idx + 1}</td>
+                              <td className="mm-td-member">
+                                <div className="mm-member-cell">
+                                  <div className="member-avatar" style={{ overflow: 'hidden' }}>
+                                    {member.profile_picture ? (
+                                      <img src={resolveProfilePicUrl(member.profile_picture)} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = initials; }} />
+                                    ) : initials}
+                                  </div>
+                                  <div>
+                                    <div className="mm-member-name">{member.name}</div>
+                                    <div className="mm-member-email">{member.email || 'No email'}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="mm-td-meta">{formatDate(member.birthday)}</td>
+                              <td className="mm-td-meta">{age} yrs old</td>
+                              <td className="mm-td-status">
+                                {daysUntil === 0
+                                  ? <span className="mm-status-badge mm-status--active">Today! 🎂</span>
+                                  : <span className="mm-status-badge mm-status--pending">{daysUntil} {daysUntil === 1 ? 'day' : 'days'}</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
                 {/* Existing sections for today, upcoming, recent... */}
