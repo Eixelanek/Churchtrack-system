@@ -2904,3 +2904,10 @@
 
 /* ── READY BADGE ── */
 .mm-badge--ready { background: #DCFCE7; color: #16a34a; }
+
+/* Timestamp column in requests table */
+.mm-td-timestamp {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #64748b;
+}

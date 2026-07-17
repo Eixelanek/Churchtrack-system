@@ -2887,6 +2887,7 @@ ChurchTrack System`;
                   <th>Applicant</th>
                   <th>Email</th>
                   <th>Referred By</th>
+                  <th>{isManagerScope ? 'Submitted' : 'Manager Approved'}</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -2897,6 +2898,18 @@ ChurchTrack System`;
                   const statusNote = !awaitingManager
                     ? (isManagerScope ? null : null)
                     : (isManagerScope ? null : 'Waiting for manager approval.');
+
+                  // Timestamp: manager sees when applicant submitted; admin sees when manager approved
+                  const timestampRaw = isManagerScope
+                    ? request.created_at
+                    : request.manager_reviewed_at;
+                  const timestampLabel = timestampRaw
+                    ? new Date(timestampRaw).toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                      })
+                    : '—';
+
                   return (
                     <tr key={request.id} className="mm-table-row">
                       {multiSelectMode && allowMemberMutations && (
@@ -2917,6 +2930,7 @@ ChurchTrack System`;
                           ? <>{request.referrer_name}{!request.referrer_id && <span style={{ color: '#ef4444', marginLeft: 4, fontSize: '0.72rem' }}>(Deleted)</span>}</>
                           : <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not referred</span>}
                       </td>
+                      <td className="mm-td-meta mm-td-timestamp">{timestampLabel}</td>
                       <td className="mm-td-status">
                         {statusNote
                           ? <span className="mm-status-badge mm-status--pending">Awaiting Manager</span>
