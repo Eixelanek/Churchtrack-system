@@ -1452,6 +1452,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     };
 
     if (isManagerScope && userToAction && (confirmAction === 'approve' || confirmAction === 'reject')) {
+      // Manager hard-reject path (manager can reject outright without recommending)
       const decisionStatus = confirmAction === 'approve' ? 'recommended' : 'rejected';
       const decisionReason = confirmAction === 'reject' ? rejectReason.trim() : undefined;
 

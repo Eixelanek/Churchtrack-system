@@ -25,7 +25,7 @@ try {
         $managerCheck = $db->prepare("SHOW COLUMNS FROM members LIKE 'manager_status'");
         $managerCheck->execute();
         if ($managerCheck->rowCount() === 0) {
-            $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_note TEXT NULL AFTER manager_reviewed_at");
+            $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','recommended','not_recommended','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_recommendation_note TEXT NULL AFTER manager_reviewed_at");
         }
     } catch (Exception $e) {
         // Fail silently to allow legacy response
@@ -49,7 +49,7 @@ try {
                 rejection_reason,
                 manager_status,
                 manager_reviewed_at,
-                manager_note,
+                manager_recommendation_note,
                 created_at,
                 updated_at
               FROM members
@@ -65,7 +65,7 @@ try {
     // Normalize manager fields
     $normalized = array_map(function ($item) {
         $item['manager_status'] = $item['manager_status'] ?? 'pending';
-        $item['manager_note'] = $item['manager_note'] ?? null;
+        $item['manager_recommendation_note'] = $item['manager_recommendation_note'] ?? null;
         $item['manager_reviewed_at'] = $item['manager_reviewed_at'] ?? null;
         return $item;
     }, $rejectedRequests);

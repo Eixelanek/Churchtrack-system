@@ -32,7 +32,7 @@ try {
     $managerCheck = $db->prepare("SHOW COLUMNS FROM members LIKE 'manager_status'");
     $managerCheck->execute();
     if ($managerCheck->rowCount() === 0) {
-        $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_note TEXT NULL AFTER manager_reviewed_at");
+        $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','recommended','not_recommended','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_recommendation_note TEXT NULL AFTER manager_reviewed_at");
     }
 } catch (Exception $e) {}
 
@@ -56,7 +56,6 @@ if ($data->status === 'rejected') {
 $query = "UPDATE members 
           SET status = :status,
               rejection_reason = :rejection_reason,
-              manager_status = 'approved',
               updated_at = NOW()
           WHERE id = :id";
 

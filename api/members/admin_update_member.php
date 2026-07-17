@@ -200,7 +200,8 @@ try {
         }
         $colMgr = $db->query("SHOW COLUMNS FROM members LIKE 'manager_status'");
         if ($colMgr && $colMgr->rowCount() > 0) {
-            $sets[] = "manager_status = 'approved'";
+            // Don't touch manager_status when admin directly activates a member
+            // manager_status tracks the recommendation flow separately
         }
     }
 
