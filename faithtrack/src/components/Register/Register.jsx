@@ -266,6 +266,13 @@ const Register = () => {
     
     // Check if guardian information is required (age 17 and below)
     const isMinor = parseInt(formData.age) <= 17;
+
+    // For 18+, the email must have passed the duplicate check
+    if (!isMinor) {
+      if (checkingEmail) return false;           // still verifying
+      if (emailAvailable !== true) return false; // duplicate or unchecked
+    }
+
     if (isMinor) {
       const guardianSurnameValid = (formData.guardianSurname || '').trim() !== '';
       const guardianFirstNameValid = (formData.guardianFirstName || '').trim() !== '';
@@ -311,6 +318,15 @@ const Register = () => {
       }
     } else if ((activeStep === 2 && !hasReferral) || (activeStep === 3 && hasReferral)) {
       // Contact Information step
+      if (checkingEmail) {
+        setMessage({ type: 'error', text: 'Please wait, verifying email...' });
+        return;
+      }
+      const isMinor = parseInt(formData.age) <= 17;
+      if (!isMinor && emailAvailable === false) {
+        setMessage({ type: 'error', text: 'This email is already registered. Please use a different email address.' });
+        return;
+      }
       if (!validateStep2()) {
         setMessage({ type: 'error', text: 'Please enter a valid email address (contact number is optional)' });
         return;
