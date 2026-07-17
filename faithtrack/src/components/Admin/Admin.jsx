@@ -79,6 +79,39 @@ const Admin = () => {
     loadProfile();
   }, []);
 
+  // Default T&C and Privacy Policy content (used as fallback when admin hasn't customized)
+  const DEFAULT_TERMS = `Purpose of the System
+ChurchTrack exists to manage Christ-Like Christian Church membership and attendance. Access is provided to members approved by church leadership.
+
+Accurate Information
+Submit truthful and current personal, contact, and household details. Update your profile promptly when your information changes.
+
+Attendance & Participation
+Worship services and ministry events you attend may be logged for follow-up and care. Attendance insights help pastors plan discipleship, visitation, and resource allocation.
+
+Responsible Use
+Keep your login credentials private and do not misuse system data. Interact respectfully with church staff and fellow members when using ChurchTrack.
+
+Reviews & Support
+Administrators may review your account to ensure compliance with these terms. Contact the church office if you need assistance or have questions about your membership record.`;
+
+  const DEFAULT_PRIVACY = `Information We Collect
+Profile details such as name, birthday, contact information, and address. Attendance history for worship services and ministry events. Household or guardian information for members under 18. Account credentials used to access the ChurchTrack system.
+
+How We Use Your Information
+To maintain accurate membership and pastoral care records. To monitor attendance and plan follow-ups or ministry support. To send official announcements, reminders, and ministry invitations. To generate internal reports that help improve church programs.
+
+Information Sharing
+Only authorized pastors, staff, and ministry leaders can view your records. We do not sell or trade personal data with outside organizations. We may share limited data when required by law or for urgent safety concerns.
+
+Retention & Security
+Data is stored on secured systems with access controls and regular monitoring. We retain records while your membership is active and for a reasonable period afterward. Backups and updates are performed to safeguard against loss or misuse.
+
+Your Choices
+Request to view or update the information we hold about you. Ask for corrections or removal of outdated details, subject to legal obligations. Manage your communication preferences through church administrators.
+
+Contact
+For privacy questions or requests, please reach out to the CLCC administrative office.`;
 
   // Load church settings from backend
   useEffect(() => {
@@ -109,8 +142,8 @@ const Admin = () => {
           setHomepageImage6(cachedSettings.homepage_image_6 ?? null);
           setHomepageHeroTitle(cachedSettings.homepage_hero_title || 'SHAPING FUTURES\nWITH FAITH');
           setHomepageHeroSubtitle(cachedSettings.homepage_hero_subtitle || 'Join us for an uplifting experience');
-          setTermsAndConditions(cachedSettings.termsAndConditions || '');
-          setPrivacyPolicy(cachedSettings.privacyPolicy || '');
+          setTermsAndConditions(cachedSettings.termsAndConditions || DEFAULT_TERMS);
+          setPrivacyPolicy(cachedSettings.privacyPolicy || DEFAULT_PRIVACY);
         } catch (error) {
 
         }
@@ -146,8 +179,8 @@ const Admin = () => {
           setHomepageImage6(result.data.homepage_image_6 ?? null);
           setHomepageHeroTitle(result.data.homepage_hero_title || 'SHAPING FUTURES\nWITH FAITH');
           setHomepageHeroSubtitle(result.data.homepage_hero_subtitle || 'Join us for an uplifting experience');
-          setTermsAndConditions(result.data.termsAndConditions || '');
-          setPrivacyPolicy(result.data.privacyPolicy || '');
+          setTermsAndConditions(result.data.termsAndConditions || DEFAULT_TERMS);
+          setPrivacyPolicy(result.data.privacyPolicy || DEFAULT_PRIVACY);
           
           // Also save to localStorage
           localStorage.setItem('churchSettings', JSON.stringify(result.data));
@@ -256,8 +289,9 @@ const Admin = () => {
   const [homepageImage6, setHomepageImage6] = useState(null);
   const [homepageHeroTitle, setHomepageHeroTitle] = useState('SHAPING FUTURES\nWITH FAITH');
   const [homepageHeroSubtitle, setHomepageHeroSubtitle] = useState('Join us for an uplifting experience');
-  const [termsAndConditions, setTermsAndConditions] = useState('');
-  const [privacyPolicy, setPrivacyPolicy] = useState('');
+
+  const [termsAndConditions, setTermsAndConditions] = useState(DEFAULT_TERMS);
+  const [privacyPolicy, setPrivacyPolicy] = useState(DEFAULT_PRIVACY);
   const [originalChurchData, setOriginalChurchData] = useState(null);
   const [hasChurchChanges, setHasChurchChanges] = useState(false);
   const [showSettingsSaveModal, setShowSettingsSaveModal] = useState(false);
@@ -1828,8 +1862,8 @@ const Admin = () => {
       setDateFormat(originalChurchData.dateFormat ?? 'mm/dd/yyyy');
       setHomepageHeroTitle(originalChurchData.homepage_hero_title || 'SHAPING FUTURES\nWITH FAITH');
       setHomepageHeroSubtitle(originalChurchData.homepage_hero_subtitle || 'Join us for an uplifting experience');
-      setTermsAndConditions(originalChurchData.termsAndConditions || '');
-      setPrivacyPolicy(originalChurchData.privacyPolicy || '');
+      setTermsAndConditions(originalChurchData.termsAndConditions || DEFAULT_TERMS);
+      setPrivacyPolicy(originalChurchData.privacyPolicy || DEFAULT_PRIVACY);
     }
     setHasChurchChanges(false);
   };
