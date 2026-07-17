@@ -24,9 +24,36 @@
   background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 24px;
   flex-shrink: 0;
 }
+
+.rs-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: color 0.2s;
+  padding: 0;
+  width: 80px;
+}
+
+.rs-back-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  transition: transform 0.2s;
+}
+
+.rs-back-btn:hover { color: #fff; }
+.rs-back-btn:hover svg { transform: translateX(-3px); }
 
 .rs-topbar-brand {
   display: flex;
