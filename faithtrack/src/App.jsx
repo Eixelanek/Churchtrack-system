@@ -14,6 +14,7 @@ import Member from './components/Members/Member';
 import GuestCheckIn from './components/GuestCheckIn/GuestCheckIn';
 import Manager from './components/Manager/Manager';
 import VerifyEmail from './components/VerifyEmail/VerifyEmail';
+import RegisterSuccess from './components/RegisterSuccess/RegisterSuccess';
 import PublicNav from './components/common/PublicNav';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import OfflineIndicator from './components/OfflineIndicator/OfflineIndicator';
@@ -124,6 +125,7 @@ const App = () => {
         <Route path="/referral-selection" element={<ReferralSelection />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/register-success" element={<RegisterSuccess />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/checkin" element={<Navigate to="/" replace />} />

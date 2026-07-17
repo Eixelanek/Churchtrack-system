@@ -808,13 +808,10 @@ const Register = () => {
       // Check response status first before parsing JSON
       if (response.status === 201) {
         // Registration successful
-        setMessage({ type: 'success', text: 'Registration successful!' });
-        setNotificationMessage('Registration successful! Please verify your email from the link we sent, then wait for admin approval.');
-        setShowNotification(true);
-
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        const firstName = (formData.firstName || '').trim();
+        const surname = (formData.surname || '').trim();
+        const fullName = [firstName, surname].filter(Boolean).join(' ') || 'Applicant';
+        navigate('/register-success', { state: { name: fullName }, replace: true });
         return;
       }
 
@@ -826,13 +823,10 @@ const Register = () => {
       }
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Registration successful!' });
-        setNotificationMessage('Registration successful! Please verify your email from the link we sent, then wait for admin approval.');
-        setShowNotification(true);
-
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        const firstName = (formData.firstName || '').trim();
+        const surname = (formData.surname || '').trim();
+        const fullName = [firstName, surname].filter(Boolean).join(' ') || 'Applicant';
+        navigate('/register-success', { state: { name: fullName }, replace: true });
       } else {
         setMessage({ type: 'error', text: data.message || 'Failed to submit registration. Please try again.' });
       }
@@ -841,15 +835,10 @@ const Register = () => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       if (isMobile && (error.message.includes('Failed to fetch') || error.message.includes('CORS'))) {
-        // On mobile, CORS errors often occur even when registration succeeds
-        // Show success message and let user proceed
-        setMessage({ type: 'success', text: 'Registration submitted! Please check with admin for approval status.' });
-        setNotificationMessage('Registration submitted! Please verify your email from the link we sent, then wait for admin approval.');
-        setShowNotification(true);
-
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
+        const firstName = (formData.firstName || '').trim();
+        const surname = (formData.surname || '').trim();
+        const fullName = [firstName, surname].filter(Boolean).join(' ') || 'Applicant';
+        navigate('/register-success', { state: { name: fullName }, replace: true });
       } else {
         setMessage({ type: 'error', text: 'Failed to submit registration. Please try again.' });
       }
