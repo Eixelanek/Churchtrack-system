@@ -2323,11 +2323,12 @@
 .mm-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   font-family: 'Poppins', sans-serif;
   flex-wrap: wrap;
 }
+
 
 /* Search bar */
 .mm-search-bar {
@@ -2367,6 +2368,8 @@
 /* Tabs — pill capsule, matching arm-tabs */
 .mm-tabs {
   display: flex;
+  flex: 1;
+  min-width: 0;
   background: #fff;
   border-radius: 50px;
   padding: 4px;
@@ -2415,12 +2418,14 @@
   line-height: 1.5;
 }
 
-/* Right side controls */
+/* Right side controls — fixed min-width so tabs don't jump when controls appear/disappear */
 .mm-toolbar-right {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  min-width: 280px;         /* reserve space equal to multiselect + filter */
+  justify-content: flex-end;
 }
 
 /* Multi-Select — matching arm-multiselect-btn */
