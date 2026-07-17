@@ -2513,3 +2513,279 @@
   .mm-stat-icon { width: 40px; height: 40px; border-radius: 10px; }
   .mm-stat-icon svg { width: 18px; height: 18px; }
 }
+
+
+/* ============================================================
+   MEMBERS TABLE — matching att-table pattern
+   ============================================================ */
+
+.mm-table-wrap {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,73,175,0.07);
+  box-shadow: 0 2px 16px rgba(0,73,175,0.06);
+  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: 'Poppins', sans-serif;
+}
+
+.mm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+/* ── THEAD ── */
+.mm-table thead tr {
+  border-bottom: 1px solid rgba(0,73,175,0.08);
+  background: rgba(0,73,175,0.02);
+}
+
+.mm-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #7a8a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+}
+
+/* ── ROWS ── */
+.mm-table-row {
+  border-bottom: 1px solid rgba(0,73,175,0.05);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mm-table-row:hover {
+  background: rgba(0,73,175,0.02);
+}
+
+.mm-table-row:last-child {
+  border-bottom: none;
+}
+
+.mm-row-expanded {
+  background: rgba(0,73,175,0.02);
+  border-bottom: none;
+}
+
+.mm-table-row td {
+  padding: 13px 16px;
+  vertical-align: middle;
+}
+
+/* ── CELL TYPES ── */
+.mm-td-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c0cce0;
+  width: 36px;
+  text-align: center;
+}
+
+.mm-td-member { min-width: 200px; }
+
+.mm-member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mm-member-name {
+  font-weight: 700;
+  color: #0a1a3a;
+  font-size: 0.88rem;
+}
+
+.mm-member-email {
+  font-size: 0.75rem;
+  color: #7a8a9a;
+  margin-top: 1px;
+}
+
+.mm-td-meta {
+  color: #5a6a85;
+  white-space: nowrap;
+  font-size: 0.84rem;
+}
+
+/* ── STATUS BADGES ── */
+.mm-td-status { white-space: nowrap; }
+
+.mm-status-badge {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.mm-status--active    { background: #dcfce7; color: #16a34a; }
+.mm-status--inactive  { background: #fee2e2; color: #dc2626; }
+.mm-status--pending   { background: #fef3c7; color: #d97706; }
+.mm-status--rejected  { background: #f3f4f6; color: #6b7280; }
+.mm-status--guest     { background: #dbeafe; color: #1d4ed8; }
+
+/* ── BADGE CHIPS ── */
+.mm-td-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── ACTION BUTTONS ── */
+.mm-td-actions { white-space: nowrap; }
+
+.mm-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mm-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.mm-action-btn:hover { transform: translateY(-1px); }
+
+.mm-action-btn--edit {
+  background: rgba(0,73,175,0.06);
+  color: #0049AF;
+}
+
+.mm-action-btn--edit:hover  { background: rgba(0,73,175,0.12); }
+
+.mm-action-btn--delete {
+  background: rgba(220,38,38,0.06);
+  color: #dc2626;
+}
+
+.mm-action-btn--delete:hover { background: rgba(220,38,38,0.12); }
+
+.mm-action-btn svg { stroke: currentColor; }
+
+/* ── CHEVRON ── */
+.mm-td-chevron {
+  width: 36px;
+  text-align: center;
+}
+
+/* ── EXPANDED ROW ── */
+.mm-expanded-row {
+  background: #f8faff;
+  border-bottom: 1px solid rgba(0,73,175,0.06);
+}
+
+.mm-expanded-cell {
+  padding: 0 !important;
+}
+
+.mm-expanded-cell .member-details-expanded {
+  padding: 20px 24px;
+  border-top: 2px solid rgba(0,73,175,0.08);
+}
+
+/* ── EMPTY STATE ── */
+.mm-table-wrap .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 12px;
+}
+
+.mm-table-wrap .empty-state svg { stroke: #cbd5e1; }
+
+.mm-table-wrap .empty-state h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.mm-table-wrap .empty-state p {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── MULTISELECT BAR ── */
+.mm-multiselect-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #f0f9ff;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #bfdbfe;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.mm-multiselect-bar button {
+  padding: 5px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: white;
+  color: #1e40af;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.mm-multiselect-bar button:hover { background: #e0f2fe; }
+
+.mm-multiselect-bar .mm-delete-selected-btn {
+  margin-left: auto;
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+  font-weight: 600;
+}
+
+.mm-multiselect-bar .mm-delete-selected-btn:hover { background: #dc2626; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  /* Hide: # (1), Username (4), Tags (6) on small screens */
+  .mm-table thead th:nth-child(2),
+  .mm-table tbody td:nth-child(2),
+  .mm-table thead th:nth-child(4),
+  .mm-table tbody td:nth-child(4),
+  .mm-table thead th:nth-child(6),
+  .mm-table tbody td:nth-child(6) { display: none; }
+
+  .mm-table thead th,
+  .mm-table tbody td { padding: 11px 10px; font-size: 0.82rem; }
+
+  .mm-member-name { font-size: 0.84rem; }
+  .mm-member-email { display: none; }
+}
+
+@media (max-width: 600px) {
+  .mm-table thead th:nth-child(5),
+  .mm-table tbody td:nth-child(5) { display: none; }
+}
