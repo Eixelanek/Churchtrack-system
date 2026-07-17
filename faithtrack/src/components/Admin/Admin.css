@@ -6144,3 +6144,7 @@ select.form-input {
   font-size: 0.85rem;
   line-height: 1.6;
 }
+
+/* Ensure back button icon is visible */
+.stg-back-btn { line-height: 0; }
+.stg-back-btn svg { display: block; }
