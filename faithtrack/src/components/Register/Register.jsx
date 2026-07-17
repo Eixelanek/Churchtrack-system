@@ -1788,34 +1788,68 @@ const Register = () => {
 
             {/* Body */}
             <div className="policy-modal-body">
-              {dynamicTerms ? (
-                <div className="policy-dynamic-content" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7, fontSize: '0.9rem', color: '#374151' }}>{dynamicTerms}</div>
-              ) : (
-                <>
-                  <div className="policy-intro">
-                    <p>By creating a FaithTrack account, you acknowledge and agree to the following guidelines for membership and attendance management.</p>
-                  </div>
+              {(() => {
+                const rawText = dynamicTerms;
+                const sections = [
+                  { icon: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>, title: 'Purpose of the System', items: ['FaithTrack exists to manage Christ-Like Christian Church membership and attendance.', 'Access is provided to members approved by church leadership.'] },
+                  { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>, title: 'Accurate Information', items: ['Submit truthful and current personal, contact, and household details.', 'Update your profile promptly when your information changes.'] },
+                  { icon: <><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></>, title: 'Attendance & Participation', items: ['Worship services and ministry events you attend may be logged for follow-up and care.', 'Attendance insights help pastors plan discipleship, visitation, and resource allocation.'] },
+                  { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12h6"/><path d="M12 9v6"/></>, title: 'Responsible Use', items: ['Keep your login credentials private and do not misuse system data.', 'Interact respectfully with church staff and fellow members when using FaithTrack.'] },
+                  { icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>, title: 'Reviews & Support', items: ['Administrators may review your account to ensure compliance with these terms.', 'Contact the church office if you need assistance or have questions about your membership record.'] },
+                ];
+
+                if (!rawText) {
+                  return (
+                    <>
+                      <div className="policy-intro"><p>By creating a FaithTrack account, you acknowledge and agree to the following guidelines for membership and attendance management.</p></div>
+                      <div className="policy-sections">
+                        {sections.map((s, i) => (
+                          <div key={i} className="policy-section">
+                            <div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg></div>
+                            <div className="policy-section-content"><h5>{s.title}</h5><ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul></div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                }
+
+                // Parse plain-text sections: heading line followed by body lines
+                const parsed = [];
+                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+                let i = 0;
+                while (i < lines.length) {
+                  const heading = lines[i];
+                  const bodyLines = [];
+                  i++;
+                  while (i < lines.length && lines[i] && !sections.some(s => lines[i].toLowerCase().startsWith(s.title.toLowerCase().slice(0, 10)))) {
+                    bodyLines.push(lines[i]);
+                    i++;
+                  }
+                  parsed.push({ heading, body: bodyLines.join(' ') });
+                }
+
+                const iconFor = (title) => {
+                  const match = sections.find(s => title.toLowerCase().includes(s.title.toLowerCase().split(' ')[0].toLowerCase()));
+                  return match ? match.icon : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>;
+                };
+
+                return (
                   <div className="policy-sections">
-                    {[
-                      { icon: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>, title: 'Purpose of the System', items: ['FaithTrack exists to manage Christ-Like Christian Church membership and attendance.', 'Access is provided to members approved by church leadership.'] },
-                      { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>, title: 'Accurate Information', items: ['Submit truthful and current personal, contact, and household details.', 'Update your profile promptly when your information changes.'] },
-                      { icon: <><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></>, title: 'Attendance & Participation', items: ['Worship services and ministry events you attend may be logged for follow-up and care.', 'Attendance insights help pastors plan discipleship, visitation, and resource allocation.'] },
-                      { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12h6"/><path d="M12 9v6"/></>, title: 'Responsible Use', items: ['Keep your login credentials private and do not misuse system data.', 'Interact respectfully with church staff and fellow members when using FaithTrack.'] },
-                      { icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>, title: 'Reviews & Support', items: ['Administrators may review your account to ensure compliance with these terms.', 'Contact the church office if you need assistance or have questions about your membership record.'] },
-                    ].map((s, i) => (
-                      <div key={i} className="policy-section">
+                    {parsed.map((s, idx) => (
+                      <div key={idx} className="policy-section">
                         <div className="policy-section-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconFor(s.heading)}</svg>
                         </div>
                         <div className="policy-section-content">
-                          <h5>{s.title}</h5>
-                          {s.items ? <ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul> : <p>{s.text}</p>}
+                          <h5>{s.heading}</h5>
+                          <p>{s.body}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                </>
-              )}
+                );
+              })()}
             </div>
 
             {/* Footer */}
@@ -1856,35 +1890,72 @@ const Register = () => {
 
             {/* Body */}
             <div className="policy-modal-body">
-              {dynamicPrivacy ? (
-                <div className="policy-dynamic-content" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7, fontSize: '0.9rem', color: '#374151' }}>{dynamicPrivacy}</div>
-              ) : (
-                <>
-                  <div className="policy-intro">
-                    <p>This notice explains how we collect, use, and protect your information for CLCC membership and attendance management.</p>
-                  </div>
+              {(() => {
+                const rawText = dynamicPrivacy;
+                const sections = [
+                  { icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>, title: 'Information We Collect', items: ['Profile details: name, birthday, contact information, and address.', 'Attendance history for worship services and ministry events.', 'Household or guardian information for members under 18.', 'Account credentials used to access FaithTrack.'] },
+                  { icon: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>, title: 'How We Use Your Information', items: ['To maintain accurate membership and pastoral care records.', 'To monitor attendance and plan follow-ups or ministry support.', 'To send official announcements, reminders, and ministry invitations.', 'To generate internal reports that help improve church programs.'] },
+                  { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="11" y2="15"/></>, title: 'Information Sharing', items: ['Only authorized pastors, staff, and ministry leaders can view your records.', 'We do not sell or trade personal data with outside organizations.', 'We may share limited data when required by law or for urgent safety concerns.'] },
+                  { icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>, title: 'Retention & Security', items: ['Data is stored on secured systems with access controls and regular monitoring.', 'We retain records while your membership is active and for a reasonable period afterward.', 'Backups and updates are performed to safeguard against loss or misuse.'] },
+                  { icon: <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>, title: 'Your Choices', items: ['Request to view or update the information we hold about you.', 'Ask for corrections or removal of outdated details, subject to legal obligations.', 'Manage your communication preferences through church administrators.'] },
+                  { icon: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>, title: 'Contact', text: 'For privacy questions or requests, please reach out to the CLCC administrative office.' },
+                ];
+
+                if (!rawText) {
+                  return (
+                    <>
+                      <div className="policy-intro"><p>This notice explains how we collect, use, and protect your information for CLCC membership and attendance management.</p></div>
+                      <div className="policy-sections">
+                        {sections.map((s, i) => (
+                          <div key={i} className="policy-section">
+                            <div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg></div>
+                            <div className="policy-section-content">
+                              <h5>{s.title}</h5>
+                              {s.items ? <ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul> : <p>{s.text}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                }
+
+                // Parse plain-text: heading line + body lines
+                const parsed = [];
+                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+                let i = 0;
+                while (i < lines.length) {
+                  const heading = lines[i];
+                  const bodyLines = [];
+                  i++;
+                  while (i < lines.length && lines[i] && !sections.some(s => lines[i].toLowerCase().startsWith(s.title.toLowerCase().split(' ')[0].toLowerCase()))) {
+                    bodyLines.push(lines[i]);
+                    i++;
+                  }
+                  parsed.push({ heading, body: bodyLines.join(' ') });
+                }
+
+                const iconFor = (title) => {
+                  const match = sections.find(s => title.toLowerCase().includes(s.title.toLowerCase().split(' ')[0].toLowerCase()));
+                  return match ? match.icon : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>;
+                };
+
+                return (
                   <div className="policy-sections">
-                    {[
-                      { icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>, title: 'Information We Collect', items: ['Profile details: name, birthday, contact information, and address.', 'Attendance history for worship services and ministry events.', 'Household or guardian information for members under 18.', 'Account credentials used to access FaithTrack.'] },
-                      { icon: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>, title: 'How We Use Your Information', items: ['To maintain accurate membership and pastoral care records.', 'To monitor attendance and plan follow-ups or ministry support.', 'To send official announcements, reminders, and ministry invitations.', 'To generate internal reports that help improve church programs.'] },
-                      { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="11" y2="15"/></>, title: 'Information Sharing', items: ['Only authorized pastors, staff, and ministry leaders can view your records.', 'We do not sell or trade personal data with outside organizations.', 'We may share limited data when required by law or for urgent safety concerns.'] },
-                      { icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>, title: 'Retention & Security', items: ['Data is stored on secured systems with access controls and regular monitoring.', 'We retain records while your membership is active and for a reasonable period afterward.', 'Backups and updates are performed to safeguard against loss or misuse.'] },
-                      { icon: <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>, title: 'Your Choices', items: ['Request to view or update the information we hold about you.', 'Ask for corrections or removal of outdated details, subject to legal obligations.', 'Manage your communication preferences through church administrators.'] },
-                      { icon: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>, title: 'Contact', text: 'For privacy questions or requests, please reach out to the CLCC administrative office.' },
-                    ].map((s, i) => (
-                      <div key={i} className="policy-section">
+                    {parsed.map((s, idx) => (
+                      <div key={idx} className="policy-section">
                         <div className="policy-section-icon">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconFor(s.heading)}</svg>
                         </div>
                         <div className="policy-section-content">
-                          <h5>{s.title}</h5>
-                          {s.items ? <ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul> : <p>{s.text}</p>}
+                          <h5>{s.heading}</h5>
+                          <p>{s.body}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                </>
-              )}
+                );
+              })()}
             </div>
 
             {/* Footer */}
