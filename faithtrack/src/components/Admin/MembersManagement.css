@@ -1084,7 +1084,9 @@
 .family-badge svg {
   width: 11px;
   height: 11px;
+  min-width: 11px;
   stroke: #7C3AED;
+  fill: none;
   flex-shrink: 0;
 }
 
@@ -1104,7 +1106,9 @@
 .referral-badge svg {
   width: 11px;
   height: 11px;
+  min-width: 11px;
   stroke: #0369A1;
+  fill: none;
   flex-shrink: 0;
 }
 
@@ -1124,7 +1128,9 @@
 .referral-count-badge svg {
   width: 11px;
   height: 11px;
+  min-width: 11px;
   stroke: #166534;
+  fill: none;
   flex-shrink: 0;
 }
 
@@ -2699,7 +2705,18 @@
   box-shadow: 0 4px 8px rgba(239,68,68,0.3);
 }
 
-.mm-action-btn svg { stroke: currentColor; }
+.mm-action-btn svg {
+  stroke: currentColor;
+  fill: none;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Force icon colours explicitly — don't rely on inheritance */
+.mm-action-btn--edit svg       { stroke: #1D4ED8; }
+.mm-action-btn--edit:hover svg { stroke: #ffffff; }
+.mm-action-btn--delete svg       { stroke: #DC2626; }
+.mm-action-btn--delete:hover svg { stroke: #ffffff; }
 
 /* ── CHEVRON ── */
 .mm-td-chevron {
