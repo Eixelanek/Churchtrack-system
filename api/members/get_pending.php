@@ -16,10 +16,10 @@ try {
     $colCheck = $db->prepare("SHOW COLUMNS FROM members LIKE 'manager_status'");
     $colCheck->execute();
     if ($colCheck->rowCount() === 0) {
-        $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_note TEXT NULL AFTER manager_reviewed_at");
+        $db->exec("ALTER TABLE members ADD COLUMN manager_status ENUM('pending','recommended','not_recommended','rejected') NOT NULL DEFAULT 'pending' AFTER status, ADD COLUMN manager_reviewed_at DATETIME NULL AFTER manager_status, ADD COLUMN manager_recommendation_note TEXT NULL AFTER manager_reviewed_at");
     }
 } catch (Exception $e) {
-    // Fail silently; endpoints will surface issues if alteration fails
+    // Fail silently
 }
 
 
@@ -40,7 +40,7 @@ $query = "SELECT
             m.status, 
             m.manager_status,
             m.manager_reviewed_at,
-            m.manager_note,
+            m.manager_recommendation_note,
             m.created_at, 
             m.updated_at,
             m.guardian_surname,
@@ -55,9 +55,11 @@ $query = "SELECT
           WHERE m.status = 'pending'";
 
 if ($scope === 'admin') {
-    $query .= " AND m.manager_status = 'approved'";
+    // Admin sees requests that have been acted on by manager (recommended OR not_recommended)
+    $query .= " AND m.manager_status IN ('recommended', 'not_recommended')";
 } else {
-    $query .= " AND m.manager_status != 'approved'";
+    // Manager sees only those still pending manager review
+    $query .= " AND m.manager_status = 'pending'";
 }
 
 $stmt = $db->prepare($query);
@@ -97,6 +99,7 @@ foreach ($pending_members as &$member) {
     // Member is considered referred if they have either a referrer_id or a referrer_name
     $member['is_referred'] = !empty($member['referrer_id']) || !empty($member['referrer_name']);
     $member['manager_status'] = $member['manager_status'] ?? 'pending';
+    $member['manager_recommendation_note'] = $member['manager_recommendation_note'] ?? null;
 }
 
 echo json_encode($pending_members);

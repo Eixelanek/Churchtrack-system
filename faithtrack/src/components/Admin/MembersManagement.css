@@ -2911,3 +2911,71 @@
   font-size: 0.8rem;
   color: #64748b;
 }
+
+/* ── RECOMMENDATION BADGES (admin requests table) ── */
+.mm-rec-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mm-rec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mm-rec-badge svg { flex-shrink: 0; fill: none; }
+
+.mm-rec-badge--yes {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.mm-rec-badge--yes svg { stroke: #16a34a; }
+
+.mm-rec-badge--no {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.mm-rec-badge--no svg { stroke: #c2410c; }
+
+.mm-rec-note {
+  font-size: 0.75rem;
+  color: #475569;
+  font-style: italic;
+  line-height: 1.4;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mm-rec-note--warn {
+  color: #92400e;
+}
+
+/* "Don't Recommend" button — amber */
+.mm-req-btn--warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  white-space: nowrap;
+  background: #FEF3C7;
+  color: #92400E;
+}
+.mm-req-btn--warn svg { stroke: #92400E; fill: none; }
+.mm-req-btn--warn:hover { background: #d97706; color: white; transform: translateY(-1px); }
+.mm-req-btn--warn:hover svg { stroke: white; }

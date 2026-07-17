@@ -29,8 +29,8 @@ const RegisterSuccess = () => {
           <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
       ),
-      label: 'Manager Review',
-      desc: 'A church manager will review your application first and forward it for final approval.',
+      label: 'Manager Recommendation',
+      desc: 'A church manager reviews your application and submits a recommendation (for or against) to the admin.',
       color: 'purple',
     },
     {

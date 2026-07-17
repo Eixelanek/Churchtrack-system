@@ -162,6 +162,14 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     relationshipToGuardian: ''
   });
 
+  // ── RECOMMENDATION MODAL STATE (manager) ──
+  const [showRecommendModal, setShowRecommendModal] = useState(false);
+  const [recommendAction, setRecommendAction] = useState(null); // 'recommended' | 'not_recommended'
+  const [recommendTarget, setRecommendTarget] = useState(null);
+  const [recommendNote, setRecommendNote] = useState('');
+  const [recommendNoteError, setRecommendNoteError] = useState('');
+  const [recommendSaving, setRecommendSaving] = useState(false);
+
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
@@ -1336,28 +1344,76 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
 
   // Handle approve request
   const handleApproveRequest = (request) => {
+    // Admin-only: hard approve
     setConfirmAction('approve');
-    setConfirmMessage(
-      isManagerScope
-        ? `Forward ${request.name}'s registration to admin?`
-        : `Are you sure you want to approve ${request.name}'s registration?`
-    );
+    setConfirmMessage(`Are you sure you want to approve ${request.name}'s registration?`);
     setUserToAction(request);
     setShowConfirmModal(true);
   };
 
-  // Handle reject request
+  // Handle reject request (admin hard-reject)
   const handleRejectRequest = (request) => {
     setConfirmAction('reject');
-    setConfirmMessage(
-      isManagerScope
-        ? `Reject ${request.name}'s registration?`
-        : `Are you sure you want to reject ${request.name}'s registration?`
-    );
+    setConfirmMessage(`Are you sure you want to reject ${request.name}'s registration?`);
     setUserToAction(request);
     setRejectReason('');
     setRejectReasonError('');
     setShowConfirmModal(true);
+  };
+
+  // ── MANAGER: open recommendation modal ──
+  const openRecommendModal = (request, action) => {
+    setRecommendTarget(request);
+    setRecommendAction(action); // 'recommended' | 'not_recommended'
+    setRecommendNote('');
+    setRecommendNoteError('');
+    setShowRecommendModal(true);
+  };
+
+  const closeRecommendModal = () => {
+    setShowRecommendModal(false);
+    setRecommendTarget(null);
+    setRecommendAction(null);
+    setRecommendNote('');
+    setRecommendNoteError('');
+  };
+
+  const submitRecommendation = async () => {
+    if (recommendSaving) return;
+    if (recommendAction === 'not_recommended' && !recommendNote.trim()) {
+      setRecommendNoteError('Please provide a reason for not recommending.');
+      return;
+    }
+    setRecommendNoteError('');
+    setRecommendSaving(true);
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/members/update_manager_status.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: recommendTarget.id,
+          manager_status: recommendAction,
+          manager_recommendation_note: recommendNote.trim() || null
+        })
+      });
+      if (!res.ok) throw new Error('Failed');
+      updateManagerModeration((prev) => ({
+        ...prev,
+        [recommendTarget.id]: {
+          status: recommendAction,
+          note: recommendNote.trim() || null,
+          timestamp: new Date().toISOString()
+        }
+      }));
+      const label = recommendAction === 'recommended' ? 'recommended' : 'flagged as not recommended';
+      showCustomAlert(`${recommendTarget.name} has been ${label} and forwarded to admin.`);
+      fetchData();
+      closeRecommendModal();
+    } catch {
+      setRecommendNoteError('Something went wrong. Please try again.');
+    } finally {
+      setRecommendSaving(false);
+    }
   };
 
   const closeConfirmModal = () => {
@@ -1396,7 +1452,7 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
     };
 
     if (isManagerScope && userToAction && (confirmAction === 'approve' || confirmAction === 'reject')) {
-      const decisionStatus = confirmAction === 'approve' ? 'approved' : 'rejected';
+      const decisionStatus = confirmAction === 'approve' ? 'recommended' : 'rejected';
       const decisionReason = confirmAction === 'reject' ? rejectReason.trim() : undefined;
 
       fetch(`${backendBaseUrl}/api/members/update_manager_status.php`, {
@@ -1405,13 +1461,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
         body: JSON.stringify({
           id: userToAction.id,
           manager_status: decisionStatus,
-          manager_note: decisionReason || null
+          manager_recommendation_note: decisionReason || null
         })
       })
         .then(res => {
-          if (!res.ok) {
-            throw new Error('Failed to update manager status');
-          }
+          if (!res.ok) throw new Error('Failed to update manager status');
           return res.json();
         })
         .then(() => {
@@ -1423,16 +1477,12 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
               timestamp: new Date().toISOString()
             }
           }));
-
           const msg = confirmAction === 'approve'
             ? `${userToAction.name}'s request was forwarded to the admin.`
-            : `${userToAction.name}'s request was rejected and logged for the admin.`;
+            : `${userToAction.name}'s request was rejected.`;
           finishAction(msg);
         })
-        .catch((error) => {
-
-          finishAction('Something went wrong. Please try again.');
-        });
+        .catch(() => finishAction('Something went wrong. Please try again.'));
       return;
     } else if (confirmAction === 'delete' && userToAction) {
       fetch(`${backendBaseUrl}/api/members/delete.php`, {
@@ -2894,12 +2944,12 @@ ChurchTrack System`;
               </thead>
               <tbody>
                 {sortedRequests.map((request, idx) => {
-                  const awaitingManager = request.manager_status !== 'approved';
-                  const statusNote = !awaitingManager
-                    ? (isManagerScope ? null : null)
-                    : (isManagerScope ? null : 'Waiting for manager approval.');
+                  const awaitingManager    = request.manager_status === 'pending';
+                  const isRecommended     = request.manager_status === 'recommended';
+                  const isNotRecommended  = request.manager_status === 'not_recommended';
+                  const recNote           = request.manager_recommendation_note || null;
 
-                  // Timestamp: manager sees when applicant submitted; admin sees when manager approved
+                  // Timestamp: manager sees submission time; admin sees when manager reviewed
                   const timestampRaw = isManagerScope
                     ? request.created_at
                     : request.manager_reviewed_at;
@@ -2932,24 +2982,53 @@ ChurchTrack System`;
                       </td>
                       <td className="mm-td-meta mm-td-timestamp">{timestampLabel}</td>
                       <td className="mm-td-status">
-                        {statusNote
-                          ? <span className="mm-status-badge mm-status--pending">Awaiting Manager</span>
-                          : <span className="mm-status-badge mm-status--pending">Pending</span>}
+                        {isManagerScope ? (
+                          <span className="mm-status-badge mm-status--pending">Pending</span>
+                        ) : isRecommended ? (
+                          <div className="mm-rec-wrap">
+                            <span className="mm-rec-badge mm-rec-badge--yes">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
+                              Recommended
+                            </span>
+                            {recNote && <div className="mm-rec-note">"{recNote}"</div>}
+                          </div>
+                        ) : isNotRecommended ? (
+                          <div className="mm-rec-wrap">
+                            <span className="mm-rec-badge mm-rec-badge--no">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="11" height="11"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                              Not Recommended
+                            </span>
+                            {recNote && <div className="mm-rec-note mm-rec-note--warn">"{recNote}"</div>}
+                          </div>
+                        ) : (
+                          <span className="mm-status-badge mm-status--pending">Awaiting Manager</span>
+                        )}
                       </td>
                       <td className="mm-td-actions" onClick={(e) => e.stopPropagation()}>
                         <div className="mm-action-btns">
-                          {(!awaitingManager || isManagerScope) && (
+                          {isManagerScope ? (
+                            <>
+                              <button className="mm-req-btn mm-req-btn--approve" onClick={() => openRecommendModal(request, 'recommended')} title="Recommend">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Recommend
+                              </button>
+                              <button className="mm-req-btn mm-req-btn--warn" onClick={() => openRecommendModal(request, 'not_recommended')} title="Don't Recommend">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Don't Recommend
+                              </button>
+                            </>
+                          ) : !awaitingManager ? (
                             <>
                               <button className="mm-req-btn mm-req-btn--approve" onClick={() => handleApproveRequest(request)} title="Approve">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                                 Approve
                               </button>
                               <button className="mm-req-btn mm-req-btn--reject" onClick={() => handleRejectRequest(request)} title="Reject">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 Reject
                               </button>
                             </>
-                          )}
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -3135,6 +3214,61 @@ ChurchTrack System`;
               </>
             );
           })()}
+        </div>
+      )}
+
+      {/* ── RECOMMENDATION MODAL (manager) ── */}
+      {showRecommendModal && recommendTarget && (
+        <div className="modal-overlay-new" onClick={(e) => { if (e.target === e.currentTarget) closeRecommendModal(); }}>
+          <div className="modal-content-new" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header-new">
+              <h2>{recommendAction === 'recommended' ? 'Recommend Applicant' : "Don't Recommend"}</h2>
+              <button type="button" className="modal-close-btn-new" onClick={closeRecommendModal}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div style={{ padding: '1.25rem 2rem 2rem' }}>
+              <p style={{ fontSize: '0.9rem', color: '#5a6a85', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+                {recommendAction === 'recommended'
+                  ? <>You are recommending <strong>{recommendTarget.name}</strong> for membership. This will forward their application to the admin for final approval.</>
+                  : <>You are flagging <strong>{recommendTarget.name}</strong>'s application as <strong>not recommended</strong>. Their request will still go to admin with your note.</>}
+              </p>
+
+              <div className="form-group-new">
+                <label>
+                  {recommendAction === 'recommended' ? 'Recommendation Note' : 'Reason (required)'}
+                  {recommendAction === 'not_recommended' && <span className="required" style={{ color: '#ef4444', marginLeft: 3 }}>*</span>}
+                </label>
+                <textarea
+                  rows={4}
+                  value={recommendNote}
+                  onChange={(e) => { setRecommendNote(e.target.value); setRecommendNoteError(''); }}
+                  placeholder={recommendAction === 'recommended'
+                    ? 'Optional: add a note for the admin...'
+                    : 'Explain why you are not recommending this applicant...'}
+                  style={{
+                    width: '100%', padding: '0.75rem 1rem', border: `1px solid ${recommendNoteError ? '#ef4444' : '#CBD5E1'}`,
+                    borderRadius: '8px', fontSize: '0.9rem', fontFamily: 'Poppins, sans-serif',
+                    resize: 'vertical', outline: 'none', color: '#0a1a3a', lineHeight: 1.55
+                  }}
+                />
+                {recommendNoteError && <div className="field-error-new">{recommendNoteError}</div>}
+              </div>
+
+              <div className="modal-actions-new">
+                <button type="button" className="btn-cancel-new" onClick={closeRecommendModal} disabled={recommendSaving}>Cancel</button>
+                <button
+                  type="button"
+                  className="btn-submit-new"
+                  style={recommendAction === 'not_recommended' ? { background: 'linear-gradient(135deg,#f59e0b,#d97706)' } : {}}
+                  onClick={submitRecommendation}
+                  disabled={recommendSaving}
+                >
+                  {recommendSaving ? 'Submitting…' : recommendAction === 'recommended' ? 'Recommend' : "Don't Recommend"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
