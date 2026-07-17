@@ -1760,10 +1760,12 @@ const Register = () => {
         </form>
       </div>
 
-      {/* Terms and Conditions Modal */}
+      {/* ── TERMS & CONDITIONS MODAL ── */}
       {showTermsModal && (
         <div className="policy-modal-overlay" onClick={() => setShowTermsModal(false)}>
           <div className="policy-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
             <div className="policy-modal-header">
               <div className="policy-modal-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1774,41 +1776,66 @@ const Register = () => {
                 </svg>
               </div>
               <div className="policy-modal-title-wrap">
-                <h3>Terms and Conditions</h3>
+                <h3>Terms &amp; Conditions</h3>
                 <p>Membership Agreement</p>
               </div>
-              <button className="policy-modal-close" onClick={() => setShowTermsModal(false)} disabled={isLoading}>×</button>
+              <button className="policy-modal-close" onClick={() => setShowTermsModal(false)} aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
+
+            {/* Body */}
             <div className="policy-modal-body">
               {dynamicTerms ? (
-                <div className="policy-dynamic-content">{dynamicTerms}</div>
+                <div className="policy-dynamic-content" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7, fontSize: '0.9rem', color: '#374151' }}>{dynamicTerms}</div>
               ) : (
                 <>
-                  <div className="policy-intro"><p>By creating a ChurchTrack account, you acknowledge and agree to the following guidelines for membership and attendance management:</p></div>
+                  <div className="policy-intro">
+                    <p>By creating a FaithTrack account, you acknowledge and agree to the following guidelines for membership and attendance management.</p>
+                  </div>
                   <div className="policy-sections">
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div className="policy-section-content"><h5>Purpose of the System</h5><ul><li>ChurchTrack exists to manage Christ-Like Christian Church membership and attendance.</li><li>Access is provided to members approved by church leadership.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div className="policy-section-content"><h5>Accurate Information</h5><ul><li>Submit truthful and current personal, contact, and household details.</li><li>Update your profile promptly when your information changes.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></svg></div><div className="policy-section-content"><h5>Attendance &amp; Participation</h5><ul><li>Worship services and ministry events you attend may be logged for follow-up and care.</li><li>Attendance insights help pastors plan discipleship, visitation, and resource allocation.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12h6"/><path d="M12 9v6"/></svg></div><div className="policy-section-content"><h5>Responsible Use</h5><ul><li>Keep your login credentials private and do not misuse system data.</li><li>Interact respectfully with church staff and fellow members when using ChurchTrack.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div className="policy-section-content"><h5>Reviews &amp; Support</h5><ul><li>Administrators may review your account to ensure compliance with these terms.</li><li>Contact the church office if you need assistance or have questions about your membership record.</li></ul></div></div>
+                    {[
+                      { icon: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>, title: 'Purpose of the System', items: ['FaithTrack exists to manage Christ-Like Christian Church membership and attendance.', 'Access is provided to members approved by church leadership.'] },
+                      { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></>, title: 'Accurate Information', items: ['Submit truthful and current personal, contact, and household details.', 'Update your profile promptly when your information changes.'] },
+                      { icon: <><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></>, title: 'Attendance & Participation', items: ['Worship services and ministry events you attend may be logged for follow-up and care.', 'Attendance insights help pastors plan discipleship, visitation, and resource allocation.'] },
+                      { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12h6"/><path d="M12 9v6"/></>, title: 'Responsible Use', items: ['Keep your login credentials private and do not misuse system data.', 'Interact respectfully with church staff and fellow members when using FaithTrack.'] },
+                      { icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></>, title: 'Reviews & Support', items: ['Administrators may review your account to ensure compliance with these terms.', 'Contact the church office if you need assistance or have questions about your membership record.'] },
+                    ].map((s, i) => (
+                      <div key={i} className="policy-section">
+                        <div className="policy-section-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
+                        </div>
+                        <div className="policy-section-content">
+                          <h5>{s.title}</h5>
+                          {s.items ? <ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul> : <p>{s.text}</p>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
             </div>
+
+            {/* Footer */}
             <div className="policy-modal-footer">
               <button className="policy-modal-button" onClick={() => setShowTermsModal(false)} disabled={isLoading}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
                 I Understand
               </button>
             </div>
+
           </div>
         </div>
       )}
 
-      {/* Privacy Policy Modal */}
+      {/* ── PRIVACY POLICY MODAL ── */}
       {showPrivacyModal && (
         <div className="policy-modal-overlay" onClick={() => setShowPrivacyModal(false)}>
-          <div className="policy-modal privacy-policy-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="policy-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
             <div className="policy-modal-header">
               <div className="policy-modal-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1818,33 +1845,56 @@ const Register = () => {
               </div>
               <div className="policy-modal-title-wrap">
                 <h3>Privacy Policy</h3>
-                <p>Privacy Notice</p>
+                <p>How we handle your information</p>
               </div>
-              <button className="policy-modal-close" onClick={() => setShowPrivacyModal(false)} disabled={isLoading}>×</button>
+              <button className="policy-modal-close" onClick={() => setShowPrivacyModal(false)} aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
+
+            {/* Body */}
             <div className="policy-modal-body">
               {dynamicPrivacy ? (
-                <div className="policy-dynamic-content">{dynamicPrivacy}</div>
+                <div className="policy-dynamic-content" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.7, fontSize: '0.9rem', color: '#374151' }}>{dynamicPrivacy}</div>
               ) : (
                 <>
-                  <div className="policy-intro"><p>This notice explains how we handle your information for CLCC membership and attendance management:</p></div>
+                  <div className="policy-intro">
+                    <p>This notice explains how we collect, use, and protect your information for CLCC membership and attendance management.</p>
+                  </div>
                   <div className="policy-sections">
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div className="policy-section-content"><h5>Information We Collect</h5><ul><li>Profile details such as name, birthday, contact information, and address.</li><li>Attendance history for worship services and ministry events.</li><li>Household or guardian information for members under 18.</li><li>Account credentials used to access the ChurchTrack system.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"/></svg></div><div className="policy-section-content"><h5>How We Use Your Information</h5><ul><li>To maintain accurate membership and pastoral care records.</li><li>To monitor attendance and plan follow-ups or ministry support.</li><li>To send official announcements, reminders, and ministry invitations.</li><li>To generate internal reports that help improve church programs.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div><div className="policy-section-content"><h5>Information Sharing</h5><ul><li>Only authorized pastors, staff, and ministry leaders can view your records.</li><li>We do not sell or trade personal data with outside organizations.</li><li>We may share limited data when required by law or for urgent safety concerns.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div className="policy-section-content"><h5>Retention &amp; Security</h5><ul><li>Data is stored on secured systems with access controls and regular monitoring.</li><li>We retain records while your membership is active and for a reasonable period afterward.</li><li>Backups and updates are performed to safeguard against loss or misuse.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><div className="policy-section-content"><h5>Your Choices</h5><ul><li>Request to view or update the information we hold about you.</li><li>Ask for corrections or removal of outdated details, subject to legal obligations.</li><li>Manage your communication preferences through church administrators.</li></ul></div></div>
-                    <div className="policy-section"><div className="policy-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div className="policy-section-content"><h5>Contact</h5><p>For privacy questions or requests, please reach out to the CLCC administrative office.</p></div></div>
+                    {[
+                      { icon: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>, title: 'Information We Collect', items: ['Profile details: name, birthday, contact information, and address.', 'Attendance history for worship services and ministry events.', 'Household or guardian information for members under 18.', 'Account credentials used to access FaithTrack.'] },
+                      { icon: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>, title: 'How We Use Your Information', items: ['To maintain accurate membership and pastoral care records.', 'To monitor attendance and plan follow-ups or ministry support.', 'To send official announcements, reminders, and ministry invitations.', 'To generate internal reports that help improve church programs.'] },
+                      { icon: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="11" y2="15"/></>, title: 'Information Sharing', items: ['Only authorized pastors, staff, and ministry leaders can view your records.', 'We do not sell or trade personal data with outside organizations.', 'We may share limited data when required by law or for urgent safety concerns.'] },
+                      { icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>, title: 'Retention & Security', items: ['Data is stored on secured systems with access controls and regular monitoring.', 'We retain records while your membership is active and for a reasonable period afterward.', 'Backups and updates are performed to safeguard against loss or misuse.'] },
+                      { icon: <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>, title: 'Your Choices', items: ['Request to view or update the information we hold about you.', 'Ask for corrections or removal of outdated details, subject to legal obligations.', 'Manage your communication preferences through church administrators.'] },
+                      { icon: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>, title: 'Contact', text: 'For privacy questions or requests, please reach out to the CLCC administrative office.' },
+                    ].map((s, i) => (
+                      <div key={i} className="policy-section">
+                        <div className="policy-section-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
+                        </div>
+                        <div className="policy-section-content">
+                          <h5>{s.title}</h5>
+                          {s.items ? <ul>{s.items.map((item, j) => <li key={j}>{item}</li>)}</ul> : <p>{s.text}</p>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
             </div>
+
+            {/* Footer */}
             <div className="policy-modal-footer">
               <button className="policy-modal-button" onClick={() => setShowPrivacyModal(false)} disabled={isLoading}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
                 I Understand
               </button>
             </div>
+
           </div>
         </div>
       )}
