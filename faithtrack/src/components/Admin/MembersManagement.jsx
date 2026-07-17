@@ -2162,17 +2162,17 @@ ChurchTrack System`;
                   </td>
                   <td className="mm-td-badges">
                     {member.is_referred && member.referrer_name && (
-                      <span className="referral-badge" title={`Referred by: ${member.referrer_name}`}>
+                      <span className="mm-badge mm-badge--referred" title={`Referred by: ${member.referrer_name}`}>
                         Referred
                       </span>
                     )}
                     {member.referral_count > 0 && (
-                      <span className="referral-count-badge" title={`Referred ${member.referral_count} member(s)`}>
+                      <span className="mm-badge mm-badge--recruiter" title={`Referred ${member.referral_count} member(s)`}>
                         ↑{member.referral_count} referred
                       </span>
                     )}
                     {familyRelativeCount > 0 && (
-                      <span className="family-badge">
+                      <span className="mm-badge mm-badge--family">
                         ♥ {familyRelativeCount} Family
                       </span>
                     )}
@@ -2532,17 +2532,17 @@ ChurchTrack System`;
                           </td>
                           <td className="mm-td-badges">
                             {member.is_referred && member.referrer_name && (
-                              <span className="referral-badge" title={`Referred by: ${member.referrer_name}`}>
+                              <span className="mm-badge mm-badge--referred" title={`Referred by: ${member.referrer_name}`}>
                                 Referred
                               </span>
                             )}
                             {member.referral_count > 0 && (
-                              <span className="referral-count-badge" title={`Referred ${member.referral_count} member(s)`}>
+                              <span className="mm-badge mm-badge--recruiter" title={`Referred ${member.referral_count} member(s)`}>
                                 ↑{member.referral_count} referred
                               </span>
                             )}
                             {familyRelativeCount > 0 && (
-                              <span className="family-badge">
+                              <span className="mm-badge mm-badge--family">
                                 ♥ {familyRelativeCount} Family
                               </span>
                             )}

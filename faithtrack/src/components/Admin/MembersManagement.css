@@ -2827,3 +2827,19 @@
   .mm-table thead th:nth-child(5),
   .mm-table tbody td:nth-child(5) { display: none; }
 }
+
+/* ── TABLE BADGE CHIPS (scoped — avoids collision with ReferralSelection.css) ── */
+.mm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.mm-badge--referred  { background: #E0F2FE; color: #0369A1; }
+.mm-badge--recruiter { background: #DCFCE7; color: #166534; }
+.mm-badge--family    { background: #F3E8FF; color: #7C3AED; }
