@@ -1919,60 +1919,64 @@ ChurchTrack System`;
 
       {/* ── STAT CARDS ── */}
       <div className="mm-stat-cards">
-        <div className="mm-stat-card mm-blue">
+        <div className="mm-stat-card">
           <div className="mm-stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div className="mm-stat-content">
-            <div className="mm-stat-label">Total Members</div>
-            <div className="mm-stat-value">{loading ? '—' : totalMembersCount}</div>
+          <div className="mm-stat-body">
+            <span className="mm-stat-label">Total Members</span>
+            <span className="mm-stat-value">{loading ? '...' : totalMembersCount}</span>
+            <span className="mm-stat-sub">All Records</span>
           </div>
         </div>
 
-        <div className="mm-stat-card mm-green">
+        <div className="mm-stat-card">
           <div className="mm-stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="8.5" cy="7" r="4"/>
               <polyline points="17 11 19 13 23 9"/>
             </svg>
           </div>
-          <div className="mm-stat-content">
-            <div className="mm-stat-label">Active</div>
-            <div className="mm-stat-value">{loading ? '—' : activeMembersCount}</div>
+          <div className="mm-stat-body">
+            <span className="mm-stat-label">Active</span>
+            <span className="mm-stat-value">{loading ? '...' : activeMembersCount}</span>
+            <span className="mm-stat-sub">Members</span>
           </div>
         </div>
 
-        <div className="mm-stat-card mm-amber">
+        <div className="mm-stat-card">
           <div className="mm-stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
           </div>
-          <div className="mm-stat-content">
-            <div className="mm-stat-label">Inactive</div>
-            <div className="mm-stat-value">{loading ? '—' : inactiveMembersCount}</div>
+          <div className="mm-stat-body">
+            <span className="mm-stat-label">Inactive</span>
+            <span className="mm-stat-value">{loading ? '...' : inactiveMembersCount}</span>
+            <span className="mm-stat-sub">Members</span>
           </div>
         </div>
 
-        <div className="mm-stat-card mm-purple">
+        <div className="mm-stat-card">
           <div className="mm-stat-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="8.5" cy="7" r="4"/>
               <line x1="20" y1="8" x2="20" y2="14"/>
               <line x1="23" y1="11" x2="17" y2="11"/>
             </svg>
           </div>
-          <div className="mm-stat-content">
-            <div className="mm-stat-label">Pending Requests</div>
-            <div className="mm-stat-value">{loading ? '—' : pendingRequests.length}</div>
+          <div className="mm-stat-body">
+            <span className="mm-stat-label">Pending Requests</span>
+            <span className="mm-stat-value">{loading ? '...' : pendingRequests.length}</span>
+            <span className="mm-stat-sub">Awaiting Review</span>
           </div>
         </div>
       </div>
@@ -1981,7 +1985,7 @@ ChurchTrack System`;
       <div className="mm-toolbar">
         {/* Search */}
         <div className="mm-search-bar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.35-4.35"/>
           </svg>
@@ -2001,7 +2005,7 @@ ChurchTrack System`;
           )}
         </div>
 
-        {/* Tabs */}
+        {/* Tabs — pill style matching attendance */}
         <div className="mm-tabs">
           <button className={`mm-tab ${activeTab === 'all_members' ? 'active' : ''}`} onClick={() => setActiveTab('all_members')}>All Members</button>
           <button className={`mm-tab ${activeTab === 'inactive' ? 'active' : ''}`} onClick={() => setActiveTab('inactive')}>Inactive</button>
@@ -2015,7 +2019,10 @@ ChurchTrack System`;
           </button>
           <button className={`mm-tab ${activeTab === 'rejected' ? 'active' : ''}`} onClick={() => setActiveTab('rejected')}>Rejected</button>
           <button className={`mm-tab ${activeTab === 'birthdays' ? 'active' : ''}`} onClick={() => setActiveTab('birthdays')}>Birthdays</button>
+        </div>
 
+        {/* Right-side controls */}
+        <div className="mm-toolbar-right">
           {(activeTab === 'all_members' || activeTab === 'inactive' || activeTab === 'guests' || activeTab === 'pending_requests' || activeTab === 'rejected') && allowMemberMutations && (
             <button
               onClick={() => {
@@ -2027,28 +2034,25 @@ ChurchTrack System`;
               }}
               className={`mm-multiselect-btn${multiSelectMode ? ' active' : ''}`}
             >
-              {multiSelectMode
-                ? <><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Multi-Select On</>
-                : 'Multi-Select'}
+              {multiSelectMode ? '✓ Multi-Select On' : 'Multi-Select'}
             </button>
           )}
-        </div>
 
-        {/* Referral filter */}
-        {activeTab === 'all_members' && (
-          <div className="mm-referral-filter">
-            <label htmlFor="mm-referral-select">Filter by Referral:</label>
-            <select
-              id="mm-referral-select"
-              value={referralFilter}
-              onChange={(e) => setReferralFilter(e.target.value)}
-            >
-              <option value="all">All Members</option>
-              <option value="referred">Referred Members</option>
-              <option value="not_referred">Not Referred</option>
-            </select>
-          </div>
-        )}
+          {activeTab === 'all_members' && (
+            <div className="mm-referral-filter">
+              <label htmlFor="mm-referral-select">Filter by Referral:</label>
+              <select
+                id="mm-referral-select"
+                value={referralFilter}
+                onChange={(e) => setReferralFilter(e.target.value)}
+              >
+                <option value="all">All Members</option>
+                <option value="referred">Referred Members</option>
+                <option value="not_referred">Not Referred</option>
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
 
