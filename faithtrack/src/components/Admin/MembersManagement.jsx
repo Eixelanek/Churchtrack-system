@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './MembersManagement.css';
 import { fetchFamilyTree } from '../../api/familyTree';
 import FamilyTreeChart from '../common/FamilyTreeChart';
@@ -170,6 +170,9 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
   const [recommendNoteError, setRecommendNoteError] = useState('');
   const [recommendSaving, setRecommendSaving] = useState(false);
 
+  // ── MEMBER DETAIL MODAL STATE ──
+  const [selectedMemberDetail, setSelectedMemberDetail] = useState(null); // the member object
+
   const updateManagerModeration = (updater) => {
     setManagerModeration((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater;
@@ -208,24 +211,11 @@ const MembersManagement = ({ dateFormat = 'mm/dd/yyyy', allowMemberMutations = t
 
   // Toggle member expand and fetch referred members and family if needed
   const toggleMemberExpand = (member) => {
-    if (!member || !member.id) {
-      return;
-    }
-
-    const memberId = member.id;
-    if (expandedMemberId === memberId) {
-      setExpandedMemberId(null);
-    } else {
-      setExpandedMemberId(memberId);
-      // Fetch referred members and family when expanding
-      fetchReferredMembers(memberId);
-      fetchFamilyMembers(member);
-      // Scroll card into view
-      setTimeout(() => {
-        const el = document.getElementById(`member-card-${memberId}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
-    }
+    if (!member || !member.id) return;
+    // Open detail modal — fetch data lazily
+    setSelectedMemberDetail(member);
+    fetchReferredMembers(member.id);
+    fetchFamilyMembers(member);
   };
 
   const toggleGuestExpand = (guestId) => {
@@ -2178,12 +2168,11 @@ ChurchTrack System`;
             const familyPeopleCount = getFamilyTreePeopleCount(member);
             const showFamilyTreeSection =
               !!familyLoading[member.id] || !!familyErrors[member.id] || familyRelativeCount > 0;
-            const isExpanded = expandedMemberId === member.id;
             return (
               <React.Fragment key={member.id}>
                 <tr
                   id={`member-card-${member.id}`}
-                  className={`mm-table-row${isExpanded ? ' mm-row-expanded' : ''}`}
+                  className="mm-table-row"
                   onClick={() => toggleMemberExpand(member)}
                 >
                   {multiSelectMode && allowMemberMutations && (
@@ -2241,254 +2230,11 @@ ChurchTrack System`;
                     )}
                   </td>
                   <td className="mm-td-chevron">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`att-chevron${isExpanded ? ' open' : ''}`} style={{ width: 18, height: 18 }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="att-chevron" style={{ width: 18, height: 18 }}>
                       <polyline points="9 18 15 12 9 6"/>
                     </svg>
                   </td>
                 </tr>
-                
-                {isExpanded && (
-                  <tr key={`${member.id}-expanded`} className="mm-expanded-row">
-                    <td colSpan={multiSelectMode && allowMemberMutations ? 9 : 8} className="mm-expanded-cell">
-                      <div className="member-details-expanded">
-                    {(() => {
-                      const detailPages = [
-                        { label: 'Personal & Contact', icon: '👤' },
-                        { label: 'Membership & Referral', icon: '📋' },
-                        ...(member.referral_count > 0 ? [{ label: 'Referred Members', icon: '👥' }] : []),
-                        ...(showFamilyTreeSection ? [{ label: 'Family Tree', icon: '🌳' }] : []),
-                      ];
-                      const currentPage = memberDetailPage[member.id] || 0;
-                      const safePage = Math.min(currentPage, detailPages.length - 1);
-                      const setPage = (p) => setMemberDetailPage(prev => ({ ...prev, [member.id]: p }));
-
-                      return (
-                        <>
-                          {/* Tab nav */}
-                          <div className="detail-tab-nav">
-                            {detailPages.map((tab, i) => (
-                              <button
-                                key={i}
-                                className={`detail-tab-btn ${safePage === i ? 'active' : ''}`}
-                                onClick={() => setPage(i)}
-                              >
-                                <span>{tab.icon}</span> {tab.label}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Page 0: Personal + Contact */}
-                          {safePage === 0 && (
-                            <div className="detail-tab-content">
-                              <div className="details-section">
-                                <h4 className="section-header">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="8.5" cy="7" r="4"></circle>
-                                    <path d="M20 8v6M23 11h-6"></path>
-                                  </svg>
-                                  Personal Information
-                                </h4>
-                                <div className="info-item">
-                                  <span className="info-icon">👤</span>
-                                  <div><div className="info-label">Username</div><div className="info-text">{member.username}</div></div>
-                                </div>
-                                {member.birthday && (
-                                  <div className="info-item">
-                                    <span className="info-icon">🎂</span>
-                                    <div><div className="info-label">Birthday</div><div className="info-text">{formatDate(member.birthday)} ({calculateAge(member.birthday)} years old)</div></div>
-                                  </div>
-                                )}
-                                {member.is_minor && member.has_guardian && (
-                                  <div className="info-item">
-                                    <span className="info-icon">🛡️</span>
-                                    <div>
-                                      <div className="info-label">Guardian</div>
-                                      <div className="info-text">
-                                        {member.guardian_full_name}
-                                        {member.relationship_to_guardian && <span style={{ marginLeft: '0.5rem', color: '#94a3b8' }}>({member.relationship_to_guardian})</span>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                                {member.gender && (
-                                  <div className="info-item">
-                                    <span className="info-icon">⚧</span>
-                                    <div><div className="info-label">Gender</div><div className="info-text">{member.gender}</div></div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="details-section">
-                                <h4 className="section-header">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                  </svg>
-                                  Contact Information
-                                </h4>
-                                <div className="info-item">
-                                  <span className="info-icon">📧</span>
-                                  <div><div className="info-label">Email</div><div className="info-text">{member.email || 'Not provided'}</div></div>
-                                </div>
-                                {member.contact_number && (
-                                  <div className="info-item">
-                                    <span className="info-icon">📞</span>
-                                    <div><div className="info-label">Phone</div><div className="info-text">{member.contact_number}</div></div>
-                                  </div>
-                                )}
-                                <div className="info-item">
-                                  <span className="info-icon">📍</span>
-                                  <div><div className="info-label">Address</div><div className="info-text">{member.address || 'Not provided'}</div></div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Page 1: Membership + Referral */}
-                          {safePage === 1 && (
-                            <div className="detail-tab-content">
-                              <div className="details-section">
-                                <h4 className="section-header">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                  </svg>
-                                  Membership Details
-                                </h4>
-                                <div className="info-row">
-                                  <div className="info-col"><div className="info-label">Join Date</div><div className="info-value">{member.created_at ? formatDate(member.created_at) : 'N/A'}</div></div>
-                                  <div className="info-col"><div className="info-label">Status</div><div className="info-value">{member.status.charAt(0).toUpperCase() + member.status.slice(1)}</div></div>
-                                </div>
-                                <div className="info-row">
-                                  <div className="info-col"><div className="info-label">Last Attended</div><div className="info-value">{member.last_attended ? formatDate(member.last_attended) : 'Never'}</div></div>
-                                  <div className="info-col"><div className="info-label">Total Visits</div><div className="info-value">{member.total_visits || 0}</div></div>
-                                </div>
-                              </div>
-                              <div className="details-section">
-                                <h4 className="section-header">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="8.5" cy="7" r="4"></circle>
-                                    <path d="M20 8v6M23 11h-6"></path>
-                                  </svg>
-                                  Referral Information
-                                </h4>
-                                {member.is_referred && member.referrer_name ? (
-                                  <>
-                                    <div className="info-item">
-                                      <span className="info-icon">👤</span>
-                                      <div>
-                                        <div className="info-label">Referred By</div>
-                                        <div className="info-text">
-                                          {member.referrer_name}
-                                          {!member.referrer_id && <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#ef4444', fontStyle: 'italic' }}>(Deleted Member)</span>}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {member.relationship_to_referrer && (
-                                      <div className="info-item">
-                                        <span className="info-icon">🔗</span>
-                                        <div><div className="info-label">Relationship</div><div className="info-text">{member.relationship_to_referrer}</div></div>
-                                      </div>
-                                    )}
-                                  </>
-                                ) : (
-                                  <div className="info-item">
-                                    <span className="info-icon">ℹ️</span>
-                                    <div><div className="info-label">Referral Status</div><div className="info-text">Not referred</div></div>
-                                  </div>
-                                )}
-                                {member.referral_count > 0 && (
-                                  <div className="info-item">
-                                    <span className="info-icon">📊</span>
-                                    <div><div className="info-label">Referred Members</div><div className="info-text">{member.referral_count} member(s)</div></div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Page 2: Referred Members (conditional) */}
-                          {member.referral_count > 0 && safePage === 2 && (
-                            <div className="detail-tab-content">
-                              <div className="details-section">
-                                <h4 className="section-header">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                  </svg>
-                                  Referred Members ({referredMembers[member.id]?.length || member.referral_count})
-                                </h4>
-                                {referredMembers[member.id]?.length > 0 ? (
-                                  <div className="referred-members-list">
-                                    {referredMembers[member.id].map((referred) => (
-                                      <div key={referred.id} className="referred-member-item">
-                                        <div className="referred-member-avatar">{getInitials(referred.name)}</div>
-                                        <div className="referred-member-info">
-                                          <div className="referred-member-name">{referred.name}</div>
-                                          <div className="referred-member-meta">
-                                            <span className={`referred-member-status ${referred.status}`}>{referred.status.charAt(0).toUpperCase() + referred.status.slice(1)}</span>
-                                            {referred.relationship_to_referrer && <span className="referred-member-relationship">• {referred.relationship_to_referrer}</span>}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="no-referred-message"><p>Loading referred members...</p></div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Family Tree page (last) */}
-                          {showFamilyTreeSection && safePage === detailPages.length - 1 && (
-                            <div className="detail-tab-content">
-                              <div className="family-tree-section">
-                                <div className="family-circle-section">
-                                  <h4 className="section-header">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                    </svg>
-                                    Family Tree{' '}
-                                    {familyPeopleCount > 0 && `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
-                                  </h4>
-                                  {familyLoading[member.id] ? (
-                                    <div className="family-loading"><p>Loading family tree...</p></div>
-                                  ) : familyErrors[member.id] ? (
-                                    <div className="family-error"><p>Error loading family tree</p></div>
-                                  ) : (
-                                    <div className="family-tree-visual-admin">
-                                      <FamilyTreeChart
-                                        parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
-                                        centerRow={[
-                                          { id: `subject-${member.id}`, name: member.name, relation: 'Member', profile_picture: member.profile_picture || null },
-                                          ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
-                                        ]}
-                                        siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
-                                        children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
-                                        other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
-                                        getInitials={getInitials}
-                                        formatRelation={(r) => r || ''}
-                                        highlightRelation="Member"
-                                        theme="indigo"
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                      </div>
-                    </td>
-                  </tr>
-                )}
               </React.Fragment>
             );
           })}
@@ -2614,52 +2360,6 @@ ChurchTrack System`;
                           </td>
                         </tr>
 
-                        {isExpanded && (
-                          <tr className="mm-expanded-row">
-                            <td colSpan={multiSelectMode && allowMemberMutations ? 9 : 8} className="mm-expanded-cell">
-                              <div className="member-details-expanded">
-                                <div className="expanded-layout">
-                                  <div className="info-sections">
-                                    <div className="details-section">
-                                      <h4 className="section-header">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                          <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                          <circle cx="8.5" cy="7" r="4"></circle>
-                                          <path d="M20 8v6M23 11h-6"></path>
-                                        </svg>
-                                        Personal Information
-                                      </h4>
-                                      <div className="info-item">
-                                        <span className="info-icon">👤</span>
-                                        <div><div className="info-label">Username</div><div className="info-text">{member.username}</div></div>
-                                      </div>
-                                      <div className="info-item">
-                                        <span className="info-icon">📧</span>
-                                        <div><div className="info-label">Email</div><div className="info-text">{member.email || 'No email provided'}</div></div>
-                                      </div>
-                                      <div className="info-item">
-                                        <span className="info-icon">📍</span>
-                                        <div><div className="info-label">Address</div><div className="info-text">{member.address}</div></div>
-                                      </div>
-                                      <div className="info-item">
-                                        <span className="info-icon">📅</span>
-                                        <div><div className="info-label">Joined</div><div className="info-text">{formatDate(member.created_at)}</div></div>
-                                      </div>
-                                    </div>
-                                    {typeof renderFamilySection === 'function' && renderFamilySection(member, familyPeopleCount)}
-                                    {typeof renderReferredMembersSection === 'function' && renderReferredMembersSection(member)}
-                                  </div>
-                                  <div className="expanded-actions">
-                                    <div className="member-status-indicator inactive">
-                                      <span className="status-dot"></span>
-                                      Inactive Member
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     );
                   })}
@@ -2766,54 +2466,6 @@ ChurchTrack System`;
                             </svg>
                           </td>
                         </tr>
-                        {isExpanded && (
-                          <tr className="mm-expanded-row">
-                            <td colSpan={multiSelectMode && canManageGuests ? 10 : 9} className="mm-expanded-cell">
-                              <div className="guest-details-expanded">
-                                <div className="guest-expanded-row">
-                                  <div className="guest-expanded-info">
-                                    <div className="guest-info-item">
-                                      <span className="guest-info-label">Contact Number</span>
-                                      <span className="guest-info-value">{guest.phone || 'Not provided'}</span>
-                                    </div>
-                                    <div className="guest-info-item">
-                                      <span className="guest-info-label">Invited By</span>
-                                      <span className="guest-info-value">{guest.invited_by_name || guest.invited_by_text || '—'}</span>
-                                    </div>
-                                    <div className="guest-info-item">
-                                      <span className="guest-info-label">First Visit</span>
-                                      <span className="guest-info-value">{guest.first_visit_date ? formatDate(guest.first_visit_date) : '—'}</span>
-                                    </div>
-                                    <div className="guest-info-item">
-                                      <span className="guest-info-label">Last Visit</span>
-                                      <span className="guest-info-value">{formatDateTimeDisplay(guest.last_attended)}</span>
-                                    </div>
-                                  </div>
-                                  <div className="guest-expanded-stats">
-                                    <div className="guest-stat">
-                                      <span className="guest-stat-label">Sunday Streak</span>
-                                      <span className="guest-stat-value">{guest.sunday_visit_count || 0}</span>
-                                    </div>
-                                    {membershipRemaining !== null && (
-                                      <div className="guest-stat">
-                                        <span className="guest-stat-label">Until Membership</span>
-                                        <span className="guest-stat-value">{membershipRemaining === 0 ? 'Completed' : `${membershipRemaining} more`}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                {canManageGuests && isReadyForConversion && (
-                                  <div className="guest-convert-actions">
-                                    <button type="button" className="guest-convert-btn" disabled={isConvertingThisGuest} onClick={(e) => { e.stopPropagation(); openConvertGuestModal(guest); }}>
-                                      {isConvertingThisGuest ? 'Converting…' : 'Convert to Member'}
-                                    </button>
-                                    <p className="guest-convert-note">After conversion, this guest moves to All Members and is removed from this list.</p>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     );
                   })}
@@ -3217,6 +2869,194 @@ ChurchTrack System`;
           })()}
         </div>
       )}
+
+      {/* ── MEMBER DETAIL MODAL ── */}
+      {selectedMemberDetail && (() => {
+        const member = selectedMemberDetail;
+        const familyRelativeCount = getFamilyRelativeCount(member);
+        const familyPeopleCount = getFamilyTreePeopleCount(member);
+        const showFamilyTreeSection = !!familyLoading[member.id] || !!familyErrors[member.id] || familyRelativeCount > 0;
+        const detailPages = [
+          { label: 'Personal & Contact', icon: '👤' },
+          { label: 'Membership & Referral', icon: '📋' },
+          ...(member.referral_count > 0 ? [{ label: 'Referred Members', icon: '👥' }] : []),
+          ...(showFamilyTreeSection ? [{ label: 'Family Tree', icon: '🌳' }] : []),
+        ];
+        const currentPage = memberDetailPage[member.id] || 0;
+        const safePage = Math.min(currentPage, detailPages.length - 1);
+        const setPage = (p) => setMemberDetailPage(prev => ({ ...prev, [member.id]: p }));
+
+        return (
+          <div className="modal-overlay-new" onClick={() => setSelectedMemberDetail(null)}>
+            <div className="modal-content-new" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto' }}>
+
+              {/* Header */}
+              <div className="modal-header-new" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="member-avatar" style={{ width: 48, height: 48, fontSize: '1rem', flexShrink: 0 }}>
+                  {member.profile_picture ? (
+                    <img src={resolveProfilePicUrl(member.profile_picture)} alt={member.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}
+                    />
+                  ) : getInitials(member.name)}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h2 style={{ margin: 0, fontSize: '1.1rem' }}>{member.name}</h2>
+                  <div style={{ fontSize: '0.82rem', color: '#7a8a9a', marginTop: 2 }}>{member.email || 'No email'}</div>
+                </div>
+                <button type="button" className="modal-close-btn-new" onClick={() => setSelectedMemberDetail(null)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+
+              {/* Tab nav */}
+              <div className="detail-tab-nav" style={{ padding: '0 2rem', borderBottom: '1px solid #e2e8f0', overflowX: 'auto' }}>
+                {detailPages.map((tab, i) => (
+                  <button key={i} className={`detail-tab-btn ${safePage === i ? 'active' : ''}`} onClick={() => setPage(i)}>
+                    <span>{tab.icon}</span> {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ padding: '1.5rem 2rem' }}>
+                {/* Page 0: Personal + Contact */}
+                {safePage === 0 && (
+                  <div className="detail-tab-content">
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                        Personal Information
+                      </h4>
+                      <div className="info-item"><span className="info-icon">👤</span><div><div className="info-label">Username</div><div className="info-text">{member.username}</div></div></div>
+                      {member.birthday && <div className="info-item"><span className="info-icon">🎂</span><div><div className="info-label">Birthday</div><div className="info-text">{formatDate(member.birthday)} ({calculateAge(member.birthday)} years old)</div></div></div>}
+                      {member.is_minor && member.has_guardian && (
+                        <div className="info-item"><span className="info-icon">🛡️</span><div><div className="info-label">Guardian</div><div className="info-text">{member.guardian_full_name}{member.relationship_to_guardian && <span style={{ marginLeft: '0.5rem', color: '#94a3b8' }}>({member.relationship_to_guardian})</span>}</div></div></div>
+                      )}
+                      {member.gender && <div className="info-item"><span className="info-icon">⚧</span><div><div className="info-label">Gender</div><div className="info-text">{member.gender}</div></div></div>}
+                    </div>
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        Contact Information
+                      </h4>
+                      <div className="info-item"><span className="info-icon">📧</span><div><div className="info-label">Email</div><div className="info-text">{member.email || 'Not provided'}</div></div></div>
+                      {member.contact_number && <div className="info-item"><span className="info-icon">📞</span><div><div className="info-label">Phone</div><div className="info-text">{member.contact_number}</div></div></div>}
+                      <div className="info-item"><span className="info-icon">📍</span><div><div className="info-label">Address</div><div className="info-text">{member.address || 'Not provided'}</div></div></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Page 1: Membership + Referral */}
+                {safePage === 1 && (
+                  <div className="detail-tab-content">
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Membership Details
+                      </h4>
+                      <div className="info-row">
+                        <div className="info-col"><div className="info-label">Join Date</div><div className="info-value">{member.created_at ? formatDate(member.created_at) : 'N/A'}</div></div>
+                        <div className="info-col"><div className="info-label">Status</div><div className="info-value">{member.status.charAt(0).toUpperCase() + member.status.slice(1)}</div></div>
+                      </div>
+                      <div className="info-row">
+                        <div className="info-col"><div className="info-label">Last Attended</div><div className="info-value">{member.last_attended ? formatDate(member.last_attended) : 'Never'}</div></div>
+                        <div className="info-col"><div className="info-label">Total Visits</div><div className="info-value">{member.total_visits || 0}</div></div>
+                      </div>
+                    </div>
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                        Referral Information
+                      </h4>
+                      {member.is_referred && member.referrer_name ? (
+                        <>
+                          <div className="info-item"><span className="info-icon">👤</span><div><div className="info-label">Referred By</div><div className="info-text">{member.referrer_name}{!member.referrer_id && <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#ef4444', fontStyle: 'italic' }}>(Deleted Member)</span>}</div></div></div>
+                          {member.relationship_to_referrer && <div className="info-item"><span className="info-icon">🔗</span><div><div className="info-label">Relationship</div><div className="info-text">{member.relationship_to_referrer}</div></div></div>}
+                        </>
+                      ) : (
+                        <div className="info-item"><span className="info-icon">ℹ️</span><div><div className="info-label">Referral Status</div><div className="info-text">Not referred</div></div></div>
+                      )}
+                      {member.referral_count > 0 && <div className="info-item"><span className="info-icon">📊</span><div><div className="info-label">Referred Members</div><div className="info-text">{member.referral_count} member(s)</div></div></div>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Page 2: Referred Members */}
+                {member.referral_count > 0 && safePage === 2 && (
+                  <div className="detail-tab-content">
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Referred Members ({referredMembers[member.id]?.length || member.referral_count})
+                      </h4>
+                      {referredMembers[member.id]?.length > 0 ? (
+                        <div className="referred-members-list">
+                          {referredMembers[member.id].map((referred) => (
+                            <div key={referred.id} className="referred-member-item">
+                              <div className="referred-member-avatar">{getInitials(referred.name)}</div>
+                              <div className="referred-member-info">
+                                <div className="referred-member-name">{referred.name}</div>
+                                <div className="referred-member-meta">
+                                  <span className={`referred-member-status ${referred.status}`}>{referred.status.charAt(0).toUpperCase() + referred.status.slice(1)}</span>
+                                  {referred.relationship_to_referrer && <span className="referred-member-relationship">• {referred.relationship_to_referrer}</span>}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="no-referred-message"><p>Loading referred members...</p></div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Family Tree page */}
+                {showFamilyTreeSection && safePage === detailPages.length - 1 && (
+                  <div className="detail-tab-content">
+                    <div className="details-section">
+                      <h4 className="section-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        Family Tree {familyPeopleCount > 0 && `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
+                      </h4>
+                      {familyLoading[member.id] ? (
+                        <div className="family-loading"><p>Loading family tree...</p></div>
+                      ) : familyErrors[member.id] ? (
+                        <div className="family-error"><p>Error loading family tree</p></div>
+                      ) : (
+                        <div className="family-tree-visual-admin">
+                          <FamilyTreeChart
+                            parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
+                            centerRow={[
+                              { id: `subject-${member.id}`, name: member.name, relation: 'Member', profile_picture: member.profile_picture || null },
+                              ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
+                            ]}
+                            siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
+                            children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
+                            other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
+                            getInitials={getInitials}
+                            formatRelation={(r) => r || ''}
+                            highlightRelation="Member"
+                            theme="indigo"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer actions */}
+              {allowMemberMutations && (
+                <div className="modal-actions-new" style={{ padding: '1rem 2rem 1.5rem', borderTop: '1px solid #e2e8f0' }}>
+                  <button type="button" className="btn-cancel-new" onClick={() => { setSelectedMemberDetail(null); handleDeleteUser(member); }}>Delete</button>
+                  <button type="button" className="btn-submit-new" onClick={() => { setSelectedMemberDetail(null); openEditMember(member); }}>Edit Member</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── RECOMMENDATION MODAL (manager) ── */}
       {showRecommendModal && recommendTarget && (
