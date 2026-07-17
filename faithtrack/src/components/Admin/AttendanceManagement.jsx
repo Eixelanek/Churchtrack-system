@@ -3015,24 +3015,7 @@ const AttendanceManagement = ({
               <>
                 {/* ── Stat Cards ── */}
                 <div className="edet-stats-row">
-                  <div className="edet-stat edet-stat--green">
-                    <div className="edet-stat-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                      </svg>
-                    </div>
-                    <span className="edet-stat-value">{selectedEventDetails.attendeesCount}</span>
-                    <span className="edet-stat-label">Present</span>
-                  </div>
-                  <div className="edet-stat edet-stat--red">
-                    <div className="edet-stat-icon">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
-                    </div>
-                    <span className="edet-stat-value">{selectedEventDetails.absenteesCount}</span>
-                    <span className="edet-stat-label">Absent</span>
-                  </div>
+                  {/* Total attendees */}
                   <div className="edet-stat edet-stat--blue">
                     <div className="edet-stat-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -3040,21 +3023,44 @@ const AttendanceManagement = ({
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                       </svg>
                     </div>
-                    <span className="edet-stat-value">{selectedEventDetails.attendees.filter(a => a.memberId).length}</span>
-                    <span className="edet-stat-label">Members</span>
+                    <span className="edet-stat-value">{selectedEventDetails.attendeesCount + selectedEventDetails.absenteesCount}</span>
+                    <span className="edet-stat-label">Total</span>
                   </div>
-                  <div className="edet-stat edet-stat--purple">
+                  {/* Attendance rate */}
+                  <div className="edet-stat edet-stat--green">
                     <div className="edet-stat-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                       </svg>
                     </div>
                     <span className="edet-stat-value">
-                      {selectedEventDetails.memberCount > 0
-                        ? Math.round((selectedEventDetails.attendees.filter(a => a.memberId).length / selectedEventDetails.memberCount) * 100)
+                      {(selectedEventDetails.attendeesCount + selectedEventDetails.absenteesCount) > 0
+                        ? Math.round((selectedEventDetails.attendeesCount / (selectedEventDetails.attendeesCount + selectedEventDetails.absenteesCount)) * 100)
                         : 0}%
                     </span>
                     <span className="edet-stat-label">Rate</span>
+                  </div>
+                  {/* Members attended */}
+                  <div className="edet-stat edet-stat--purple">
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>
+                    <span className="edet-stat-value">{selectedEventDetails.attendees.filter(a => a.memberId).length}</span>
+                    <span className="edet-stat-label">Members</span>
+                  </div>
+                  {/* Guests attended */}
+                  <div className="edet-stat edet-stat--orange">
+                    <div className="edet-stat-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+                      </svg>
+                    </div>
+                    <span className="edet-stat-value">{selectedEventDetails.attendees.filter(a => !a.memberId).length}</span>
+                    <span className="edet-stat-label">Guests</span>
                   </div>
                 </div>
 

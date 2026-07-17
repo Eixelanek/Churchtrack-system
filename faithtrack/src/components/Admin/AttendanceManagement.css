@@ -3445,12 +3445,6 @@
 
 /* ── SIDE BY SIDE ATTENDEES / ABSENTEES ── */
 
-/* Wrap both sections in a two-column grid */
-.att-expanded-cell .event-details-expanded > .attendees-section:first-of-type,
-.member-card-wrapper .event-details-expanded > .attendees-section:first-of-type {
-  /* handled by the grid on parent below */
-}
-
 /* Target the two attendees-section siblings and lay them out side by side */
 .event-details-expanded .attendees-section + .attendees-section {
   margin-top: 0;
@@ -5148,3 +5142,8 @@
 
   .edet-list { padding: 8px 16px 16px; }
 }
+
+/* Orange stat variant for edet modal */
+.edet-stat--orange .edet-stat-icon { background: #ffedd5; }
+.edet-stat--orange .edet-stat-icon svg { stroke: #ea580c; }
+.edet-stat--orange .edet-stat-value { color: #ea580c; }
