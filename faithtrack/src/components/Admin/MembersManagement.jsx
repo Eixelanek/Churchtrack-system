@@ -2870,190 +2870,203 @@ ChurchTrack System`;
         </div>
       )}
 
-      {/* ── MEMBER DETAIL MODAL ── */}
+      {/* ── MEMBER DETAIL MODAL — Redesigned ── */}
       {selectedMemberDetail && (() => {
         const member = selectedMemberDetail;
         const familyRelativeCount = getFamilyRelativeCount(member);
         const familyPeopleCount = getFamilyTreePeopleCount(member);
         const showFamilyTreeSection = !!familyLoading[member.id] || !!familyErrors[member.id] || familyRelativeCount > 0;
         const detailPages = [
-          { label: 'Personal & Contact', icon: '👤' },
-          { label: 'Membership & Referral', icon: '📋' },
-          ...(member.referral_count > 0 ? [{ label: 'Referred Members', icon: '👥' }] : []),
-          ...(showFamilyTreeSection ? [{ label: 'Family Tree', icon: '🌳' }] : []),
+          { label: 'Personal & Contact' },
+          { label: 'Membership & Referral' },
+          ...(member.referral_count > 0 ? [{ label: 'Referred Members' }] : []),
+          ...(showFamilyTreeSection ? [{ label: 'Family Tree' }] : []),
         ];
         const currentPage = memberDetailPage[member.id] || 0;
         const safePage = Math.min(currentPage, detailPages.length - 1);
         const setPage = (p) => setMemberDetailPage(prev => ({ ...prev, [member.id]: p }));
+        const statusColor = member.status === 'active'   ? { bg: '#dcfce7', color: '#15803d' }
+                          : member.status === 'inactive' ? { bg: '#fef3c7', color: '#b45309' }
+                          : { bg: '#e0e7ff', color: '#4338ca' };
 
         return (
-          <div className="modal-overlay-new" onClick={() => setSelectedMemberDetail(null)}>
-            <div className="modal-content-new" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="mdm-overlay" onClick={() => setSelectedMemberDetail(null)}>
+            <div className="mdm-modal" onClick={(e) => e.stopPropagation()}>
 
               {/* Header */}
-              <div className="modal-header-new" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div className="member-avatar" style={{ width: 48, height: 48, fontSize: '1rem', flexShrink: 0 }}>
+              <div className="mdm-header">
+                <div className="mdm-avatar">
                   {member.profile_picture ? (
                     <img src={resolveProfilePicUrl(member.profile_picture)} alt={member.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                       onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.textContent = getInitials(member.name); }}
                     />
                   ) : getInitials(member.name)}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h2 style={{ margin: 0, fontSize: '1.1rem' }}>{member.name}</h2>
-                  <div style={{ fontSize: '0.82rem', color: '#7a8a9a', marginTop: 2 }}>{member.email || 'No email'}</div>
+                <div className="mdm-header-info">
+                  <div className="mdm-name">{member.name}</div>
+                  <div className="mdm-email">{member.email || 'No email'}</div>
                 </div>
-                <button type="button" className="modal-close-btn-new" onClick={() => setSelectedMemberDetail(null)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+                <span className="mdm-status-badge" style={{ background: statusColor.bg, color: statusColor.color }}>
+                  {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+                </span>
+                <button className="mdm-close" onClick={() => setSelectedMemberDetail(null)} aria-label="Close">&#x2715;</button>
               </div>
 
-              {/* Tab nav */}
-              <div className="detail-tab-nav" style={{ padding: '0 2rem', borderBottom: '1px solid #e2e8f0', overflowX: 'auto' }}>
+              {/* Tabs */}
+              <div className="mdm-tabs">
                 {detailPages.map((tab, i) => (
-                  <button key={i} className={`detail-tab-btn ${safePage === i ? 'active' : ''}`} onClick={() => setPage(i)}>
-                    <span>{tab.icon}</span> {tab.label}
+                  <button key={i} className={`mdm-tab ${safePage === i ? 'mdm-tab--active' : ''}`} onClick={() => setPage(i)}>
+                    {tab.label}
                   </button>
                 ))}
               </div>
 
-              <div style={{ padding: '1.5rem 2rem' }}>
-                {/* Page 0: Personal + Contact */}
+              {/* Body */}
+              <div className="mdm-body">
+
+                {/* Tab 0: Personal & Contact */}
                 {safePage === 0 && (
-                  <div className="detail-tab-content">
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                  <>
+                    <div className="mdm-section">
+                      <div className="mdm-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
                         Personal Information
-                      </h4>
-                      <div className="info-item"><span className="info-icon">👤</span><div><div className="info-label">Username</div><div className="info-text">{member.username}</div></div></div>
-                      {member.birthday && <div className="info-item"><span className="info-icon">🎂</span><div><div className="info-label">Birthday</div><div className="info-text">{formatDate(member.birthday)} ({calculateAge(member.birthday)} years old)</div></div></div>}
-                      {member.is_minor && member.has_guardian && (
-                        <div className="info-item"><span className="info-icon">🛡️</span><div><div className="info-label">Guardian</div><div className="info-text">{member.guardian_full_name}{member.relationship_to_guardian && <span style={{ marginLeft: '0.5rem', color: '#94a3b8' }}>({member.relationship_to_guardian})</span>}</div></div></div>
-                      )}
-                      {member.gender && <div className="info-item"><span className="info-icon">⚧</span><div><div className="info-label">Gender</div><div className="info-text">{member.gender}</div></div></div>}
+                      </div>
+                      <div className="mdm-fields">
+                        <div className="mdm-field"><span className="mdm-field-label">Username</span><span className="mdm-field-value">{member.username || '—'}</span></div>
+                        {member.birthday && <div className="mdm-field"><span className="mdm-field-label">Birthday</span><span className="mdm-field-value">{formatDate(member.birthday)} <span className="mdm-field-aside">({calculateAge(member.birthday)} years old)</span></span></div>}
+                        {member.gender && <div className="mdm-field"><span className="mdm-field-label">Gender</span><span className="mdm-field-value">{member.gender}</span></div>}
+                        {member.is_minor && member.has_guardian && (
+                          <div className="mdm-field"><span className="mdm-field-label">Guardian</span><span className="mdm-field-value">{member.guardian_full_name}{member.relationship_to_guardian && <span className="mdm-field-aside"> ({member.relationship_to_guardian})</span>}</span></div>
+                        )}
+                      </div>
                     </div>
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <div className="mdm-section">
+                      <div className="mdm-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         Contact Information
-                      </h4>
-                      <div className="info-item"><span className="info-icon">📧</span><div><div className="info-label">Email</div><div className="info-text">{member.email || 'Not provided'}</div></div></div>
-                      {member.contact_number && <div className="info-item"><span className="info-icon">📞</span><div><div className="info-label">Phone</div><div className="info-text">{member.contact_number}</div></div></div>}
-                      <div className="info-item"><span className="info-icon">📍</span><div><div className="info-label">Address</div><div className="info-text">{member.address || 'Not provided'}</div></div></div>
+                      </div>
+                      <div className="mdm-fields">
+                        <div className="mdm-field"><span className="mdm-field-label">Email</span><span className="mdm-field-value">{member.email || 'Not provided'}</span></div>
+                        {member.contact_number && <div className="mdm-field"><span className="mdm-field-label">Phone</span><span className="mdm-field-value">{member.contact_number}</span></div>}
+                        <div className="mdm-field"><span className="mdm-field-label">Address</span><span className="mdm-field-value">{member.address || 'Not provided'}</span></div>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
-                {/* Page 1: Membership + Referral */}
+                {/* Tab 1: Membership & Referral */}
                 {safePage === 1 && (
-                  <div className="detail-tab-content">
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <>
+                    <div className="mdm-section">
+                      <div className="mdm-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                         Membership Details
-                      </h4>
-                      <div className="info-row">
-                        <div className="info-col"><div className="info-label">Join Date</div><div className="info-value">{member.created_at ? formatDate(member.created_at) : 'N/A'}</div></div>
-                        <div className="info-col"><div className="info-label">Status</div><div className="info-value">{member.status.charAt(0).toUpperCase() + member.status.slice(1)}</div></div>
                       </div>
-                      <div className="info-row">
-                        <div className="info-col"><div className="info-label">Last Attended</div><div className="info-value">{member.last_attended ? formatDate(member.last_attended) : 'Never'}</div></div>
-                        <div className="info-col"><div className="info-label">Total Visits</div><div className="info-value">{member.total_visits || 0}</div></div>
+                      <div className="mdm-stat-grid">
+                        <div className="mdm-stat"><span className="mdm-stat-label">Join Date</span><span className="mdm-stat-value">{member.created_at ? formatDate(member.created_at) : 'N/A'}</span></div>
+                        <div className="mdm-stat"><span className="mdm-stat-label">Status</span><span className="mdm-stat-value" style={{ color: statusColor.color }}>{member.status.charAt(0).toUpperCase() + member.status.slice(1)}</span></div>
+                        <div className="mdm-stat"><span className="mdm-stat-label">Last Attended</span><span className="mdm-stat-value">{member.last_attended ? formatDate(member.last_attended) : 'Never'}</span></div>
+                        <div className="mdm-stat"><span className="mdm-stat-label">Total Visits</span><span className="mdm-stat-value">{member.total_visits || 0}</span></div>
                       </div>
                     </div>
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                    <div className="mdm-section">
+                      <div className="mdm-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                         Referral Information
-                      </h4>
-                      {member.is_referred && member.referrer_name ? (
-                        <>
-                          <div className="info-item"><span className="info-icon">👤</span><div><div className="info-label">Referred By</div><div className="info-text">{member.referrer_name}{!member.referrer_id && <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#ef4444', fontStyle: 'italic' }}>(Deleted Member)</span>}</div></div></div>
-                          {member.relationship_to_referrer && <div className="info-item"><span className="info-icon">🔗</span><div><div className="info-label">Relationship</div><div className="info-text">{member.relationship_to_referrer}</div></div></div>}
-                        </>
-                      ) : (
-                        <div className="info-item"><span className="info-icon">ℹ️</span><div><div className="info-label">Referral Status</div><div className="info-text">Not referred</div></div></div>
-                      )}
-                      {member.referral_count > 0 && <div className="info-item"><span className="info-icon">📊</span><div><div className="info-label">Referred Members</div><div className="info-text">{member.referral_count} member(s)</div></div></div>}
+                      </div>
+                      <div className="mdm-fields">
+                        {member.is_referred && member.referrer_name ? (
+                          <>
+                            <div className="mdm-field"><span className="mdm-field-label">Referred By</span><span className="mdm-field-value">{member.referrer_name}{!member.referrer_id && <span className="mdm-field-deleted"> (Deleted Member)</span>}</span></div>
+                            {member.relationship_to_referrer && <div className="mdm-field"><span className="mdm-field-label">Relationship</span><span className="mdm-field-value">{member.relationship_to_referrer}</span></div>}
+                          </>
+                        ) : (
+                          <div className="mdm-field"><span className="mdm-field-label">Referral Status</span><span className="mdm-field-value">Not referred</span></div>
+                        )}
+                        {member.referral_count > 0 && <div className="mdm-field"><span className="mdm-field-label">Referred Members</span><span className="mdm-field-value">{member.referral_count} member{member.referral_count !== 1 ? 's' : ''}</span></div>}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
-                {/* Page 2: Referred Members */}
+                {/* Tab 2: Referred Members */}
                 {member.referral_count > 0 && safePage === 2 && (
-                  <div className="detail-tab-content">
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        Referred Members ({referredMembers[member.id]?.length || member.referral_count})
-                      </h4>
-                      {referredMembers[member.id]?.length > 0 ? (
-                        <div className="referred-members-list">
-                          {referredMembers[member.id].map((referred) => (
-                            <div key={referred.id} className="referred-member-item">
-                              <div className="referred-member-avatar">{getInitials(referred.name)}</div>
-                              <div className="referred-member-info">
-                                <div className="referred-member-name">{referred.name}</div>
-                                <div className="referred-member-meta">
-                                  <span className={`referred-member-status ${referred.status}`}>{referred.status.charAt(0).toUpperCase() + referred.status.slice(1)}</span>
-                                  {referred.relationship_to_referrer && <span className="referred-member-relationship">• {referred.relationship_to_referrer}</span>}
-                                </div>
-                              </div>
+                  <div className="mdm-section">
+                    <div className="mdm-section-title">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      Referred Members ({referredMembers[member.id]?.length || member.referral_count})
+                    </div>
+                    {referredMembers[member.id]?.length > 0 ? (
+                      <div className="mdm-referred-list">
+                        {referredMembers[member.id].map((referred) => (
+                          <div key={referred.id} className="mdm-referred-row">
+                            <div className="mdm-ref-avatar">{getInitials(referred.name)}</div>
+                            <div className="mdm-ref-info">
+                              <span className="mdm-ref-name">{referred.name}</span>
+                              <span className="mdm-ref-meta">
+                                <span className={`mdm-ref-status mdm-ref-status--${referred.status}`}>{referred.status.charAt(0).toUpperCase() + referred.status.slice(1)}</span>
+                                {referred.relationship_to_referrer && <span className="mdm-ref-rel">· {referred.relationship_to_referrer}</span>}
+                              </span>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="no-referred-message"><p>Loading referred members...</p></div>
-                      )}
-                    </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mdm-loading-text">Loading referred members…</div>
+                    )}
                   </div>
                 )}
 
-                {/* Family Tree page */}
+                {/* Tab: Family Tree */}
                 {showFamilyTreeSection && safePage === detailPages.length - 1 && (
-                  <div className="detail-tab-content">
-                    <div className="details-section">
-                      <h4 className="section-header">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                        Family Tree {familyPeopleCount > 0 && `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
-                      </h4>
-                      {familyLoading[member.id] ? (
-                        <div className="family-loading"><p>Loading family tree...</p></div>
-                      ) : familyErrors[member.id] ? (
-                        <div className="family-error"><p>Error loading family tree</p></div>
-                      ) : (
-                        <div className="family-tree-visual-admin">
-                          <FamilyTreeChart
-                            parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
-                            centerRow={[
-                              { id: `subject-${member.id}`, name: member.name, relation: 'Member', profile_picture: member.profile_picture || null },
-                              ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
-                            ]}
-                            siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
-                            children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
-                            other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
-                            getInitials={getInitials}
-                            formatRelation={(r) => r || ''}
-                            highlightRelation="Member"
-                            theme="indigo"
-                          />
-                        </div>
-                      )}
+                  <div className="mdm-section">
+                    <div className="mdm-section-title">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                      Family Tree {familyPeopleCount > 0 && `(${familyPeopleCount} ${familyPeopleCount === 1 ? 'Member' : 'Members'})`}
                     </div>
+                    {familyLoading[member.id] ? (
+                      <div className="mdm-loading-text">Loading family tree…</div>
+                    ) : familyErrors[member.id] ? (
+                      <div className="mdm-error-text">Error loading family tree</div>
+                    ) : (
+                      <div className="family-tree-visual-admin">
+                        <FamilyTreeChart
+                          parents={(familyTreeByMemberId[member.id]?.parents || []).map(mapTreePersonForChart)}
+                          centerRow={[
+                            { id: `subject-${member.id}`, name: member.name, relation: 'Member', profile_picture: member.profile_picture || null },
+                            ...(familyTreeByMemberId[member.id]?.couple || []).map(mapTreePersonForChart),
+                          ]}
+                          siblings={(familyTreeByMemberId[member.id]?.siblings || []).map(mapTreePersonForChart)}
+                          children={(familyTreeByMemberId[member.id]?.children || []).map(mapTreePersonForChart)}
+                          other={(familyTreeByMemberId[member.id]?.other || []).map(mapTreePersonForChart)}
+                          getInitials={getInitials}
+                          formatRelation={(r) => r || ''}
+                          highlightRelation="Member"
+                          theme="indigo"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
 
-              {/* Footer actions */}
+              </div>{/* /mdm-body */}
+
+              {/* Footer */}
               {allowMemberMutations && (
-                <div className="modal-actions-new" style={{ padding: '1rem 2rem 1.5rem', borderTop: '1px solid #e2e8f0' }}>
-                  <button type="button" className="btn-cancel-new" onClick={() => { setSelectedMemberDetail(null); handleDeleteUser(member); }}>Delete</button>
-                  <button type="button" className="btn-submit-new" onClick={() => { setSelectedMemberDetail(null); openEditMember(member); }}>Edit Member</button>
+                <div className="mdm-footer">
+                  <button type="button" className="mdm-btn mdm-btn--danger" onClick={() => { setSelectedMemberDetail(null); handleDeleteUser(member); }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </button>
+                  <button type="button" className="mdm-btn mdm-btn--primary" onClick={() => { setSelectedMemberDetail(null); openEditMember(member); }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit Member
+                  </button>
                 </div>
               )}
-            </div>
+
+            </div>{/* /mdm-modal */}
           </div>
         );
       })()}
