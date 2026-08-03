@@ -2871,7 +2871,6 @@
 
 .mgr-dashboard {
   padding: 2rem;
-  padding-top: 5rem;
   background: #F5F8FF;
   min-height: calc(100vh - 46px);
   display: flex;
@@ -3252,7 +3251,6 @@
 
   .mgr-dashboard {
     padding: 1rem;
-    padding-top: 5rem;
   }
 }
 
