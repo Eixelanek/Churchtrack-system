@@ -2870,7 +2870,6 @@
    ============================================================ */
 
 .mgr-dashboard {
-  padding: 2rem;
   background: #F5F8FF;
   min-height: calc(100vh - 46px);
   display: flex;
@@ -3247,10 +3246,6 @@
 @media (max-width: 860px) {
   .mgr-grid {
     grid-template-columns: 1fr;
-  }
-
-  .mgr-dashboard {
-    padding: 1rem;
   }
 }
 
