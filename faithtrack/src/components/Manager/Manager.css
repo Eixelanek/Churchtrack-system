@@ -2876,6 +2876,7 @@
   flex-direction: column;
   gap: 1.5rem;
   font-family: 'Poppins', sans-serif;
+  margin-top: -14px;
 }
 
 /* ── Stat cards ── */

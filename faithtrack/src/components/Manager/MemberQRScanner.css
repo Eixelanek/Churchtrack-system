@@ -12,6 +12,7 @@
   background: #f5f8ff;
   min-height: calc(100vh - 72px);
   box-sizing: border-box;
+  margin-top: -14px;
 }
 
 /* ── HEADER ── */
