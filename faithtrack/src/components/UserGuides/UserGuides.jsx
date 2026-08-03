@@ -37,7 +37,11 @@ const guides = [
     items: [
       {
         subtitle: 'How to Check In',
-        text: 'On the Dashboard, click "Scan QR Code" then scan the QR code displayed by the manager using your phone camera.',
+        text: 'Go to "My QR Code" from the menu. Show your personal QR code to the staff at the entrance — they will scan it using the Manager app. Tap "Fullscreen" to make the QR code larger and easier to scan. Your attendance is recorded instantly once scanned.',
+      },
+      {
+        subtitle: "Children's QR Code",
+        text: 'If you have children 12 years old and below linked to your Family Circle, open "My QR Code" and switch to the "Children\'s QR" tab. You can show or download each child\'s QR code so staff can scan it to record their attendance. Add children first via the Family Circle section in your profile.',
       },
       {
         subtitle: 'View Your Attendance',
@@ -134,8 +138,8 @@ const guides = [
         text: "Make sure you're using the correct username and password. If you forgot your password, use the \"Forgot Password\" option. If you haven't verified your email yet, check your inbox for the verification link.",
       },
       {
-        subtitle: 'QR Code Not Working?',
-        text: 'Make sure your camera has permission to access. Try refreshing the page or using a different browser. If the issue persists, ask the manager to manually check you in.',
+        subtitle: 'QR Code Not Showing?',
+        text: "Make sure you're logged in and have an internet connection — your QR code loads from the server. If it doesn't appear, refresh the page and try again. If the staff can't scan it, tap \"Fullscreen\" for a larger, brighter display. As a last resort, ask the manager to manually record your attendance.",
       },
       {
         subtitle: 'Still Having Issues?',
