@@ -6741,13 +6741,14 @@ select.form-input {
   height: 34px;
   border-radius: 8px;
   background: #f1f5f9;
-  border: none;
+  border: 1.5px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.2s, transform 0.15s;
+  color: #475569;
 }
 
 .rpt-close:hover {
@@ -6756,7 +6757,9 @@ select.form-input {
 }
 
 .rpt-close svg {
-  stroke: #64748b;
+  stroke: currentColor;
+  display: block;
+  pointer-events: none;
 }
 
 /* ── Tabs ── */

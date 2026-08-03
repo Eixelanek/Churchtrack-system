@@ -12,7 +12,7 @@ const COLORS = ['#4F46E5', '#7C3AED', '#2563EB', '#0891B2', '#059669', '#D97706'
 // ── Chart components for offscreen rendering ──────────────────────────────
 const AttendanceTrendChart = ({ data }) => (
   <div style={{ width: 700, height: 220, background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}>
-    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>📅 Attendance Trend (by Week)</div>
+    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>Attendance Trend (by Week)</div>
     <BarChart width={680} height={180} data={data} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
       <XAxis dataKey="week" tick={{ fontSize: 11 }} />
@@ -27,7 +27,7 @@ const AttendanceTrendChart = ({ data }) => (
 
 const MemberGrowthChart = ({ data }) => (
   <div style={{ width: 340, height: 200, background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}>
-    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>📈 Member Growth (Last 7 Months)</div>
+    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>Member Growth (Last 7 Months)</div>
     <AreaChart width={316} height={158} data={data} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
       <defs>
         <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
@@ -46,7 +46,7 @@ const MemberGrowthChart = ({ data }) => (
 
 const ServiceBreakdownChart = ({ data }) => (
   <div style={{ width: 340, height: 200, background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}>
-    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>🏛️ Service Breakdown</div>
+    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>Service Breakdown</div>
     <BarChart width={316} height={158} data={data} layout="vertical" margin={{ top: 4, right: 30, left: 4, bottom: 4 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
       <XAxis type="number" tick={{ fontSize: 9 }} allowDecimals={false} />
@@ -61,7 +61,7 @@ const ServiceBreakdownChart = ({ data }) => (
 
 const GenderPieChart = ({ data }) => (
   <div style={{ width: 340, height: 200, background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}>
-    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>⚧ Gender Distribution</div>
+    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, borderLeft: '3px solid #4F46E5', paddingLeft: 8 }}>Gender Distribution</div>
     <PieChart width={316} height={158}>
       <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%"
         outerRadius={55} innerRadius={25}
@@ -99,9 +99,9 @@ const captureChart = (ChartComponent, props) => new Promise((resolve) => {
 });
 
 // ── UI helpers ────────────────────────────────────────────────────────────
-const SectionTitle = ({ children, icon }) => (
-  <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b', marginBottom: 8, marginTop: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-    {icon && <span>{icon}</span>}{children}
+const SectionTitle = ({ children }) => (
+  <div style={{ fontWeight: 700, fontSize: 13, color: '#1e293b', marginBottom: 8, marginTop: 0 }}>
+    {children}
   </div>
 );
 
@@ -111,9 +111,9 @@ const Card = ({ children, style = {}, className = '', ...rest }) => (
   </div>
 );
 
-const StatCard = ({ label, value, color = '#4F46E5', icon }) => (
+const StatCard = ({ label, value, color = '#4F46E5' }) => (
   <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '12px 14px', borderTop: `3px solid ${color}`, minWidth: 110, flex: '1 1 110px' }}>
-    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4 }}>{icon} {label}</div>
+    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 4 }}>{label}</div>
     <div style={{ fontSize: 20, fontWeight: 700, color }}>{value}</div>
   </div>
 );
@@ -228,20 +228,19 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12 }} />
         </div>
         <button onClick={fetchAnalytics} disabled={loading} style={{ padding: '7px 16px', background: loading ? '#a5b4fc' : '#4F46E5', color: '#fff', border: 'none', borderRadius: 7, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 12 }}>
-          {loading ? '⏳ Loading…' : '🔄 Generate'}
+          {loading ? 'Loading…' : 'Generate'}
         </button>
         {data && (
           <button onClick={handlePrint} disabled={printing} style={{ padding: '7px 16px', background: printing ? '#6ee7b7' : '#059669', color: '#fff', border: 'none', borderRadius: 7, fontWeight: 600, cursor: printing ? 'not-allowed' : 'pointer', fontSize: 12 }}>
-            {printing ? '⏳ Preparing…' : '🖨️ Print / Save PDF'}
+            {printing ? 'Preparing…' : 'Print / Save PDF'}
           </button>
         )}
       </div>
 
-      {error && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 12, marginBottom: 12 }}>⚠️ {error}</div>}
+      {error && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 14px', color: '#dc2626', fontSize: 12, marginBottom: 12 }}>{error}</div>}
 
       {!data && !loading && (
         <div style={{ textAlign: 'center', padding: '30px 0', color: '#94a3b8' }}>
-          <div style={{ fontSize: 36 }}>📈</div>
           <p style={{ marginTop: 6, fontSize: 13 }}>Set a date range and click Generate.</p>
         </div>
       )}
@@ -249,17 +248,17 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
       {data && (
         <div ref={printRef}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-            <StatCard icon="📅" label="Total Events"    value={data.summary.totalEvents}   color="#4F46E5" />
-            <StatCard icon="✅" label="Total Check-ins" value={data.summary.totalCheckins} color="#2563EB" />
-            <StatCard icon="📊" label="Avg / Event"     value={data.summary.avgPerEvent}   color="#0891B2" />
-            <StatCard icon="👥" label="Active Members"  value={`${data.summary.activeMembers}/${data.summary.totalMembers}`} color="#059669" />
-            <StatCard icon="🙋" label="Guests"          value={data.summary.guestTotal}    color="#D97706" />
-            {data.summary.convertedCount > 0 && <StatCard icon="⭐" label="Converted" value={data.summary.convertedCount} color="#7C3AED" />}
+            <StatCard label="Total Events"    value={data.summary.totalEvents}   color="#4F46E5" />
+            <StatCard label="Total Check-ins" value={data.summary.totalCheckins} color="#2563EB" />
+            <StatCard label="Avg / Event"     value={data.summary.avgPerEvent}   color="#0891B2" />
+            <StatCard label="Active Members"  value={`${data.summary.activeMembers}/${data.summary.totalMembers}`} color="#059669" />
+            <StatCard label="Guests"          value={data.summary.guestTotal}    color="#D97706" />
+            {data.summary.convertedCount > 0 && <StatCard label="Converted" value={data.summary.convertedCount} color="#7C3AED" />}
           </div>
 
           {data.attendanceTrend?.length > 0 && (
             <Card style={{ marginBottom: 12 }} className="analytics-chart-card" data-chart-id="attendance-trend">
-              <SectionTitle icon="📅">Attendance Trend (by Week)</SectionTitle>
+              <SectionTitle>Attendance Trend (by Week)</SectionTitle>
               <div style={{ width: '100%', height: 180 }}>
                 <ResponsiveContainer>
                   <BarChart data={data.attendanceTrend} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
@@ -279,7 +278,7 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
             {data.memberGrowth?.length > 0 && (
               <Card style={{ flex: '1 1 280px' }} className="analytics-chart-card" data-chart-id="member-growth">
-                <SectionTitle icon="📈">Member Growth (Last 7 Months)</SectionTitle>
+                <SectionTitle>Member Growth (Last 7 Months)</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <AreaChart data={data.memberGrowth} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
@@ -296,7 +295,7 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
             )}
             {data.serviceBreakdown?.length > 0 && (
               <Card style={{ flex: '1 1 280px' }} className="analytics-chart-card" data-chart-id="service-breakdown">
-                <SectionTitle icon="🏛️">Service Breakdown</SectionTitle>
+                <SectionTitle>Service Breakdown</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <BarChart data={data.serviceBreakdown} layout="vertical" margin={{ top: 4, right: 40, left: 4, bottom: 4 }}>
@@ -317,7 +316,7 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
           <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
             {data.genderBreakdown?.length > 0 && (
               <Card style={{ flex: '1 1 200px' }} className="analytics-chart-card" data-chart-id="gender-pie">
-                <SectionTitle icon="⚧">Gender Distribution</SectionTitle>
+                <SectionTitle>Gender Distribution</SectionTitle>
                 <div style={{ width: '100%', height: 155 }}>
                   <ResponsiveContainer>
                     <PieChart>
@@ -332,7 +331,7 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
             )}
             {data.statusBreakdown?.length > 0 && (
               <Card style={{ flex: '0 1 160px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <SectionTitle icon="🔵">Member Status</SectionTitle>
+                <SectionTitle>Member Status</SectionTitle>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
                   {data.statusBreakdown.map((s, i) => (
                     <div key={i} style={{ background: s.name==='Active'?'#ecfdf5':'#fffbeb', border:`1px solid ${s.name==='Active'?'#6ee7b7':'#fcd34d'}`, borderRadius:8, padding:'10px 14px', textAlign:'center' }}>
@@ -346,7 +345,7 @@ const AnalyticsReport = ({ churchName = 'Church', churchLogo = null }) => {
             )}
             {data.topMembers?.length > 0 && (
               <Card style={{ flex: '2 1 280px' }}>
-                <SectionTitle icon="🏆">Top Active Members</SectionTitle>
+                <SectionTitle>Top Active Members</SectionTitle>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 4 }}>
                   {data.topMembers.map((m, i) => {
                     const pct = Math.round((m.days / (data.topMembers[0]?.days || 1)) * 100);
