@@ -6158,8 +6158,9 @@ select.form-input {
 /* ── Page wrapper ── */
 .adm-dashboard {
   padding: 2rem;
+  padding-top: 5rem;
   background: #F5F8FF;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 72px);
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -6619,7 +6620,8 @@ select.form-input {
   }
 
   .adm-dashboard {
-    padding: 1.25rem;
+    padding: 1rem;
+    padding-top: 5rem;
   }
 }
 
