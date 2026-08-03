@@ -4085,71 +4085,102 @@ For privacy questions or requests, please reach out to the CLCC administrative o
         </div>
       )}
       {showScheduleModal && (
-        <div className="modal-overlay" onClick={() => setShowScheduleModal(false)}>
-          <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>📅 Event Schedule</h2>
-              <button className="modal-close" onClick={() => setShowScheduleModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="calendar-header">
-                <button onClick={() => {
-                  const newMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-                  const newYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-                  setCurrentMonth(newMonth);
-                  setCurrentYear(newYear);
-                }}>← Prev</button>
-                <h3>{new Date(currentYear, currentMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
-                <button onClick={() => {
-                  const newMonth = currentMonth === 12 ? 1 : currentMonth + 1;
-                  const newYear = currentMonth === 12 ? currentYear + 1 : currentYear;
-                  setCurrentMonth(newMonth);
-                  setCurrentYear(newYear);
-                }}>Next →</button>
+        <div className="sch-overlay" onClick={() => setShowScheduleModal(false)}>
+          <div className="sch-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* ── Header ── */}
+            <div className="sch-header">
+              <div className="sch-header-left">
+                <div className="sch-header-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="sch-title">Event Schedule</h2>
+                  <p className="sch-subtitle">Browse events by month</p>
+                </div>
               </div>
-              
-              <div className="events-list-calendar">
-                {calendarEvents.length > 0 ? (
-                  calendarEvents.map((event) => {
-                    const eventDate = event.eventDateTime ? new Date(event.eventDateTime) : (event.date ? new Date(`${event.date}T00:00:00`) : null);
+              <button className="sch-close" onClick={() => setShowScheduleModal(false)} aria-label="Close">&#x2715;</button>
+            </div>
+
+            {/* ── Month navigator ── */}
+            <div className="sch-nav">
+              <button className="sch-nav-btn" aria-label="Previous month" onClick={() => {
+                const newMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+                const newYear  = currentMonth === 1 ? currentYear - 1 : currentYear;
+                setCurrentMonth(newMonth);
+                setCurrentYear(newYear);
+              }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+
+              <span className="sch-month-label">
+                {new Date(currentYear, currentMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </span>
+
+              <button className="sch-nav-btn" aria-label="Next month" onClick={() => {
+                const newMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+                const newYear  = currentMonth === 12 ? currentYear + 1 : currentYear;
+                setCurrentMonth(newMonth);
+                setCurrentYear(newYear);
+              }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* ── Event list ── */}
+            <div className="sch-body">
+              {calendarEvents.length > 0 ? (
+                <div className="sch-event-list">
+                  {calendarEvents.map((event) => {
+                    const eventDate = event.eventDateTime
+                      ? new Date(event.eventDateTime)
+                      : event.date ? new Date(`${event.date}T00:00:00`) : null;
                     const now = new Date();
-                    const statusLabel = (() => {
-                      const rawStatus = event.status ? event.status.toLowerCase() : '';
-                      if (rawStatus === 'active') {
-                        return 'Active';
-                      }
-                      if (rawStatus === 'completed') {
-                        return 'Completed';
-                      }
-                      if (!eventDate) {
-                        return event.status || 'Scheduled';
-                      }
-                      if (eventDate.getTime() < now.getTime()) {
-                        return rawStatus === 'cancelled' ? 'Cancelled' : 'Past';
-                      }
-                      return 'Upcoming';
-                    })();
+                    const rawStatus = event.status ? event.status.toLowerCase() : '';
+                    const statusLabel = rawStatus === 'active' ? 'Active'
+                      : rawStatus === 'completed' ? 'Completed'
+                      : !eventDate ? (event.status || 'Scheduled')
+                      : eventDate.getTime() < now.getTime()
+                        ? (rawStatus === 'cancelled' ? 'Cancelled' : 'Past')
+                        : 'Upcoming';
 
                     return (
-                      <div key={event.id} className="calendar-event-item">
-                        <div className="event-date-badge">{eventDate ? eventDate.getDate() : '—'}</div>
-                        <div className="event-details">
-                          <div className="event-title">{event.title}</div>
-                          <div className="event-meta">
-                            {event.startTime || '—'} • {event.type} • {event.location}
-                          </div>
+                      <div key={event.id} className="sch-event-row">
+                        <div className="sch-date-chip">
+                          <span className="sch-date-day">{eventDate ? eventDate.getDate() : '—'}</span>
+                          <span className="sch-date-mon">{eventDate ? eventDate.toLocaleDateString('en-US', { month: 'short' }) : ''}</span>
                         </div>
-                        <div className={`event-status-badge status-${statusLabel.toLowerCase()}`}>{statusLabel}</div>
+                        <div className="sch-event-body">
+                          <span className="sch-event-title">{event.title}</span>
+                          <span className="sch-event-meta">
+                            {[event.startTime, event.type, event.location].filter(Boolean).join(' · ') || '—'}
+                          </span>
+                        </div>
+                        <span className={`sch-status-badge sch-status--${statusLabel.toLowerCase()}`}>
+                          {statusLabel}
+                        </span>
                       </div>
                     );
-                  })
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                    No events scheduled for this month
-                  </div>
-                )}
-              </div>
+                  })}
+                </div>
+              ) : (
+                <div className="sch-empty">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  <p>No events scheduled for this month</p>
+                </div>
+              )}
             </div>
+
           </div>
         </div>
       )}
