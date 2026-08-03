@@ -2876,8 +2876,8 @@
   flex-direction: column;
   gap: 1.5rem;
   font-family: 'Poppins', sans-serif;
-  margin: -24px -28px 0;
-  padding: 24px 28px 32px;
+  margin: -12px -28px 0;
+  padding: 12px 28px 32px;
 }
 
 /* ── Stat cards ── */
