@@ -3120,6 +3120,11 @@
   border-bottom: 2px solid #f1f5f9;
   flex-shrink: 0;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mdm-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .mdm-tab {
