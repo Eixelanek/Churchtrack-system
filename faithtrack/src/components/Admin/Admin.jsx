@@ -3052,119 +3052,201 @@ For privacy questions or requests, please reach out to the CLCC administrative o
                   <ContactMessages />
                 ) : (
                   <>
-                    <div className="new-dashboard-container">
-                      {/* Top Stats Cards */}
-                      <div className="new-stats-grid">
-                        <div className="new-stat-card">
-                          <div className="stat-icon users-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                              <circle cx="9" cy="7" r="4"></circle>
-                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    <div className="adm-dashboard">
+                      {/* ── STAT CARDS ── */}
+                      <div className="adm-stats">
+                        <div className="adm-stat-card">
+                          <div className="adm-stat-icon adm-stat-icon--blue">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
                           </div>
-                          <div className="stat-content">
-                            <div className="stat-title">Total Members</div>
-                            <div className="stat-number">{stats.totalMembers}</div>
-                            <div className="stat-subtitle">Active: {stats.activeMembers}</div>
+                          <div className="adm-stat-body">
+                            <span className="adm-stat-label">Total Members</span>
+                            <span className="adm-stat-value">{stats.totalMembers}</span>
+                            <span className="adm-stat-sub">{stats.activeMembers} active</span>
                           </div>
                         </div>
 
-                        <div className="new-stat-card">
-                          <div className="stat-icon clock-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <polyline points="12 6 12 12 16 14"></polyline>
+                        <div className="adm-stat-card">
+                          <div className="adm-stat-icon adm-stat-icon--green">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
                             </svg>
                           </div>
-                          <div className="stat-content">
-                            <div className="stat-title">Today's Attendance</div>
-                            <div className="stat-number">{stats.todayAttendance}</div>
-                            <div className="stat-subtitle stat-positive">↑{stats.todayRate}% Rate</div>
+                          <div className="adm-stat-body">
+                            <span className="adm-stat-label">Today's Check-ins</span>
+                            <span className="adm-stat-value">{stats.todayAttendance}</span>
+                            <span className="adm-stat-sub">{stats.todayRate}% attendance rate</span>
                           </div>
                         </div>
 
-                        <div className="new-stat-card">
-                          <div className="stat-icon trending-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                              <polyline points="17 6 23 6 23 12"></polyline>
+                        <div className="adm-stat-card">
+                          <div className="adm-stat-icon adm-stat-icon--violet">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
                             </svg>
                           </div>
-                          <div className="stat-content">
-                            <div className="stat-title">Weekly Average</div>
-                            <div className="stat-number">{stats.weeklyAttendance}%</div>
-                            <div className="stat-subtitle">Stable</div>
+                          <div className="adm-stat-body">
+                            <span className="adm-stat-label">Weekly Average</span>
+                            <span className="adm-stat-value">{stats.weeklyAttendance}%</span>
+                            <span className="adm-stat-sub">attendance rate</span>
                           </div>
                         </div>
 
-                        <div className="new-stat-card">
-                          <div className="stat-icon calendar-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                              <line x1="16" y1="2" x2="16" y2="6"></line>
-                              <line x1="8" y1="2" x2="8" y2="6"></line>
-                              <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <div className="adm-stat-card">
+                          <div className="adm-stat-icon adm-stat-icon--amber">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                             </svg>
                           </div>
-                          <div className="stat-content">
-                            <div className="stat-title">This Week</div>
-                            <div className="stat-number">{stats.weekAttendance}</div>
-                            <div className="stat-subtitle">Check-ins</div>
+                          <div className="adm-stat-body">
+                            <span className="adm-stat-label">This Week</span>
+                            <span className="adm-stat-value">{stats.weekAttendance}</span>
+                            <span className="adm-stat-sub">total check-ins</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Main Content Grid - Simple 2 Column */}
-                      <div className="dashboard-simple-grid">
-                        {/* Left Column */}
-                        <div className="dashboard-left">
-                          {/* Upcoming Birthdays */}
-                          <div className="chart-card-new">
-                            <div className="card-header-with-link">
-                              <h3>🎂 Upcoming Birthdays</h3>
-                              <button className="view-all-link" onClick={() => {
-                                setShowMembersView(true);
-                                // Set birthdays tab in session storage
-                                if (window.sessionStorage) {
-                                  window.sessionStorage.setItem('activeTab', 'birthdays');
-                                }
-                              }}>View All ›</button>
+                      {/* ── MAIN GRID ── */}
+                      <div className="adm-grid">
+                        {/* LEFT COLUMN */}
+                        <div className="adm-col-left">
+
+                          {/* Weekly Attendance Bar Chart */}
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Weekly Attendance</span>
                             </div>
-                            <div className="birthdays-list">
+                            <div className="adm-bar-chart">
+                              {(weeklyAttendanceData.length > 0 ? weeklyAttendanceData : [
+                                {day:'Sun',count:0},{day:'Mon',count:0},{day:'Tue',count:0},{day:'Wed',count:0},
+                                {day:'Thu',count:0},{day:'Fri',count:0},{day:'Sat',count:0}
+                              ]).map((day, index) => {
+                                const maxCount = Math.max(...(weeklyAttendanceData.length > 0 ? weeklyAttendanceData : [{count:1}]).map(d => d.count), 1);
+                                const height = maxCount > 0 ? Math.max((day.count / maxCount) * 100, day.count > 0 ? 4 : 0) : 0;
+                                return (
+                                  <div key={index} className="adm-bar-col">
+                                    <span className="adm-bar-count">{day.count > 0 ? day.count : ''}</span>
+                                    <div className="adm-bar-track">
+                                      <div className="adm-bar-fill" style={{ height: `${height}%` }} />
+                                    </div>
+                                    <span className="adm-bar-label">{day.day}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Member Growth */}
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Member Growth</span>
+                              <div className="adm-card-pills">
+                                <span className="adm-pill adm-pill--blue">+{growthStats.newMembers} new</span>
+                                <span className="adm-pill adm-pill--green">{growthStats.growthRate}% growth</span>
+                              </div>
+                            </div>
+                            <div className="adm-line-chart-wrap">
+                              <svg viewBox="0 0 400 120" preserveAspectRatio="none" className="adm-line-svg">
+                                <defs>
+                                  <linearGradient id="admGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#0049AF" stopOpacity="0.18"/>
+                                    <stop offset="100%" stopColor="#0049AF" stopOpacity="0"/>
+                                  </linearGradient>
+                                </defs>
+                                {memberGrowthData.length > 1 && (() => {
+                                  const maxCount = Math.max(...memberGrowthData.map(d => d.count), 1);
+                                  const n = memberGrowthData.length;
+                                  const sw = 400 / (n - 1);
+                                  const pts = memberGrowthData.map((d, i) => ({
+                                    x: i * sw,
+                                    y: 100 - ((d.count / maxCount) * 90)
+                                  }));
+                                  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+                                  const area = `${line} L${pts[pts.length-1].x},120 L0,120 Z`;
+                                  return (
+                                    <>
+                                      <path d={area} fill="url(#admGrad)"/>
+                                      <path d={line} stroke="#0049AF" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                                      {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#0049AF" strokeWidth="2"/>)}
+                                    </>
+                                  );
+                                })()}
+                              </svg>
+                              <div className="adm-line-labels">
+                                {memberGrowthData.map((d, i) => <span key={i}>{d.month}</span>)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Quick Actions */}
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Quick Actions</span>
+                            </div>
+                            <div className="adm-quick-actions">
+                              <button className="adm-action-btn" onClick={() => setShowMembersView(true)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+                                </svg>
+                                Add Member
+                              </button>
+                              <button className="adm-action-btn" onClick={() => { setShowReportModal(true); generateReport(); }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                                  <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                                </svg>
+                                Generate Report
+                              </button>
+                              <button className="adm-action-btn" onClick={() => setShowScheduleModal(true)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                  <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                Schedule
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* RIGHT COLUMN */}
+                        <div className="adm-col-right">
+
+                          {/* Upcoming Birthdays */}
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Upcoming Birthdays</span>
+                              <button className="adm-view-all" onClick={() => {
+                                setShowMembersView(true);
+                                if (window.sessionStorage) window.sessionStorage.setItem('activeTab', 'birthdays');
+                              }}>View all</button>
+                            </div>
+                            <div className="adm-birthday-list">
                               {upcomingBirthdays.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                                  No upcoming birthdays
-                                </div>
+                                <div className="adm-empty">No upcoming birthdays</div>
                               ) : (
                                 upcomingBirthdays.map((birthday) => {
                                   const profilePath = birthday.profilePicture || birthday.profile_picture;
                                   const avatarUrl = resolveProfilePicUrl(profilePath);
                                   return (
-                                    <div key={birthday.id} className="birthday-item">
-                                      <div className="birthday-avatar">
+                                    <div key={birthday.id} className="adm-birthday-row">
+                                      <div className="adm-avatar">
                                         {avatarUrl ? (
-                                          <img
-                                            src={avatarUrl}
-                                            alt={birthday.name}
-                                            onError={(e) => {
-                                              e.currentTarget.style.display = 'none';
-                                              e.currentTarget.parentElement.classList.add('fallback');
-                                              e.currentTarget.parentElement.textContent = birthday.initials;
-                                            }}
+                                          <img src={avatarUrl} alt={birthday.name}
+                                            onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.parentElement.classList.add('fallback'); e.currentTarget.parentElement.textContent = birthday.initials; }}
                                           />
-                                        ) : (
-                                          <span>{birthday.initials}</span>
-                                        )}
+                                        ) : <span>{birthday.initials}</span>}
                                       </div>
-                                      <div className="birthday-info">
-                                        <div className="birthday-name">{birthday.name}</div>
-                                        <div className="birthday-date">{birthday.date}</div>
+                                      <div className="adm-birthday-info">
+                                        <span className="adm-birthday-name">{birthday.name}</span>
+                                        <span className="adm-birthday-date">{birthday.date}</span>
                                       </div>
-                                      <div className="birthday-badge">
-                                        {birthday.daysUntil === 0 ? 'Today' : `${birthday.daysUntil} ${birthday.daysUntil === 1 ? 'day' : 'days'}`}
-                                      </div>
+                                      <span className={`adm-days-badge ${birthday.daysUntil === 0 ? 'adm-days-badge--today' : ''}`}>
+                                        {birthday.daysUntil === 0 ? 'Today' : `${birthday.daysUntil}d`}
+                                      </span>
                                     </div>
                                   );
                                 })
@@ -3172,227 +3254,79 @@ For privacy questions or requests, please reach out to the CLCC administrative o
                             </div>
                           </div>
 
-                          {/* Member Growth Trend */}
-                          <div className="chart-card-new">
-                            <h3>Member Growth Trend</h3>
-                            <div className="growth-chart-container">
-                              <div className="growth-chart-wrapper">
-                                <div className="growth-line-chart">
-                                  <svg viewBox="0 0 400 200" className="line-chart-svg">
-                                    <defs>
-                                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3"/>
-                                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0"/>
-                                      </linearGradient>
-                                    </defs>
-                                    {memberGrowthData.length > 0 && (() => {
-                                      const maxCount = Math.max(...memberGrowthData.map(d => d.count), 1);
-                                      const numPoints = memberGrowthData.length;
-                                      const segmentWidth = 400 / (numPoints - 1);
-                                      const points = memberGrowthData.map((d, i) => {
-                                        const x = i * segmentWidth;
-                                        const y = 180 - ((d.count / maxCount) * 160);
-                                        return { x, y, count: d.count };
-                                      });
-                                      
-                                      const linePath = points.map((p, i) => 
-                                        `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
-                                      ).join(' ');
-                                      
-                                      const lastPoint = points[points.length - 1];
-                                      const firstPoint = points[0];
-                                      const areaPath = `${linePath} L ${lastPoint.x} 200 L ${firstPoint.x} 200 Z`;
-                                      
-                                      return (
-                                        <>
-                                          <path d={areaPath} fill="url(#lineGradient)"/>
-                                          <path d={linePath} stroke="#3B82F6" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                                          {points.map((p, i) => (
-                                            <circle key={i} cx={p.x} cy={p.y} r="5" fill="#3B82F6"/>
-                                          ))}
-                                        </>
-                                      );
-                                    })()}
-                                  </svg>
-                                </div>
-                                <div className="growth-chart-labels">
-                                  {memberGrowthData.map((d, i) => (
-                                    <span key={i}>{d.month}</span>
-                                  ))}
-                                </div>
-                              </div>
-                              <div className="growth-stats">
-                                <div className="growth-stat-item">
-                                  <div className="growth-stat-value">+{growthStats.newMembers}</div>
-                                  <div className="growth-stat-label">New Members</div>
-                                </div>
-                                <div className="growth-stat-item">
-                                  <div className="growth-stat-value">{growthStats.growthRate}%</div>
-                                  <div className="growth-stat-label">Growth Rate</div>
-                                </div>
-                              </div>
+                          {/* Service Breakdown */}
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Service Breakdown</span>
                             </div>
-                          </div>
-
-                          {/* Quick Actions */}
-                          <div className="chart-card-new">
-                            <h3>Quick Actions</h3>
-                            <div className="quick-actions-grid">
-                              <button className="action-btn member-btn" onClick={() => setShowMembersView(true)}>
-                                <span>+ Member</span>
-                              </button>
-                              <button className="action-btn report-btn" onClick={() => {
-                                setShowReportModal(true);
-                                generateReport();
-                              }}>
-                                <span>📊 Report</span>
-                              </button>
-                              <button className="action-btn schedule-btn" onClick={() => {
-                                setShowScheduleModal(true);
-                              }}>
-                                <span>📅 Schedule</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right Column */}
-                        <div className="dashboard-right">
-                          {/* Weekly Attendance Trend */}
-                          <div className="chart-card-new">
-                            <h3>Weekly Attendance Trend</h3>
-                            <div className="bar-chart-container">
-                              <div className="bar-chart-wrapper">
-                                {weeklyAttendanceData.length > 0 ? (
-                                  weeklyAttendanceData.map((day, index) => {
-                                    const maxCount = Math.max(...weeklyAttendanceData.map(d => d.count), 1);
-                                    const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
-                                    return (
-                                      <div key={index} className="bar-item">
-                                        <div className="bar" style={{ height: `${height}%` }}></div>
-                                        <span className="bar-label">{day.day}</span>
-                                      </div>
-                                    );
-                                  })
-                                ) : (
-                                  <>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Sun</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Mon</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Tue</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Wed</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Thu</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Fri</span>
-                                    </div>
-                                    <div className="bar-item">
-                                      <div className="bar" style={{ height: '0%' }}></div>
-                                      <span className="bar-label">Sat</span>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Service Attendance */}
-                          <div className="chart-card-new">
-                            <h3>Service Attendance</h3>
-                            <div className="donut-chart-container">
+                            <div className="adm-donut-wrap">
                               {serviceAttendanceData.length > 0 ? (
                                 <>
-                                  <svg viewBox="0 0 200 200" className="donut-chart">
+                                  <svg viewBox="0 0 200 200" className="adm-donut-svg">
                                     {(() => {
-                                      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-                                      const circumference = 2 * Math.PI * 80;
-                                      let currentOffset = 0;
-                                      
-                                      return serviceAttendanceData.map((service, index) => {
-                                        const dashArray = (service.percentage / 100) * circumference;
-                                        const offset = -currentOffset;
-                                        currentOffset += dashArray;
-                                        
-                                        return (
-                                          <circle
-                                            key={index}
-                                            cx="100"
-                                            cy="100"
-                                            r="80"
-                                            fill="none"
-                                            stroke={colors[index % colors.length]}
-                                            strokeWidth="30"
-                                            strokeDasharray={`${dashArray} ${circumference}`}
-                                            strokeDashoffset={offset}
-                                          />
+                                      const colors = ['#0049AF','#1095D2','#10B981','#F59E0B','#8B5CF6','#EC4899'];
+                                      const circ = 2 * Math.PI * 70;
+                                      let offset = 0;
+                                      return serviceAttendanceData.map((s, i) => {
+                                        const dash = (s.percentage / 100) * circ;
+                                        const el = (
+                                          <circle key={i} cx="100" cy="100" r="70" fill="none"
+                                            stroke={colors[i % colors.length]} strokeWidth="28"
+                                            strokeDasharray={`${dash} ${circ}`} strokeDashoffset={-offset}/>
                                         );
+                                        offset += dash;
+                                        return el;
                                       });
                                     })()}
+                                    <circle cx="100" cy="100" r="56" fill="#fff"/>
                                   </svg>
-                                  <div className="donut-legend">
-                                    {serviceAttendanceData.map((service, index) => {
-                                      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                                  <div className="adm-donut-legend">
+                                    {serviceAttendanceData.map((s, i) => {
+                                      const colors = ['#0049AF','#1095D2','#10B981','#F59E0B','#8B5CF6','#EC4899'];
                                       return (
-                                        <div key={index} className="legend-item-new">
-                                          <span className="legend-dot" style={{ backgroundColor: colors[index % colors.length] }}></span>
-                                          <span className="legend-text">{service.type}</span>
-                                          <span className="legend-percent">{service.percentage}%</span>
+                                        <div key={i} className="adm-legend-row">
+                                          <span className="adm-legend-dot" style={{ background: colors[i % colors.length] }}/>
+                                          <span className="adm-legend-name">{s.type}</span>
+                                          <span className="adm-legend-pct">{s.percentage}%</span>
                                         </div>
                                       );
                                     })}
                                   </div>
                                 </>
                               ) : (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                                  No service attendance data yet
-                                </div>
+                                <div className="adm-empty">No service data yet</div>
                               )}
                             </div>
                           </div>
 
                           {/* Recent Records */}
-                          <div className="chart-card-new">
-                            <div className="card-header-with-link">
-                              <h3>Recent Records</h3>
-                              <button className="view-all-link" onClick={() => setShowAttendanceView(true)}>View All ›</button>
+                          <div className="adm-card">
+                            <div className="adm-card-head">
+                              <span className="adm-card-title">Recent Records</span>
+                              <button className="adm-view-all" onClick={() => setShowAttendanceView(true)}>View all</button>
                             </div>
-                            <div className="records-list">
+                            <div className="adm-records-list">
                               {recentRecords.length > 0 ? (
                                 recentRecords.map((record) => (
-                                  <div key={record.id} className="record-item">
-                                    <div className="record-info">
-                                      <div className="record-date">{record.date}</div>
-                                      <div className="record-service">{record.title}</div>
+                                  <div key={record.id} className="adm-record-row">
+                                    <div className="adm-record-dot"/>
+                                    <div className="adm-record-body">
+                                      <span className="adm-record-title">{record.title}</span>
+                                      <span className="adm-record-date">{record.date}</span>
                                     </div>
-                                    <div className="record-count">{record.attendeeCount}</div>
+                                    <span className="adm-record-count">{record.attendeeCount}</span>
                                   </div>
                                 ))
                               ) : (
-                                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>
-                                  No recent records yet
-                                </div>
+                                <div className="adm-empty">No recent records yet</div>
                               )}
                             </div>
                           </div>
 
                         </div>
                       </div>
-
                     </div>
+                          {/* Weekly Attendance Trend */}
                   </>
                 )}
               </div>

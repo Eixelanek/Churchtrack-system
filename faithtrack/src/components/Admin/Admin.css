@@ -6148,3 +6148,497 @@ select.form-input {
 /* Ensure back button icon is visible */
 .stg-back-btn { line-height: 0; }
 .stg-back-btn svg { display: block; }
+
+/* ============================================================
+   Admin Dashboard — Redesign
+   Design tokens match Login + AttendanceManagement language:
+   primary blue #0049AF, secondary #1095D2, font Poppins
+   ============================================================ */
+
+/* ── Page wrapper ── */
+.adm-dashboard {
+  padding: 2rem;
+  background: #F5F8FF;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Stat cards row ── */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.adm-stat-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,73,175,0.08);
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,73,175,0.05);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.adm-stat-card:hover {
+  box-shadow: 0 6px 20px rgba(0,73,175,0.1);
+  transform: translateY(-2px);
+}
+
+.adm-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-stat-icon--blue   { background: #dbeafe; }
+.adm-stat-icon--blue svg { stroke: #0049AF; }
+
+.adm-stat-icon--green  { background: #dcfce7; }
+.adm-stat-icon--green svg { stroke: #059669; }
+
+.adm-stat-icon--violet { background: #ede9fe; }
+.adm-stat-icon--violet svg { stroke: #7c3aed; }
+
+.adm-stat-icon--amber  { background: #fef3c7; }
+.adm-stat-icon--amber svg { stroke: #b45309; }
+
+.adm-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.adm-stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0a1a3a;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.adm-stat-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+/* ── Main 2-col grid ── */
+.adm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.adm-col-left,
+.adm-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Base card ── */
+.adm-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0,73,175,0.08);
+  padding: 1.4rem;
+  box-shadow: 0 2px 8px rgba(0,73,175,0.05);
+}
+
+.adm-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  gap: 0.75rem;
+}
+
+.adm-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0a1a3a;
+}
+
+.adm-card-pills {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.adm-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+
+.adm-pill--blue  { background: #dbeafe; color: #1d4ed8; }
+.adm-pill--green { background: #dcfce7; color: #15803d; }
+
+.adm-view-all {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0049AF;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.adm-view-all:hover { color: #1095D2; }
+
+/* ── Empty state ── */
+.adm-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+/* ── Bar chart ── */
+.adm-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 130px;
+  padding-top: 1.5rem;
+}
+
+.adm-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.adm-bar-count {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748b;
+  min-height: 14px;
+}
+
+.adm-bar-track {
+  flex: 1;
+  width: 100%;
+  background: #f1f5f9;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.adm-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #0049AF 0%, #1095D2 100%);
+  border-radius: 6px;
+  transition: height 0.5s ease;
+  min-height: 0;
+}
+
+.adm-bar-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* ── Line chart ── */
+.adm-line-chart-wrap {
+  width: 100%;
+}
+
+.adm-line-svg {
+  width: 100%;
+  height: 100px;
+  display: block;
+  overflow: visible;
+}
+
+.adm-line-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.adm-line-labels span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* ── Quick actions ── */
+.adm-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.adm-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0.8rem 0.5rem;
+  background: #f5f8ff;
+  border: 1.5px solid rgba(0,73,175,0.12);
+  border-radius: 12px;
+  color: #0049AF;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.adm-action-btn:hover {
+  background: #dbeafe;
+  border-color: rgba(0,73,175,0.28);
+  transform: translateY(-2px);
+}
+
+.adm-action-btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Birthday list ── */
+.adm-birthday-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.adm-birthday-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.adm-birthday-row:last-child {
+  border-bottom: none;
+}
+
+.adm-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0049AF, #1095D2);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.adm-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.adm-birthday-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.adm-birthday-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0a1a3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-birthday-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.adm-days-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 50px;
+  background: #f1f5f9;
+  color: #64748b;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.adm-days-badge--today {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* ── Donut chart ── */
+.adm-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.adm-donut-svg {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+.adm-donut-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adm-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.adm-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.adm-legend-name {
+  flex: 1;
+  color: #374151;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-legend-pct {
+  font-weight: 700;
+  color: #0a1a3a;
+}
+
+/* ── Recent records ── */
+.adm-records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.adm-record-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.adm-record-row:last-child {
+  border-bottom: none;
+}
+
+.adm-record-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0049AF, #1095D2);
+  flex-shrink: 0;
+}
+
+.adm-record-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.adm-record-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0a1a3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-record-date {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.adm-record-count {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0049AF;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .adm-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .adm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-dashboard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .adm-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .adm-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-donut-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adm-donut-svg {
+    width: 100px;
+    height: 100px;
+  }
+}
