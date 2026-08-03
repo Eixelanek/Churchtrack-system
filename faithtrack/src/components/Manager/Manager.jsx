@@ -1216,238 +1216,161 @@ const Manager = () => {
   };
 
   const renderDashboard = () => (
-    <div className="manager-dashboard">
-      <section className="manager-summary-grid">
-        {dashboardSummary.map((card, index) => (
-          <article key={card.key} className={`manager-summary-card gradient-${index + 1}`}>
-            <div className="manager-summary-icon">
-              {renderSummaryIcon(card.icon)}
-            </div>
-            <div className="manager-summary-body">
-              <span className="manager-summary-label">{card.label}</span>
-              <span className="manager-summary-value">{card.value}</span>
-              <span className={`manager-summary-meta ${card.icon === 'attendance' ? 'positive' : ''}`}>{card.meta}</span>
-            </div>
-          </article>
-        ))}
-      </section>
+    <div className="mgr-dashboard">
 
-      <div className="manager-dashboard-grid">
-        <div className="manager-dashboard-left">
-          <section className="manager-card manager-qr-generator">
-            <header className="manager-card-header">
-              <div className="manager-card-title">
-                <span className="emoji">🧾</span>
-                <h3>Recent QR Sessions</h3>
+      {/* ── Stat cards ── */}
+      <div className="mgr-stats">
+        {dashboardSummary.map((card, index) => {
+          const iconColors = ['--blue','--green','--violet','--amber'];
+          return (
+            <div key={card.key} className={`mgr-stat-card mgr-stat-card${iconColors[index]}`}>
+              <div className="mgr-stat-icon">
+                {renderSummaryIcon(card.icon)}
               </div>
-              <button
-                type="button"
-                className="manager-card-action"
-                onClick={() => fetchQuickQrSessions()}
-              >
-                Refresh list
-              </button>
-            </header>
+              <div className="mgr-stat-body">
+                <span className="mgr-stat-label">{card.label}</span>
+                <span className="mgr-stat-value">{card.value}</span>
+                <span className="mgr-stat-sub">{card.meta}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Main grid ── */}
+      <div className="mgr-grid">
+
+        {/* Left column */}
+        <div className="mgr-col-left">
+
+          {/* Weekly Attendance */}
+          <section className="mgr-card">
+            <div className="mgr-card-head">
+              <span className="mgr-card-title">Weekly Attendance</span>
+            </div>
+            <div className="mgr-bar-chart">
+              {(weeklyTrendData.length > 0 ? weeklyTrendData : [
+                {day:'Sun',count:0,percent:0},{day:'Mon',count:0,percent:0},{day:'Tue',count:0,percent:0},
+                {day:'Wed',count:0,percent:0},{day:'Thu',count:0,percent:0},{day:'Fri',count:0,percent:0},{day:'Sat',count:0,percent:0}
+              ]).map((day) => (
+                <div key={day.day} className="mgr-bar-col">
+                  <span className="mgr-bar-count">{day.count > 0 ? day.count : ''}</span>
+                  <div className="mgr-bar-track">
+                    <div className="mgr-bar-fill" style={{ height: `${Math.max(day.percent, day.count > 0 ? 4 : 0)}%` }} />
+                  </div>
+                  <span className="mgr-bar-label">{day.day}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Recent QR Sessions */}
+          <section className="mgr-card">
+            <div className="mgr-card-head">
+              <span className="mgr-card-title">Recent QR Sessions</span>
+              <button type="button" className="mgr-view-all" onClick={() => fetchQuickQrSessions()}>Refresh</button>
+            </div>
             {isQuickQrLoading && quickQrSessions.length === 0 ? (
-              <div className="manager-empty-state">Loading quick QR sessions…</div>
+              <div className="mgr-empty">Loading sessions…</div>
             ) : quickQrSessions.length === 0 ? (
-              <div className="manager-empty-state">No QR sessions available</div>
+              <div className="mgr-empty">No QR sessions yet</div>
             ) : (
-              <div className="manager-qr-grid">
+              <div className="mgr-qr-list">
                 {quickQrCards.map((card) => {
                   const isInteractive = Boolean(card.session || card.preset);
                   const handleClick = () => {
-                    if (isInteractive) {
-                      if (card.session) {
-                        handleQuickQrClick(card.session);
-                      } else if (card.preset) {
-                        const matchedPreset = QUICK_QR_PRESETS.find((preset) => preset.id === card.id);
-                        if (matchedPreset) {
-                          handleQuickGeneratePreset(matchedPreset);
-                        }
-                      }
+                    if (!isInteractive) return;
+                    if (card.session) handleQuickQrClick(card.session);
+                    else if (card.preset) {
+                      const matched = QUICK_QR_PRESETS.find((p) => p.id === card.id);
+                      if (matched) handleQuickGeneratePreset(matched);
                     }
                   };
-
-                  const handleKeyDown = (event) => {
-                    if (isInteractive) {
-                      if (card.session) {
-                        handleQuickQrKeyDown(event, card.session);
-                      } else if (card.preset) {
-                        handleQuickGeneratePresetKey(event, card.id);
-                      }
-                    }
+                  const handleKeyDown = (e) => {
+                    if (!isInteractive) return;
+                    if (card.session) handleQuickQrKeyDown(e, card.session);
+                    else if (card.preset) handleQuickGeneratePresetKey(e, card.id);
                   };
-
                   return (
-                    <div
-                      key={card.id}
-                      className={`manager-qr-item${isInteractive ? '' : ' manager-qr-item--fallback'}`}
-                      role={isInteractive ? 'button' : undefined}
-                      tabIndex={isInteractive ? 0 : -1}
-                      onClick={handleClick}
-                      onKeyDown={handleKeyDown}
+                    <div key={card.id} className={`mgr-qr-row${isInteractive ? ' mgr-qr-row--clickable' : ''}`}
+                      role={isInteractive ? 'button' : undefined} tabIndex={isInteractive ? 0 : -1}
+                      onClick={handleClick} onKeyDown={handleKeyDown}
                     >
-                      <div className="qr-info">
-                        <h4>{card.title || card.label}</h4>
-                        <span>{card.metric || card.description}</span>
-                        {card.date && (
-                          <span className="qr-subinfo">{card.date}{card.timeLabel ? ` • ${card.timeLabel}` : ''}</span>
-                        )}
-                        {card.preset && !card.date && card.description && (
-                          <span className="qr-subinfo">{card.description}</span>
-                        )}
+                      <div className="mgr-qr-dot" />
+                      <div className="mgr-qr-info">
+                        <span className="mgr-qr-name">{card.title || card.label}</span>
+                        <span className="mgr-qr-meta">
+                          {[card.metric, card.date, card.timeLabel].filter(Boolean).join(' · ') || card.description || ''}
+                        </span>
                       </div>
-                      <div className="qr-icon" aria-hidden="true">QR</div>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mgr-qr-chevron"><polyline points="9 18 15 12 9 6"/></svg>
                     </div>
                   );
                 })}
-              </div>
-            )}
-          </section>
-
-          <section className="manager-card manager-trend-card">
-            <header className="manager-card-header">
-              <h3>Weekly Attendance Trend</h3>
-            </header>
-            {isWeeklyTrendLoading ? (
-              <div className="manager-empty-state">Loading attendance trend...</div>
-            ) : weeklyTrendData.length === 0 ? (
-              <div className="manager-empty-state">No attendance data available</div>
-            ) : (
-              <div className="manager-bars">
-                {weeklyTrendData.map((day) => (
-                  <div key={day.day} className="manager-bar-item">
-                    <div className="manager-bar-wrapper">
-                      <div className="manager-bar" style={{ height: `${day.percent}%` }} />
-                      <span className="manager-bar-value">{day.count}</span>
-                    </div>
-                    <span className="manager-bar-label">{day.day}</span>
-                  </div>
-                ))}
               </div>
             )}
           </section>
         </div>
 
-        <div className="manager-dashboard-right">
-          <section className="manager-card manager-list-card">
-            <header className="manager-card-header">
-              <h3>Top Active Members</h3>
-            </header>
+        {/* Right column */}
+        <div className="mgr-col-right">
+
+          {/* Top Active Members */}
+          <section className="mgr-card">
+            <div className="mgr-card-head">
+              <span className="mgr-card-title">Top Active Members</span>
+            </div>
             {isTopActiveMembersLoading ? (
-              <div className="manager-empty-state">Loading top active members...</div>
+              <div className="mgr-empty">Loading…</div>
             ) : topActiveMembers.length === 0 ? (
-              <div className="manager-empty-state">No active members data available</div>
+              <div className="mgr-empty">No data available</div>
             ) : (
-              <div className="manager-live-rankings">
+              <div className="mgr-members-list">
                 {topActiveMembers.map((member, index) => {
-                  // Different styles for each rank
-                  const rankStyles = [
-                    { 
-                      bgColor: '#fef3c7', 
-                      medalColor: '#fbbf24', 
-                      textColor: '#f59e0b',
-                      icon: '👑',
-                      medalIcon: '🥇'
-                    }, // Rank 1: Gold
-                    { 
-                      bgColor: '#f3f4f6', 
-                      medalColor: '#9ca3af', 
-                      textColor: '#4b5563',
-                      icon: '∞',
-                      medalIcon: '🥈'
-                    }, // Rank 2: Silver
-                    { 
-                      bgColor: '#fed7aa', 
-                      medalColor: '#fb923c', 
-                      textColor: '#f97316',
-                      icon: '⭐',
-                      medalIcon: '🥉'
-                    }  // Rank 3: Bronze
-                  ];
-                  const style = rankStyles[index] || rankStyles[0];
-                  
-                  // Calculate dots (5 dots total, filled based on percentage)
-                  const totalDots = 5;
-                  const filledDots = Math.round((member.percentage / 100) * totalDots);
-                  
+                  const pct = member.percentage || 0;
                   return (
-                    <div key={member.id} className="manager-ranking-card" style={{ background: style.bgColor }}>
-                      <div className="manager-medal-section">
-                        <span className="manager-rank-icon">{style.icon}</span>
-                        <div className="manager-medal" style={{ color: style.medalColor }}>
-                          {style.medalIcon}
-                          <span className="manager-medal-number">{index + 1}</span>
+                    <div key={member.id} className="mgr-member-row">
+                      <span className="mgr-member-rank">{index + 1}</span>
+                      <div className="mgr-member-info">
+                        <span className="mgr-member-name">{member.name}</span>
+                        <div className="mgr-member-bar-track">
+                          <div className="mgr-member-bar-fill" style={{ width: `${pct}%` }} />
                         </div>
                       </div>
-                      <div className="manager-member-info">
-                        <h4>{member.name}</h4>
-                        <span className="manager-engagement-label">
-                          <span className="manager-dot" style={{ background: '#10b981' }}></span>
-                          • Engagement score
-                        </span>
-                      </div>
-                      <div className="manager-score-section">
-                        <span className="manager-score-percentage" style={{ color: style.textColor }}>
-                          {member.percentage}%
-                        </span>
-                        <div className="manager-score-dots">
-                          {Array.from({ length: totalDots }).map((_, dotIndex) => (
-                            <span
-                              key={dotIndex}
-                              className={`manager-dot ${dotIndex < filledDots ? 'filled' : ''}`}
-                              style={{ 
-                                background: dotIndex < filledDots ? style.textColor : 'transparent',
-                                borderColor: style.textColor
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                      <span className="mgr-member-pct">{pct}%</span>
                     </div>
                   );
                 })}
-                <div className="manager-rankings-footer">
-                  <span className="manager-live-indicator">
-                    <span className="manager-dot" style={{ background: '#10b981' }}></span>
-                    • Live Rankings
-                  </span>
-                  <span className="manager-updated-text">Updated just now</span>
-                </div>
               </div>
             )}
           </section>
 
-          <section className="manager-card manager-list-card">
-            <header className="manager-card-header">
-              <h3>Recent Attendance</h3>
-              <button 
-                type="button" 
-                className="manager-card-action"
-                onClick={() => setActiveView('attendance')}
-              >
-                View All
-              </button>
-            </header>
+          {/* Recent Attendance */}
+          <section className="mgr-card">
+            <div className="mgr-card-head">
+              <span className="mgr-card-title">Recent Attendance</span>
+              <button type="button" className="mgr-view-all" onClick={() => setActiveView('attendance')}>View all</button>
+            </div>
             {isRecentAttendanceLoading ? (
-              <div className="manager-empty-state">Loading recent attendance...</div>
+              <div className="mgr-empty">Loading…</div>
             ) : recentAttendance.length === 0 ? (
-              <div className="manager-empty-state">No recent attendance records</div>
+              <div className="mgr-empty">No recent records</div>
             ) : (
-              <div className="manager-list">
+              <div className="mgr-records-list">
                 {recentAttendance.map((item) => (
-                  <div key={item.id} className="manager-list-item">
-                    <div>
-                      <span className="manager-list-date">{item.dateLabel}</span>
-                      <h4>{item.service}</h4>
+                  <div key={item.id} className="mgr-record-row">
+                    <div className="mgr-record-dot" />
+                    <div className="mgr-record-body">
+                      <span className="mgr-record-title">{item.service}</span>
+                      <span className="mgr-record-date">{item.dateLabel}</span>
                     </div>
-                    <span className="manager-list-value">{item.value}</span>
+                    <span className="mgr-record-count">{item.value}</span>
                   </div>
                 ))}
               </div>
             )}
           </section>
+
         </div>
       </div>
 
