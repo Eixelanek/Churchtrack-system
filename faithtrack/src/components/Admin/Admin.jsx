@@ -3885,175 +3885,203 @@ For privacy questions or requests, please reach out to the CLCC administrative o
         </div>
       )}
 
-      {/* Report Modal */}
+      {/* Report Modal — Redesigned */}
       {showReportModal && (
-        <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
-          <div className="modal-content-large" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>📊 Reports</h2>
-              <button className="modal-close" onClick={() => setShowReportModal(false)}>×</button>
+        <div className="rpt-overlay" onClick={() => setShowReportModal(false)}>
+          <div className="rpt-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* ── Header ── */}
+            <div className="rpt-header">
+              <div className="rpt-header-left">
+                <div className="rpt-header-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="rpt-title">Reports</h2>
+                  <p className="rpt-subtitle">Generate and export church records</p>
+                </div>
+              </div>
+              <button className="rpt-close" onClick={() => setShowReportModal(false)} aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            <div className="modal-body">
-              {/* Report Type Tabs */}
-              <div className="report-tabs" style={{ marginBottom: '20px', borderBottom: '2px solid #e5e7eb' }}>
-                <button 
-                  className={`report-tab ${reportType === 'attendance' ? 'active' : ''}`}
-                  onClick={() => setReportType('attendance')}
-                  style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    background: reportType === 'attendance' ? '#4F46E5' : 'transparent',
-                    color: reportType === 'attendance' ? 'white' : '#666',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0',
-                    marginRight: '5px'
-                  }}
-                >
-                  📅 Attendance Report
-                </button>
-                <button 
-                  className={`report-tab ${reportType === 'membership' ? 'active' : ''}`}
-                  onClick={() => setReportType('membership')}
-                  style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    background: reportType === 'membership' ? '#4F46E5' : 'transparent',
-                    color: reportType === 'membership' ? 'white' : '#666',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0',
-                    marginRight: '5px'
-                  }}
-                >
-                  👥 Membership Report
-                </button>
-                <button
-                  className={`report-tab ${reportType === 'analytics' ? 'active' : ''}`}
-                  onClick={() => setReportType('analytics')}
-                  style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    background: reportType === 'analytics' ? '#4F46E5' : 'transparent',
-                    color: reportType === 'analytics' ? 'white' : '#666',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    borderRadius: '8px 8px 0 0'
-                  }}
-                >
-                  📈 Analytics Report
-                </button>
-              </div>
 
+            {/* ── Tab bar ── */}
+            <div className="rpt-tabs">
+              <button className={`rpt-tab ${reportType === 'attendance' ? 'rpt-tab--active' : ''}`} onClick={() => setReportType('attendance')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Attendance
+              </button>
+              <button className={`rpt-tab ${reportType === 'membership' ? 'rpt-tab--active' : ''}`} onClick={() => setReportType('membership')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Membership
+              </button>
+              <button className={`rpt-tab ${reportType === 'analytics' ? 'rpt-tab--active' : ''}`} onClick={() => setReportType('analytics')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                </svg>
+                Analytics
+              </button>
+            </div>
+
+            {/* ── Body ── */}
+            <div className="rpt-body">
+
+              {/* ── ATTENDANCE TAB ── */}
               {reportType === 'attendance' && (
-              <>
-              {/* Date Range Picker */}
-              <div className="date-range-picker">
-                <div className="date-input-group">
-                  <label>Start Date:</label>
-                  <input 
-                    type="date" 
-                    value={reportStartDate}
-                    onChange={(e) => setReportStartDate(e.target.value)}
-                  />
-                </div>
-                <div className="date-input-group">
-                  <label>End Date:</label>
-                  <input 
-                    type="date" 
-                    value={reportEndDate}
-                    onChange={(e) => setReportEndDate(e.target.value)}
-                  />
-                </div>
-                <button className="btn-primary" onClick={generateReport}>
-                  🔄 Generate
-                </button>
-              </div>
+                <div className="rpt-section">
+                  {/* Date controls */}
+                  <div className="rpt-controls">
+                    <div className="rpt-field">
+                      <label className="rpt-label">Start Date</label>
+                      <input className="rpt-input" type="date" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} />
+                    </div>
+                    <div className="rpt-field">
+                      <label className="rpt-label">End Date</label>
+                      <input className="rpt-input" type="date" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} />
+                    </div>
+                    <button className="rpt-btn rpt-btn--primary" onClick={generateReport}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                      </svg>
+                      Generate
+                    </button>
+                  </div>
 
-              {reportData && (
-                <>
-                  <div className="report-summary">
-                    {reportSummaryMetrics.map((metric) => (
-                      <div key={metric.label} className="report-summary-metric">
-                        <span className="report-summary-metric-label">{metric.label}:</span>
-                        <span className="report-summary-metric-value">{metric.value}</span>
+                  {reportData && (
+                    <>
+                      {/* Summary metrics strip */}
+                      <div className="rpt-metrics">
+                        <div className="rpt-metric">
+                          <span className="rpt-metric-value">{reportData.totalEvents ?? 0}</span>
+                          <span className="rpt-metric-label">Events</span>
+                        </div>
+                        <div className="rpt-metric rpt-metric--blue">
+                          <span className="rpt-metric-value">{reportData.totalAttendance ?? 0}</span>
+                          <span className="rpt-metric-label">Total Check-ins</span>
+                        </div>
+                        <div className="rpt-metric rpt-metric--slate">
+                          <span className="rpt-metric-value">{reportAveragePerEvent}</span>
+                          <span className="rpt-metric-label">Avg / Event</span>
+                        </div>
+                        <div className="rpt-metric rpt-metric--green">
+                          <span className="rpt-metric-value">{reportData.totalMemberCheckins ?? 0}</span>
+                          <span className="rpt-metric-label">Members</span>
+                        </div>
+                        <div className="rpt-metric rpt-metric--amber">
+                          <span className="rpt-metric-value">{reportData.totalGuestCheckins ?? 0}</span>
+                          <span className="rpt-metric-label">Guests</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-              
-              <div className="report-table-container">
-                <table className="report-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Time</th>
-                      <th>Service</th>
-                      <th className="numeric-col">Total</th>
-                      <th className="numeric-col">Members</th>
-                      <th className="numeric-col">Guests</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.records.map((record) => (
-                      <tr key={record.eventId}>
-                        <td>{formatReportDateLabel(record.date)}</td>
-                        <td>{formatReportTimeLabel(record.time)}</td>
-                        <td>{record.title}</td>
-                        <td className="numeric-col">{renderCountPill(record.totalCheckins, 'total')}</td>
-                        <td className="numeric-col">{renderCountPill(record.memberCheckins, 'member')}</td>
-                        <td className="numeric-col">{renderCountPill(record.guestCheckins, 'guest')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-                  <div className="report-actions">
-                    <button className="btn-primary" onClick={exportReportXlsx}>
-                      📥 Download Excel
-                    </button>
-                    <button className="btn-primary" onClick={printAttendanceReport} style={{ marginLeft: '10px' }}>
-                      🖨️ Print / Save PDF
-                    </button>
-                  </div>
-                </>
-              )}
-              </>
+
+                      {/* Table */}
+                      <div className="rpt-table-wrap">
+                        <table className="rpt-table">
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Time</th>
+                              <th>Event</th>
+                              <th className="rpt-col-num">Total</th>
+                              <th className="rpt-col-num">Members</th>
+                              <th className="rpt-col-num">Guests</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {reportRecords.map((record) => (
+                              <tr key={record.eventId}>
+                                <td>{formatReportDateLabel(record.date)}</td>
+                                <td>{formatReportTimeLabel(record.time)}</td>
+                                <td>{record.title}</td>
+                                <td className="rpt-col-num">{renderCountPill(record.totalCheckins, 'total')}</td>
+                                <td className="rpt-col-num">{renderCountPill(record.memberCheckins, 'member')}</td>
+                                <td className="rpt-col-num">{renderCountPill(record.guestCheckins, 'guest')}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Export actions */}
+                      <div className="rpt-actions">
+                        <button className="rpt-btn rpt-btn--outline" onClick={exportReportXlsx}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                          Download Excel
+                        </button>
+                        <button className="rpt-btn rpt-btn--outline" onClick={printAttendanceReport}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                          </svg>
+                          Print / Save PDF
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
 
+              {/* ── MEMBERSHIP TAB ── */}
               {reportType === 'membership' && (
-                <div className="membership-report-section">
-                  <div className="report-info" style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '20px' }}>
-                    <h3 style={{ marginTop: 0 }}>Membership Report</h3>
-                    <p style={{ color: '#666', marginBottom: 0 }}>Export a complete list of all members with their details including contact information, status, and join dates.</p>
-                  </div>
-                  
-                  <div className="membership-filter" style={{ marginBottom: '20px' }}>
-                    <label style={{ fontWeight: '600', marginRight: '10px' }}>Filter by Status:</label>
-                    <select 
-                      value={membershipStatus}
-                      onChange={(e) => setMembershipStatus(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #d1d5db' }}
-                    >
-                      <option value="all">All Members</option>
-                      <option value="active">Active Only</option>
-                      <option value="inactive">Inactive Only</option>
-                    </select>
+                <div className="rpt-section">
+                  <div className="rpt-info-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <p>Export a complete list of members with contact information, status, and join dates.</p>
                   </div>
 
-                  <div className="report-actions">
-                    <button className="btn-primary" onClick={exportMembershipXlsx}>
-                      📥 Download Excel
+                  <div className="rpt-controls">
+                    <div className="rpt-field">
+                      <label className="rpt-label">Filter by Status</label>
+                      <select className="rpt-input rpt-select" value={membershipStatus} onChange={(e) => setMembershipStatus(e.target.value)}>
+                        <option value="all">All Members</option>
+                        <option value="active">Active Only</option>
+                        <option value="inactive">Inactive Only</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="rpt-actions">
+                    <button className="rpt-btn rpt-btn--outline" onClick={exportMembershipXlsx}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                      Download Excel
                     </button>
-                    <button className="btn-primary" onClick={printMembershipReport} style={{ marginLeft: '10px' }}>
-                      🖨️ Print / Save PDF
+                    <button className="rpt-btn rpt-btn--outline" onClick={printMembershipReport}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                      </svg>
+                      Print / Save PDF
                     </button>
                   </div>
                 </div>
               )}
+
+              {/* ── ANALYTICS TAB ── */}
               {reportType === 'analytics' && (
-                <AnalyticsReport churchName={churchName} churchLogo={churchLogo} />
+                <div className="rpt-section">
+                  <AnalyticsReport churchName={churchName} churchLogo={churchLogo} />
+                </div>
               )}
+
             </div>
           </div>
         </div>
