@@ -2876,7 +2876,8 @@
   flex-direction: column;
   gap: 1.5rem;
   font-family: 'Poppins', sans-serif;
-  margin-top: -14px;
+  margin: -24px -28px 0;
+  padding: 24px 28px 32px;
 }
 
 /* ── Stat cards ── */
@@ -3247,6 +3248,18 @@
 @media (max-width: 860px) {
   .mgr-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mgr-dashboard {
+    margin: -20px -18px 0;
+    padding: 20px 18px 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .mgr-dashboard {
+    margin: -18px -16px 0;
+    padding: 18px 16px 26px;
   }
 }
 

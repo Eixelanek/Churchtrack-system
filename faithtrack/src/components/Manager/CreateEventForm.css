@@ -12,7 +12,8 @@
   background: #f5f8ff;
   min-height: calc(100vh - 72px);
   box-sizing: border-box;
-  margin-top: -14px;
+  margin: -24px -28px 0;
+  padding: 24px 28px 32px;
 }
 
 /* ── HEADER ── */
