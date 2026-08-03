@@ -3071,98 +3071,94 @@ const Member = () => {
             <div className="content-wrapper">
               {activeView === 'dashboard' ? (
                 <div className="dashboard-content">
-                  <div className="member-new-dashboard">
-                    {/* Inactive Member Notice */}
+                  <div className="mbd-dashboard">
+
+                    {/* Inactive notice */}
                     {localStorage.getItem('memberStatus') === 'inactive' && (
-                      <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                      <div className="mbd-inactive-notice">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
                         <div>
-                          <strong style={{ color: '#92400e', display: 'block' }}>Your account is currently inactive.</strong>
-                          <span style={{ color: '#b45309', fontSize: '0.875rem' }}>Attend a Sunday Service to reactivate your account automatically.</span>
+                          <strong>Your account is currently inactive.</strong>
+                          <span>Attend a Sunday Service to reactivate automatically.</span>
                         </div>
                       </div>
                     )}
-                    {/* Welcome Header */}
-                    <div className="welcome-header">
-                      <h1>Welcome back, {user && user.firstName ? user.firstName : 'Juan'}!</h1>
+
+                    {/* Welcome */}
+                    <div className="mbd-welcome">
+                      <h1>Welcome back, {user && user.firstName ? user.firstName : 'Juan'}</h1>
                       <p>Track your attendance and stay connected with your church family</p>
                     </div>
 
-                    {/* Stats Cards */}
-                    <div className="stats-grid">
-                      {dashboardStats.map((stat, index) => (
-                        <div key={stat.key} className={`stat-card gradient-${index + 1}`}>
-                          <div className="stat-icon">
-                            {renderStatIcon(stat.icon)}
+                    {/* Stat cards */}
+                    <div className="mbd-stats">
+                      {dashboardStats.map((stat, index) => {
+                        const colors = ['--blue','--green','--violet','--amber'];
+                        return (
+                          <div key={stat.key} className={`mbd-stat-card mbd-stat-card${colors[index]}`}>
+                            <div className="mbd-stat-icon">{renderStatIcon(stat.icon)}</div>
+                            <div className="mbd-stat-body">
+                              <span className="mbd-stat-label">{stat.label}</span>
+                              <span className="mbd-stat-value">{stat.value}</span>
+                              <span className="mbd-stat-sub">{stat.subtitle}</span>
+                            </div>
                           </div>
-                          <div className="stat-content">
-                            <div className="stat-label">{stat.label}</div>
-                            <div className="stat-value">{stat.value}</div>
-                            <div className="stat-subtitle">{stat.subtitle}</div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    {/* Main Grid */}
-                    <div className="dashboard-grid">
-                      {/* Left Column */}
-                      <div className="dashboard-left">
-                        {/* Mark Attendance Card */}
-                        <div className="mark-attendance-card">
-                          <div className="mark-attendance-content">
+                    {/* Main grid */}
+                    <div className="mbd-grid">
+
+                      {/* Left column */}
+                      <div className="mbd-col-left">
+
+                        {/* QR Card */}
+                        <div className="mbd-qr-card">
+                          <div className="mbd-qr-text">
                             <h2>Your QR Code</h2>
-                            <p>Show your personal QR code to the staff to mark your attendance</p>
-                            <button className="scan-qr-btn" onClick={() => handleNavigation('scan')}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                            <p>Show your personal QR code to the staff at the entrance to record your attendance</p>
+                            <button className="mbd-qr-btn" onClick={() => handleNavigation('scan')}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
                               </svg>
                               Show My QR Code
                             </button>
                           </div>
-                          <div className="qr-illustration">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                          <div className="mbd-qr-illus" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                              <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
                             </svg>
                           </div>
                         </div>
 
-                        {/* Monthly Breakdown */}
-                        <div className="monthly-chart-card">
-                          <h3>Monthly Breakdown</h3>
-                          <div className="horizontal-chart-container">
-                            {monthlyData.length > 0 ? (
-                              monthlyData.map((item, index) => {
-                                // Calculate width percentage
-                                const barWidth = maxMonthlyCount > 0 ? (item.count / maxMonthlyCount) * 100 : 0;
-                                
-                                return (
-                                  <div key={`${item.month}-${index}`} className="horizontal-bar-row">
-                                    <div className="month-label">{item.month}</div>
-                                    <div className="horizontal-bar-track">
-                                      <div 
-                                        className={`horizontal-bar ${item.count > 0 ? 'has-value' : 'empty'}`}
-                                        style={{ width: `${barWidth}%` }}
-                                      >
-                                        {item.count > 0 && <span className="bar-value-inside">{item.count}</span>}
-                                      </div>
+                        {/* Monthly breakdown */}
+                        <div className="mbd-card">
+                          <div className="mbd-card-head">
+                            <span className="mbd-card-title">Monthly Breakdown</span>
+                          </div>
+                          <div className="mbd-hbar-chart">
+                            {monthlyData.length > 0 ? monthlyData.map((item, i) => {
+                              const w = maxMonthlyCount > 0 ? (item.count / maxMonthlyCount) * 100 : 0;
+                              return (
+                                <div key={`${item.month}-${i}`} className="mbd-hbar-row">
+                                  <span className="mbd-hbar-label">{item.month}</span>
+                                  <div className="mbd-hbar-track">
+                                    <div className={`mbd-hbar-fill${item.count > 0 ? '' : ' mbd-hbar-fill--empty'}`} style={{ width: `${w}%` }}>
+                                      {item.count > 0 && <span className="mbd-hbar-val">{item.count}</span>}
                                     </div>
-                                    <div className="count-label">{item.count}</div>
                                   </div>
-                                );
-                              })
-                            ) : (
-                              <div className="chart-empty-state">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                  <line x1="12" y1="20" x2="12" y2="10"></line>
-                                  <line x1="18" y1="20" x2="18" y2="4"></line>
-                                  <line x1="6" y1="20" x2="6" y2="16"></line>
+                                  <span className="mbd-hbar-count">{item.count}</span>
+                                </div>
+                              );
+                            }) : (
+                              <div className="mbd-empty">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
                                 </svg>
                                 <p>No attendance data yet</p>
                                 <span>Start attending services to see your monthly breakdown</span>
@@ -3172,33 +3168,42 @@ const Member = () => {
                         </div>
                       </div>
 
-                      {/* Right Column - Recent Attendance */}
-                      <div className="dashboard-right">
-                        <div className="recent-attendance-card">
-                          <div className="card-header">
-                            <h3>Recent Attendance</h3>
+                      {/* Right column */}
+                      <div className="mbd-col-right">
+                        <div className="mbd-card">
+                          <div className="mbd-card-head">
+                            <span className="mbd-card-title">Recent Attendance</span>
                           </div>
-                          <div className="attendance-list">
-                            {recentAttendance.map((item) => (
-                              <div key={item.id} className="attendance-item">
-                                <div className="attendance-info">
-                                  <div className="service-name">{item.service}</div>
-                                  <div className="service-datetime">
-                                    {item.date}<br />
-                                    {item.time}
+                          {recentAttendance.length > 0 ? (
+                            <div className="mbd-attendance-list">
+                              {recentAttendance.map((item) => (
+                                <div key={item.id} className="mbd-att-row">
+                                  <div className="mbd-att-dot" />
+                                  <div className="mbd-att-info">
+                                    <span className="mbd-att-service">{item.service}</span>
+                                    <span className="mbd-att-date">{item.date}{item.time ? ` · ${item.time}` : ''}</span>
                                   </div>
+                                  <span className="mbd-att-status">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    {item.status}
+                                  </span>
                                 </div>
-                                <div className="attendance-status">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                  </svg>
-                                  <span>{item.status}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mbd-empty">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                              <p>No recent attendance</p>
+                              <span>Your check-ins will appear here</span>
+                            </div>
+                          )}
                         </div>
                       </div>
+
                     </div>
                   </div>
                 </div>
