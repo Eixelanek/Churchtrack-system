@@ -4112,11 +4112,7 @@ For privacy questions or requests, please reach out to the CLCC administrative o
                 const newYear  = currentMonth === 1 ? currentYear - 1 : currentYear;
                 setCurrentMonth(newMonth);
                 setCurrentYear(newYear);
-              }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6"/>
-                </svg>
-              </button>
+              }}>&#8249;</button>
 
               <span className="sch-month-label">
                 {new Date(currentYear, currentMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -4127,11 +4123,7 @@ For privacy questions or requests, please reach out to the CLCC administrative o
                 const newYear  = currentMonth === 12 ? currentYear + 1 : currentYear;
                 setCurrentMonth(newMonth);
                 setCurrentYear(newYear);
-              }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
-              </button>
+              }}>&#8250;</button>
             </div>
 
             {/* ── Event list ── */}

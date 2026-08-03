@@ -7226,6 +7226,10 @@ select.form-input {
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1;
+  font-family: sans-serif;
 }
 
 .sch-nav-btn:hover {
