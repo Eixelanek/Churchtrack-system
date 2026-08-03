@@ -6747,13 +6747,18 @@ select.form-input {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.2s, border-color 0.2s;
   color: #475569;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  font-family: sans-serif;
 }
 
 .rpt-close:hover {
   background: #e2e8f0;
-  transform: rotate(90deg);
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 .rpt-close svg {
