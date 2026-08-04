@@ -2693,6 +2693,7 @@ For privacy questions or requests, please reach out to the CLCC administrative o
 
                 {/* ── Tabs + Content ── */}
                 <div className="stg-layout">
+                  <div className="stg-tabs-wrap">
                   <div className="stg-tabs">
                   {[
                     { id: 'identity', label: 'Church Identity', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -2710,6 +2711,7 @@ For privacy questions or requests, please reach out to the CLCC administrative o
                       {tab.label}
                     </button>
                   ))}
+                  </div>
                   </div>
 
                   {/* ── Tab Panels ── */}
