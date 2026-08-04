@@ -1635,7 +1635,70 @@
   }
 
   .manager-mobile-menu {
+    display: none; /* replaced by mobile-menu-btn */
+  }
+
+  .mobile-menu-btn {
     display: inline-flex;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-menu-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Match Admin dropdown styles */
+  .mobile-menu-dropdown {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    animation: slideDown 0.2s ease-out;
+  }
+
+  .mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .mobile-menu-item:hover {
+    background: #f8fafc;
+    color: #0046a5;
+  }
+
+  .mobile-menu-item.active {
+    background: #EFF6FF;
+    color: #0046a5;
+    border-left: 4px solid #0046a5;
+  }
+
+  .mobile-menu-item svg {
+    flex-shrink: 0;
   }
 
   .manager-topbar-right {

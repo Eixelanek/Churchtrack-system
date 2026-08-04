@@ -1644,12 +1644,29 @@ button,
   
   /* Show hamburger menu on mobile */
   .mobile-menu-toggle {
+    display: none; /* replaced by mobile-menu-btn */
+  }
+
+  .mobile-menu-btn {
     display: flex !important;
     position: relative;
     left: 0;
     flex-shrink: 0;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+    align-items: center;
+    justify-content: center;
   }
-  
+
+  .mobile-menu-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
   /* Logo stays next to hamburger on mobile */
   .topbar-logo {
     margin: 0;
@@ -1672,80 +1689,53 @@ button,
   .topbar-right {
     gap: 0.5rem;
   }
-  
-  /* Show sidebar overlay when menu is open */
-  .sidebar-overlay {
-    display: block;
-  }
-  
-  /* Sidebar becomes off-canvas on mobile */
-  .sidebar {
-    position: fixed !important;
-    left: -100% !important;
-    top: 0 !important;
-    width: 280px !important;
-    min-width: 280px !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    z-index: 999 !important;
-    transition: left 0.3s ease !important;
-    padding: 1.5rem 1rem !important;
-    padding-top: 4rem !important;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.2) !important;
-    background: white !important;
-    overflow-y: auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  
-  .sidebar.mobile-open {
-    left: 0 !important;
-  }
-  
-  /* Ensure sidebar content is visible */
-  .sidebar .main-menu {
-    display: block !important;
-    width: 100%;
-  }
-  
-  .sidebar .main-menu h3 {
-    color: #1e293b;
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-  
-  .sidebar .nav-menu {
-    display: flex !important;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  /* Mobile sidebar close button */
-  .mobile-sidebar-close {
+
+  /* Mobile dropdown — matches Admin pattern */
+  .mobile-menu-dropdown {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1002;
     display: flex;
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: transparent;
-    border: none;
-    font-size: 2rem;
-    color: #64748b;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
+    flex-direction: column;
+    animation: slideDown 0.2s ease-out;
+  }
+
+  .mobile-menu-item {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 8px;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
     transition: all 0.2s;
-    z-index: 10;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
   }
-  
-  .mobile-sidebar-close:hover {
-    background: #f1f5f9;
-    color: #1e40af;
+
+  .mobile-menu-item:hover {
+    background: #f8fafc;
+    color: #0046a5;
   }
-  
+
+  .mobile-menu-item.active {
+    background: #EFF6FF;
+    color: #0046a5;
+    border-left: 4px solid #0046a5;
+  }
+
+  .mobile-menu-item svg {
+    flex-shrink: 0;
+  }
+
   /* Dashboard content takes full width on mobile */
   .dashboard-content {
     margin-left: 0;

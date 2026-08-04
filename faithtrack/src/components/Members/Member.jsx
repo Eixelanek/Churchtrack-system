@@ -2815,7 +2815,7 @@ const Member = () => {
             <div className="topbar-left">
               {/* Mobile Menu Toggle Button - Shows on mobile, replaces logo position */}
               <button 
-                className="mobile-menu-toggle" 
+                className="mobile-menu-btn" 
                 onClick={toggleMobileMenu}
                 aria-label="Toggle menu"
               >
@@ -3036,67 +3036,34 @@ const Member = () => {
             </div>
           </header>
           
-          {/* Sidebar Overlay for Mobile */}
+          {/* Mobile Menu Dropdown */}
           {showMobileMenu && (
-            <div 
-              className={`sidebar-overlay ${showMobileMenu ? 'active' : ''}`}
-              onClick={closeMobileMenu}
-            />
+            <div className="mobile-menu-dropdown">
+              <button className={`mobile-menu-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => handleNavigation('dashboard')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+              </button>
+              <button className={`mobile-menu-item ${activeView === 'scan' ? 'active' : ''}`} onClick={() => handleNavigation('scan')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                My QR Code
+              </button>
+              <button className={`mobile-menu-item ${activeView === 'attendance' ? 'active' : ''}`} onClick={() => handleNavigation('attendance')}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                My Attendance
+              </button>
+            </div>
           )}
           
           <div className="main-content main-content-topbar">
-            <div className={`sidebar ${showMobileMenu ? 'mobile-open' : ''}`}>
-              {/* Mobile Close Button */}
-              <button 
-                className="mobile-sidebar-close" 
-                onClick={closeMobileMenu}
-                aria-label="Close menu"
-              >
-                ×
-              </button>
-              
-              <div className="main-menu">
-                <h3>Main Menu</h3>
-                <nav className="nav-menu">
-                  <button 
-                    className={`nav-item ${activeView === 'dashboard' ? 'active' : ''}`}
-                    onClick={() => handleNavigation('dashboard')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="3" width="7" height="7"></rect>
-                      <rect x="14" y="14" width="7" height="7"></rect>
-                      <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
-                    Dashboard
-                  </button>
-                  <button 
-                    className={`nav-item ${activeView === 'scan' ? 'active' : ''}`}
-                    onClick={() => handleNavigation('scan')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                      <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                      <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                      <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                    </svg>
-                    My QR Code
-                  </button>
-                  <button 
-                    className={`nav-item ${activeView === 'attendance' ? 'active' : ''}`}
-                    onClick={() => handleNavigation('attendance')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    My Attendance
-                  </button>
-                </nav>
-              </div>
-            </div>
             <div className="content-wrapper">
               {activeView === 'dashboard' ? (
                 <div className="dashboard-content">
