@@ -249,64 +249,59 @@ const AttendanceHistory = () => {
   const detailModal = selectedRecord ? createPortal(
     <div className="ah-modal-overlay" onClick={closeDetail} role="presentation">
       <div className="ah-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="ah-modal-title">
+
         {/* Header */}
         <div className="ah-modal-header">
           <div className="ah-modal-header-main">
             <div className="ah-modal-icon-box" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
                 <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
             </div>
             <div>
               <h3 id="ah-modal-title" className="ah-modal-title">{selectedRecord.service}</h3>
-              <p className="ah-modal-sub">Attendance Record</p>
+              <p className="ah-modal-sub">{selectedRecord.monthLabel}</p>
             </div>
           </div>
-          <button className="ah-modal-close" onClick={closeDetail} aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
+          <button className="ah-modal-close" onClick={closeDetail} aria-label="Close">&#x2715;</button>
         </div>
 
         {/* Body */}
         <div className="ah-modal-body">
-          {/* Status pill */}
-          <div className="ah-modal-status-row">
-            <span className="ah-modal-status-pill">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              {selectedRecord.status}
-            </span>
+
+          {/* Status + timing hero row */}
+          <div className="ah-modal-hero-row">
+            <div className="ah-modal-hero-item">
+              <span className="ah-modal-hero-label">Status</span>
+              <span className="ah-modal-status-pill">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                {selectedRecord.status}
+              </span>
+            </div>
+            <div className="ah-modal-hero-item">
+              <span className="ah-modal-hero-label">Date</span>
+              <span className="ah-modal-hero-value">{selectedRecord.date}</span>
+            </div>
+            {selectedRecord.time && (
+              <div className="ah-modal-hero-item">
+                <span className="ah-modal-hero-label">Check-in Time</span>
+                <span className="ah-modal-hero-value">{selectedRecord.time}</span>
+              </div>
+            )}
           </div>
 
-          {/* Info rows */}
+          {/* Info grid */}
+          <div className="ah-modal-section-title">Event Details</div>
           <div className="ah-modal-info-grid">
             <div className="ah-modal-info-item">
               <span className="ah-modal-info-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Date
-              </span>
-              <span className="ah-modal-info-value">{selectedRecord.date}</span>
-            </div>
-            {selectedRecord.time && (
-              <div className="ah-modal-info-item">
-                <span className="ah-modal-info-label">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Check-in Time
-                </span>
-                <span className="ah-modal-info-value">{selectedRecord.time}</span>
-              </div>
-            )}
-            <div className="ah-modal-info-item">
-              <span className="ah-modal-info-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                 Service
               </span>
               <span className="ah-modal-info-value">{selectedRecord.service}</span>
             </div>
 
-            {/* Extra session details if loaded */}
             {isLoadingDetail ? (
               <div className="ah-modal-loading">
                 <span className="ah-modal-spinner" />
@@ -314,19 +309,37 @@ const AttendanceHistory = () => {
               </div>
             ) : sessionDetail ? (
               <>
+                {sessionDetail.event_title && sessionDetail.event_title !== selectedRecord.service && (
+                  <div className="ah-modal-info-item">
+                    <span className="ah-modal-info-label">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      Event Name
+                    </span>
+                    <span className="ah-modal-info-value">{sessionDetail.event_title}</span>
+                  </div>
+                )}
                 {sessionDetail.event_type && (
                   <div className="ah-modal-info-item">
                     <span className="ah-modal-info-label">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                       Event Type
                     </span>
                     <span className="ah-modal-info-value ah-modal-info-value--cap">{sessionDetail.event_type}</span>
                   </div>
                 )}
+                {sessionDetail.session_type && (
+                  <div className="ah-modal-info-item">
+                    <span className="ah-modal-info-label">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                      Session Type
+                    </span>
+                    <span className="ah-modal-info-value ah-modal-info-value--cap">{sessionDetail.session_type}</span>
+                  </div>
+                )}
                 {sessionDetail.event_location && (
                   <div className="ah-modal-info-item">
                     <span className="ah-modal-info-label">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                       Location
                     </span>
                     <span className="ah-modal-info-value">{sessionDetail.event_location}</span>
@@ -335,7 +348,7 @@ const AttendanceHistory = () => {
                 {sessionDetail.scan_count != null && (
                   <div className="ah-modal-info-item">
                     <span className="ah-modal-info-label">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
                       Total Attendees
                     </span>
                     <span className="ah-modal-info-value">{sessionDetail.scan_count}</span>
@@ -344,10 +357,10 @@ const AttendanceHistory = () => {
                 {sessionDetail.status && (
                   <div className="ah-modal-info-item">
                     <span className="ah-modal-info-label">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                      Session Status
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      Event Status
                     </span>
-                    <span className={`ah-modal-session-status ah-modal-session-status--${sessionDetail.status}`}>
+                    <span className={`ah-modal-event-status ah-modal-event-status--${sessionDetail.status.toLowerCase()}`}>
                       {sessionDetail.status}
                     </span>
                   </div>
@@ -355,7 +368,7 @@ const AttendanceHistory = () => {
                 {sessionDetail.event_description && (
                   <div className="ah-modal-info-item ah-modal-info-item--full">
                     <span className="ah-modal-info-label">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                       Description
                     </span>
                     <span className="ah-modal-info-value ah-modal-info-value--desc">{sessionDetail.event_description}</span>
@@ -364,6 +377,31 @@ const AttendanceHistory = () => {
               </>
             ) : null}
           </div>
+
+          {/* Your attendance summary strip */}
+          <div className="ah-modal-section-title" style={{ marginTop: '1.1rem' }}>Your Attendance</div>
+          <div className="ah-modal-summary-strip">
+            <div className="ah-modal-summary-item">
+              <span className="ah-modal-summary-value">{summary.totalServices}</span>
+              <span className="ah-modal-summary-label">Total Services</span>
+            </div>
+            <div className="ah-modal-summary-divider" />
+            <div className="ah-modal-summary-item">
+              <span className="ah-modal-summary-value" style={{ color: rateColor }}>{summary.rate}%</span>
+              <span className="ah-modal-summary-label">Attendance Rate</span>
+            </div>
+            <div className="ah-modal-summary-divider" />
+            <div className="ah-modal-summary-item">
+              <span className="ah-modal-summary-value">{summary.monthVisits}</span>
+              <span className="ah-modal-summary-label">This Month</span>
+            </div>
+            <div className="ah-modal-summary-divider" />
+            <div className="ah-modal-summary-item">
+              <span className="ah-modal-summary-value">{summary.streak}</span>
+              <span className="ah-modal-summary-label">Day Streak</span>
+            </div>
+          </div>
+
         </div>
 
         <div className="ah-modal-footer">
