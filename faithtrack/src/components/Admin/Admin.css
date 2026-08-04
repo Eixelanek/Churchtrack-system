@@ -5735,6 +5735,19 @@ select.form-input {
 
 .stg-tabs::-webkit-scrollbar { display: none; }
 
+@media (max-width: 768px) {
+  .stg-tabs {
+    mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+  }
+
+  /* Remove fade once scrolled near the end — JS-free, best effort */
+  .stg-tabs:has(.stg-tab:last-child:is(:focus, :hover)) {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
 .stg-tab {
   display: inline-flex;
   align-items: center;
