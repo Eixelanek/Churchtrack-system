@@ -1933,166 +1933,195 @@ const Member = () => {
 
       {/* Family Tree Overlay */}
       {showFamilyTree && (
-        <div className="family-tree-overlay">
-          <div className="family-tree-panel">
-            <header className="family-tree-header">
-              <div>
-                <h2>Family Tree</h2>
-                <p>Manage your family connections for quick check-ins.</p>
+        <div className="ft-overlay">
+          <div className="ft-panel">
+
+            {/* Header */}
+            <header className="ft-header">
+              <div className="ft-header-left">
+                <div className="ft-header-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="ft-title">Family Tree</h2>
+                  <p className="ft-subtitle">Manage your family connections</p>
+                </div>
               </div>
-              <button className="family-tree-close" onClick={handleFamilyTreeClose}>
-                <span aria-hidden="true">×</span>
-              </button>
+              <button className="ft-close" onClick={handleFamilyTreeClose} aria-label="Close">&#x2715;</button>
             </header>
 
-            <section className="family-tree-section">
-              <h3>Your Family Circle</h3>
-              {familyTreeData?.family?.length > 0 ? (
-                <div className="family-tree-list">
-                  {familyTreeData.family.map((member) => (
-                    <div key={member.id || member.member_id} className="family-invite-item">
-                      <div className="invite-info">
-                        <span className="invite-name">{member.member_name}</span>
-                        <span className="invite-relation">{member.relationship_type}</span>
-                      </div>
-                      <div className="invite-actions">
+            <div className="ft-body">
+
+              {/* Family Circle */}
+              <div className="ft-section">
+                <div className="ft-section-head">
+                  <span className="ft-section-title">Family Circle</span>
+                  {familyTreeData?.family?.length > 0 && (
+                    <span className="ft-badge">{familyTreeData.family.length}</span>
+                  )}
+                </div>
+                {familyTreeData?.family?.length > 0 ? (
+                  <div className="ft-member-list">
+                    {familyTreeData.family.map((member) => (
+                      <div key={member.id || member.member_id} className="ft-member-row">
+                        <div className="ft-member-avatar">{getInitials(member.member_name)}</div>
+                        <div className="ft-member-info">
+                          <span className="ft-member-name">{member.member_name}</span>
+                          <span className="ft-member-rel">{member.relationship_type}</span>
+                        </div>
                         <button
-                          className="invite-btn decline"
+                          className="ft-remove-btn"
                           onClick={() => handleOpenRemoveFamily(member)}
                           disabled={isRemovingFamily && removeTarget?.member_id === member.member_id}
                         >
                           {isRemovingFamily && removeTarget?.member_id === member.member_id ? 'Removing…' : 'Remove'}
                         </button>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ft-empty">No family members added yet.</div>
+                )}
+              </div>
+
+              {/* Tree chart */}
+              {familyTreeRelativeCount > 0 && (
+                <div className="ft-section">
+                  <div className="ft-section-head">
+                    <span className="ft-section-title">Tree Preview</span>
+                  </div>
+                  <div className="ft-tree-visual">
+                    <FamilyTreeChart
+                      parents={familyTreePreview.parents}
+                      centerRow={familyTreePreview.couple}
+                      siblings={familyTreePreview.siblings}
+                      children={familyTreePreview.children}
+                      other={familyTreePreview.other}
+                      getInitials={getInitials}
+                      formatRelation={(rel) => (rel === 'You' ? 'You' : normalizeRelationLabel(rel))}
+                      highlightRelation="You"
+                      theme="green"
+                    />
+                  </div>
                 </div>
-              ) : (
-                <p className="family-tree-placeholder">No family members yet.</p>
               )}
-            </section>
 
-            {familyTreeRelativeCount > 0 && (
-              <section className="family-tree-section">
-                <h3>Family Tree Preview</h3>
-                <div className="family-tree-visual">
-                  <FamilyTreeChart
-                    parents={familyTreePreview.parents}
-                    centerRow={familyTreePreview.couple}
-                    siblings={familyTreePreview.siblings}
-                    children={familyTreePreview.children}
-                    other={familyTreePreview.other}
-                    getInitials={getInitials}
-                    formatRelation={(rel) => (rel === 'You' ? 'You' : normalizeRelationLabel(rel))}
-                    highlightRelation="You"
-                    theme="green"
-                  />
+              {/* Invite */}
+              <div className="ft-section">
+                <div className="ft-section-head">
+                  <span className="ft-section-title">Invite Member</span>
                 </div>
-              </section>
-            )}
+                <div className="ft-invite-form">
+                  <div className="ft-invite-row">
+                    <div className="ft-search-wrap">
+                      <svg className="ft-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      <input
+                        className="ft-search-input"
+                        type="text"
+                        placeholder="Search by name or email…"
+                        value={searchQuery}
+                        onChange={(e) => handleSearchMembers(e.target.value)}
+                      />
+                    </div>
+                    <select
+                      value={selectedRelationship}
+                      onChange={(e) => setSelectedRelationship(e.target.value)}
+                      className="ft-rel-select"
+                    >
+                      <option value="Parent">Parent</option>
+                      <option value="Spouse">Spouse</option>
+                      <option value="Child">Child</option>
+                      <option value="Sibling">Sibling</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
 
-            <section className="family-tree-section">
-              <h3>Invite Family Member</h3>
-              <div className="family-tree-invite-form">
-                <div className="invite-search-wrapper">
-                  <input 
-                    type="text" 
-                    placeholder="Search member name or email"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchMembers(e.target.value)}
-                  />
-                  <select 
-                    value={selectedRelationship}
-                    onChange={(e) => setSelectedRelationship(e.target.value)}
-                    className="relationship-select"
-                  >
-                    <option value="Parent">Parent</option>
-                    <option value="Spouse">Spouse</option>
-                    <option value="Child">Child</option>
-                    <option value="Sibling">Sibling</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                {isSearching && <p className="search-loading">Searching...</p>}
-                {searchResults.length > 0 && (
-                  <div className="search-results">
-                    {searchResults.map((member) => (
-                      <div key={member.id} className="search-result-item">
-                        <div className="result-info">
-                          <span className="result-name">{member.full_name}</span>
-                          <span className="result-email">{member.email}</span>
+                  {isSearching && <div className="ft-search-loading">Searching…</div>}
+                  {searchResults.length > 0 && (
+                    <div className="ft-search-results">
+                      {searchResults.map((m) => (
+                        <div key={m.id} className="ft-search-row">
+                          <div className="ft-search-avatar">{getInitials(m.full_name)}</div>
+                          <div className="ft-search-info">
+                            <span className="ft-search-name">{m.full_name}</span>
+                            <span className="ft-search-email">{m.email}</span>
+                          </div>
+                          {m.relationship_status ? (
+                            <span className="ft-search-status">{m.relationship_status}</span>
+                          ) : (
+                            <button className="ft-invite-btn" onClick={() => handleSendInvite(m.id)} disabled={inviteLoading}>
+                              {inviteLoading ? 'Sending…' : 'Invite'}
+                            </button>
+                          )}
                         </div>
-                        {member.relationship_status ? (
-                          <span className="result-status">{member.relationship_status}</span>
-                        ) : (
-                          <button 
-                            className="invite-btn send"
-                            onClick={() => handleSendInvite(member.id)}
-                            disabled={inviteLoading}
-                          >
-                            {inviteLoading ? 'Sending...' : 'Invite'}
-                          </button>
-                        )}
+                      ))}
+                    </div>
+                  )}
+                  <p className="ft-note">Invited members need to approve before appearing in your tree.</p>
+                </div>
+              </div>
+
+              {/* Received invitations */}
+              <div className="ft-section">
+                <div className="ft-section-head">
+                  <span className="ft-section-title">Invitations Received</span>
+                  {familyTreeData?.pending_received?.length > 0 && (
+                    <span className="ft-badge ft-badge--amber">{familyTreeData.pending_received.length}</span>
+                  )}
+                </div>
+                {familyTreeData?.pending_received?.length > 0 ? (
+                  <div className="ft-member-list">
+                    {familyTreeData.pending_received.map((invite) => (
+                      <div key={invite.id} className="ft-member-row">
+                        <div className="ft-member-avatar">{getInitials(invite.member_name)}</div>
+                        <div className="ft-member-info">
+                          <span className="ft-member-name">{invite.member_name}</span>
+                          <span className="ft-member-rel">{invite.relationship_type}</span>
+                        </div>
+                        <div className="ft-action-btns">
+                          <button className="ft-accept-btn" onClick={() => handleRespondToInvite(invite.id, 'accept')}>Accept</button>
+                          <button className="ft-decline-btn" onClick={() => handleRespondToInvite(invite.id, 'decline')}>Decline</button>
+                        </div>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="ft-empty">No pending invitations.</div>
                 )}
               </div>
-              <small className="family-tree-note">Search for members and send invitations. They need to approve before appearing in your family tree.</small>
-            </section>
 
-            <section className="family-tree-section">
-              <h3>Pending Invitations Received</h3>
-              {familyTreeData?.pending_received?.length > 0 ? (
-                <div className="family-tree-list">
-                  {familyTreeData.pending_received.map((invite) => (
-                    <div key={invite.id} className="family-invite-item">
-                      <div className="invite-info">
-                        <span className="invite-name">{invite.member_name}</span>
-                        <span className="invite-relation">{invite.relationship_type}</span>
-                      </div>
-                      <div className="invite-actions">
-                        <button 
-                          className="invite-btn accept"
-                          onClick={() => handleRespondToInvite(invite.id, 'accept')}
-                        >
-                          Accept
-                        </button>
-                        <button 
-                          className="invite-btn decline"
-                          onClick={() => handleRespondToInvite(invite.id, 'decline')}
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+              {/* Sent invitations */}
+              <div className="ft-section">
+                <div className="ft-section-head">
+                  <span className="ft-section-title">Invitations Sent</span>
+                  {familyTreeData?.pending_sent?.length > 0 && (
+                    <span className="ft-badge">{familyTreeData.pending_sent.length}</span>
+                  )}
                 </div>
-              ) : (
-                <p className="family-tree-placeholder">No pending invitations.</p>
-              )}
-            </section>
+                {familyTreeData?.pending_sent?.length > 0 ? (
+                  <div className="ft-member-list">
+                    {familyTreeData.pending_sent.map((invite) => (
+                      <div key={invite.id} className="ft-member-row">
+                        <div className="ft-member-avatar">{getInitials(invite.member_name)}</div>
+                        <div className="ft-member-info">
+                          <span className="ft-member-name">{invite.member_name}</span>
+                          <span className="ft-member-rel">{invite.relationship_type}</span>
+                        </div>
+                        <span className="ft-pending-badge">Pending</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ft-empty">No sent invitations.</div>
+                )}
+              </div>
 
-            <section className="family-tree-section">
-              <h3>Pending Invitations Sent</h3>
-              {familyTreeData?.pending_sent?.length > 0 ? (
-                <div className="family-tree-list">
-                  {familyTreeData.pending_sent.map((invite) => (
-                    <div key={invite.id} className="family-invite-item">
-                      <div className="invite-info">
-                        <span className="invite-name">{invite.member_name}</span>
-                        <span className="invite-relation">{invite.relationship_type}</span>
-                      </div>
-                      <span className="invite-status">Pending</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="family-tree-placeholder">No pending sent invitations.</p>
-              )}
-            </section>
+            </div>
           </div>
-          <div className="family-tree-backdrop" onClick={handleFamilyTreeClose} />
+          <div className="ft-backdrop" onClick={handleFamilyTreeClose} />
         </div>
       )}
 
