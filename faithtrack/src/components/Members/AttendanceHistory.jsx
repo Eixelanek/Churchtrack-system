@@ -393,36 +393,36 @@ const AttendanceHistory = () => {
               <div className="ah-stat-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               </div>
-              <div>
-                <div className="ah-stat-value">{summary.totalServices}</div>
-                <div className="ah-stat-label">Total Services</div>
+              <div className="ah-stat-body">
+                <span className="ah-stat-label">Total Services</span>
+                <span className="ah-stat-value">{summary.totalServices}</span>
               </div>
             </div>
             <div className="ah-stat-card ah-stat--green">
               <div className="ah-stat-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </div>
-              <div>
-                <div className="ah-stat-value" style={{ color: rateColor }}>{summary.rate}%</div>
-                <div className="ah-stat-label">Attendance Rate</div>
+              <div className="ah-stat-body">
+                <span className="ah-stat-label">Attendance Rate</span>
+                <span className="ah-stat-value" style={{ color: rateColor }}>{summary.rate}%</span>
               </div>
             </div>
             <div className="ah-stat-card ah-stat--amber">
               <div className="ah-stat-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               </div>
-              <div>
-                <div className="ah-stat-value" style={{ color: '#f59e0b' }}>{summary.streak}</div>
-                <div className="ah-stat-label">Day Streak</div>
+              <div className="ah-stat-body">
+                <span className="ah-stat-label">Day Streak</span>
+                <span className="ah-stat-value" style={{ color: '#b45309' }}>{summary.streak}</span>
               </div>
             </div>
-            <div className="ah-stat-card ah-stat--purple">
+            <div className="ah-stat-card ah-stat--violet">
               <div className="ah-stat-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-              <div>
-                <div className="ah-stat-value" style={{ color: '#8b5cf6' }}>{summary.monthVisits}</div>
-                <div className="ah-stat-label">This Month</div>
+              <div className="ah-stat-body">
+                <span className="ah-stat-label">This Month</span>
+                <span className="ah-stat-value" style={{ color: '#7c3aed' }}>{summary.monthVisits}</span>
               </div>
             </div>
           </div>
@@ -480,10 +480,10 @@ const AttendanceHistory = () => {
                 {[1, 2, 3].map((i) => <div key={i} className="ah-skeleton-card" />)}
               </div>
             ) : error ? (
-              <div className="records-placeholder error">{error}</div>
+              <div className="ah-empty-state"><p className="ah-error-text">{error}</p></div>
             ) : filteredRecords.length === 0 ? (
               <div className="ah-empty-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <p>No records found for this filter.</p>
                 {(selectedMonth !== 'All' || searchTerm || selectedFilter !== 'all') && (
                   <button className="ah-reset-btn" onClick={() => { setSelectedMonth('All'); setSearchTerm(''); setSelectedFilter('all'); }}>
@@ -492,32 +492,44 @@ const AttendanceHistory = () => {
                 )}
               </div>
             ) : (
-              <div className="records-list">
-                {filteredRecords.map((record) => (
-                  <button
-                    key={record.id}
-                    className="attendance-record-card"
-                    onClick={() => openDetail(record)}
-                    aria-label={`View details for ${record.service} on ${record.date}`}
-                  >
-                    <div className="record-left">
-                      <div className="record-dot" />
-                      <div>
-                        <div className="record-header">
-                          <h4>{record.service}</h4>
-                        </div>
-                        <div className="record-datetime">{record.date}{record.time && ` · ${record.time}`}</div>
-                      </div>
-                    </div>
-                    <div className="record-right">
-                      <span className="record-status">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        {record.status}
-                      </span>
-                      <svg className="record-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                  </button>
-                ))}
+              <div className="ah-table-wrap">
+                <table className="ah-table">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Status</th>
+                      <th aria-label="Details" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRecords.map((record) => (
+                      <tr
+                        key={record.id}
+                        className="ah-table-row"
+                        onClick={() => openDetail(record)}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`View details for ${record.service} on ${record.date}`}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(record); } }}
+                      >
+                        <td className="ah-td-service">{record.service}</td>
+                        <td className="ah-td-date">{record.date}</td>
+                        <td className="ah-td-time">{record.time || '—'}</td>
+                        <td>
+                          <span className="ah-status-badge">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            {record.status}
+                          </span>
+                        </td>
+                        <td className="ah-td-chevron">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

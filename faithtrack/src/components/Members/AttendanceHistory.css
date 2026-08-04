@@ -15,13 +15,10 @@
 
 .my-attendance-header h1 {
   font-size: 1.9rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0 0 0.3rem;
-  background: linear-gradient(90deg, #0046a5 0%, #00a0e3 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: #0a1a3a;
+  letter-spacing: -0.4px;
 }
 
 .my-attendance-header p {
@@ -52,45 +49,56 @@
   padding: 1.1rem 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  border-top: 3px solid transparent;
-  transition: box-shadow 0.2s;
+  gap: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0,73,175,0.05);
+  border: 1px solid rgba(0,73,175,0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 
-.ah-stat-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
-
-.ah-stat--blue  { border-top-color: #3b82f6; }
-.ah-stat--green { border-top-color: #10b981; }
-.ah-stat--amber { border-top-color: #f59e0b; }
-.ah-stat--purple{ border-top-color: #8b5cf6; }
+.ah-stat-card:hover {
+  box-shadow: 0 6px 20px rgba(0,73,175,0.1);
+  transform: translateY(-2px);
+}
 
 .ah-stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.ah-stat--blue   .ah-stat-icon { background: #eff6ff; color: #3b82f6; }
-.ah-stat--green  .ah-stat-icon { background: #f0fdf4; color: #10b981; }
-.ah-stat--amber  .ah-stat-icon { background: #fffbeb; color: #f59e0b; }
-.ah-stat--purple .ah-stat-icon { background: #f5f3ff; color: #8b5cf6; }
+.ah-stat--blue   .ah-stat-icon { background: #dbeafe; }
+.ah-stat--blue   .ah-stat-icon svg { stroke: #0049AF; }
+.ah-stat--green  .ah-stat-icon { background: #dcfce7; }
+.ah-stat--green  .ah-stat-icon svg { stroke: #059669; }
+.ah-stat--amber  .ah-stat-icon { background: #fef3c7; }
+.ah-stat--amber  .ah-stat-icon svg { stroke: #b45309; }
+.ah-stat--violet .ah-stat-icon { background: #ede9fe; }
+.ah-stat--violet .ah-stat-icon svg { stroke: #7c3aed; }
+
+.ah-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 .ah-stat-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #3b82f6;
-  line-height: 1.1;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #0a1a3a;
+  letter-spacing: -0.4px;
+  line-height: 1;
 }
 
 .ah-stat-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: #64748b;
-  margin-top: 2px;
 }
 
 /* ─── Monthly chart card ────────────────────────────────────── */
@@ -199,7 +207,7 @@
 .filter-btn:hover { border-color: #3b82f6; color: #3b82f6; }
 
 .filter-btn.active {
-  background: linear-gradient(90deg, #0046a5 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #0049AF 0%, #1095D2 100%);
   color: #fff;
   border-color: transparent;
 }
@@ -344,118 +352,103 @@
 
 .ah-reset-btn:hover { border-color: #3b82f6; color: #3b82f6; }
 
-/* Record cards */
-.records-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  max-height: 520px;
-  overflow-y: auto;
-  padding-right: 4px;
+/* Record table */
+.ah-table-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
 }
 
-.records-list::-webkit-scrollbar { width: 4px; }
-.records-list::-webkit-scrollbar-track { background: transparent; }
-.records-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-.attendance-record-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  transition: box-shadow 0.18s, transform 0.18s;
-  border-left: 3px solid #3b82f6;
-  /* button reset */
+.ah-table {
   width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.ah-table thead tr {
+  background: linear-gradient(135deg, #0049AF, #1095D2);
+}
+
+.ah-table th {
+  padding: 0.85rem 1.1rem;
   text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.ah-table th:last-child {
+  width: 32px;
+}
+
+.ah-table-row {
+  border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  font-family: inherit;
-  border-top: none;
-  border-right: none;
+  transition: background 0.15s;
+}
+
+.ah-table-row:last-child {
   border-bottom: none;
 }
 
-.attendance-record-card:hover {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-  transform: translateY(-1px);
+.ah-table-row:hover {
+  background: #f5f8ff;
 }
 
-.attendance-record-card:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+.ah-table-row:focus-visible {
+  outline: 2px solid #0049AF;
+  outline-offset: -2px;
 }
 
-.record-left {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
+.ah-table td {
+  padding: 0.9rem 1.1rem;
+  color: #334155;
+  vertical-align: middle;
 }
 
-.record-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #3b82f6;
-  flex-shrink: 0;
-}
-
-.record-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.2rem;
-}
-
-.record-header h4 {
-  font-size: 0.95rem;
+.ah-td-service {
   font-weight: 600;
-  color: #1e293b;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 280px;
+  color: #0a1a3a;
 }
 
-.record-datetime {
-  font-size: 0.82rem;
+.ah-td-date {
+  white-space: nowrap;
+}
+
+.ah-td-time {
+  white-space: nowrap;
   color: #64748b;
 }
 
-.record-status {
+.ah-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #10b981;
-  background: #f0fdf4;
-  padding: 4px 10px;
-  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #059669;
+  background: #dcfce7;
+  padding: 3px 10px;
+  border-radius: 50px;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.record-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.record-chevron {
+.ah-td-chevron {
   color: #cbd5e1;
-  transition: color 0.15s, transform 0.15s;
+  text-align: right;
 }
 
-.attendance-record-card:hover .record-chevron {
-  color: #3b82f6;
-  transform: translateX(2px);
+.ah-table-row:hover .ah-td-chevron {
+  color: #0049AF;
+}
+
+.ah-error-text {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* ─── Event Detail Modal ────────────────────────────────────── */
@@ -847,10 +840,14 @@
   .attendance-filters { flex-direction: column; align-items: stretch; }
   .ah-right-controls { flex-wrap: wrap; }
   .ah-search-input { width: 100%; }
-  .record-header h4 { max-width: 180px; }
+  .ah-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ah-table th,
+  .ah-table td { padding: 0.75rem 0.85rem; font-size: 0.82rem; }
+  .ah-td-time { display: none; }
 }
 
 @media (max-width: 480px) {
   .ah-stats-row { grid-template-columns: 1fr 1fr; }
   .filter-group { flex-wrap: wrap; }
+  .ah-td-date { display: none; }
 }
