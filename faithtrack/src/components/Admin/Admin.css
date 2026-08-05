@@ -3268,6 +3268,7 @@ select.form-input {
   background: none;
   border: none;
   border-bottom: 1px solid #f1f5f9;
+  border-left: 4px solid transparent;
   color: #64748b;
   font-size: 1rem;
   font-weight: 500;

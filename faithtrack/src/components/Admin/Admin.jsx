@@ -2156,7 +2156,7 @@ For privacy questions or requests, please reach out to the CLCC administrative o
         {/* Mobile Menu Dropdown */}
         {showMobileMenu && (
           <div className="mobile-menu-dropdown">
-            <button className={`mobile-menu-item ${!showAttendanceView && !showMembersView && !showContactView && !showBirthdayView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
+            <button className={`mobile-menu-item ${!showAttendanceView && !showMembersView && !showContactView && !showBirthdayView && !showProfileView && !showSettingsView ? 'active' : ''}`} onClick={() => { setShowAttendanceView(false); setShowMembersView(false); setShowContactView(false); setShowBirthdayView(false); setShowProfileView(false); setShowSettingsView(false); setShowMobileMenu(false); }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
