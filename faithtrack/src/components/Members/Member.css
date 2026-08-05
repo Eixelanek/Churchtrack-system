@@ -236,6 +236,34 @@
   stroke: currentColor;
 }
 
+/* Hamburger button — hidden on desktop, shown on mobile */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  display: block;
+}
+
 /* Mobile sidebar close button - hidden on desktop */
 .mobile-sidebar-close {
   display: none;
@@ -1648,7 +1676,7 @@ button,
   }
 
   .mobile-menu-btn {
-    display: flex !important;
+    display: flex;
     position: relative;
     left: 0;
     flex-shrink: 0;
