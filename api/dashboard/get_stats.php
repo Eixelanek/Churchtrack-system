@@ -87,6 +87,16 @@ try {
         $weeklyAttendanceRate = round(($weekAttendance / $expectedWeekAttendance) * 100);
     }
     
+    // Get total events this month
+    $monthStart = date('Y-m-01');
+    $monthEnd   = date('Y-m-t');
+    $totalEventsMonthQuery = "SELECT COUNT(*) as total FROM events WHERE date BETWEEN :month_start AND :month_end";
+    $stmt = $db->prepare($totalEventsMonthQuery);
+    $stmt->bindParam(':month_start', $monthStart);
+    $stmt->bindParam(':month_end', $monthEnd);
+    $stmt->execute();
+    $totalEventsThisMonth = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
     echo json_encode([
         'success' => true,
         'stats' => [
@@ -95,7 +105,8 @@ try {
             'todayAttendance' => (int)$todayAttendance,
             'todayRate' => (int)$todayRate,
             'weekAttendance' => (int)$weekAttendance,
-            'weeklyAttendanceRate' => (int)$weeklyAttendanceRate
+            'weeklyAttendanceRate' => (int)$weeklyAttendanceRate,
+            'totalEventsThisMonth' => (int)$totalEventsThisMonth
         ]
     ]);
     
