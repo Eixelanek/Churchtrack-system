@@ -86,10 +86,7 @@ const DEFAULT_DASHBOARD_STATS = {
   todayAttendance: 0,
   todayRate: 0,
   weekAttendance: 0,
-  weeklyAttendanceRate: 0,
-  totalQrGenerated: 0,
-  monthQrGenerated: 0,
-  activeQrSessions: 0
+  weeklyAttendanceRate: 0
 };
 
 const LOGIN_HISTORY_PAGE_SIZE = 5;
@@ -179,15 +176,10 @@ const Manager = () => {
   const [isDashboardStatsLoading, setIsDashboardStatsLoading] = useState(true);
   const [weeklyTrendRaw, setWeeklyTrendRaw] = useState([]);
   const [isWeeklyTrendLoading, setIsWeeklyTrendLoading] = useState(false);
-  const [isQrStatsLoading, setIsQrStatsLoading] = useState(false);
-  const [quickQrSessions, setQuickQrSessions] = useState([]);
-  const [isQuickQrLoading, setIsQuickQrLoading] = useState(true);
-  const [isQuickQrRefreshing, setIsQuickQrRefreshing] = useState(false);
   const [recentAttendanceRaw, setRecentAttendanceRaw] = useState([]);
   const [isRecentAttendanceLoading, setIsRecentAttendanceLoading] = useState(false);
   const [topActiveMembersRaw, setTopActiveMembersRaw] = useState([]);
   const [isTopActiveMembersLoading, setIsTopActiveMembersLoading] = useState(false);
-  const [quickQrModalData, setQuickQrModalData] = useState(null);
 
   const backendBaseUrl = useMemo(() => computeBackendBaseUrl(), []);
   const frontendBaseUrl = useMemo(() => {
@@ -324,46 +316,13 @@ const Manager = () => {
           weeklyAttendanceRate: Number(stats.weeklyAttendanceRate) || 0
         }));
       } catch (error) {
-        // Don't reset stats on error, keep previous values (including QR stats)
+        // Keep previous stats on error
       } finally {
         setIsDashboardStatsLoading(false);
       }
     };
 
     fetchDashboardStats();
-  }, [backendBaseUrl]);
-
-  useEffect(() => {
-    const fetchQrStats = async () => {
-      setIsQrStatsLoading(true);
-      try {
-        const response = await fetch(`${backendBaseUrl}/api/dashboard/get_qr_stats.php`);
-        const responseText = await response.text();
-        const result = responseText ? JSON.parse(responseText) : null;
-
-        if (!response.ok || !result?.success || !result?.data) {
-          throw new Error(result?.message || 'Failed to load QR stats');
-        }
-
-        setDashboardStats((prev) => ({
-          ...prev,
-          totalQrGenerated: Number(result.data.totalGenerated) || 0,
-          monthQrGenerated: Number(result.data.monthGenerated) || 0,
-          activeQrSessions: Number(result.data.activeSessions) || 0
-        }));
-      } catch (error) {
-        setDashboardStats((prev) => ({
-          ...prev,
-          totalQrGenerated: 0,
-          monthQrGenerated: 0,
-          activeQrSessions: 0
-        }));
-      } finally {
-        setIsQrStatsLoading(false);
-      }
-    };
-
-    fetchQrStats();
   }, [backendBaseUrl]);
 
   useEffect(() => {
@@ -390,40 +349,6 @@ const Manager = () => {
     };
 
     fetchWeeklyTrend();
-  }, [backendBaseUrl]);
-
-  const fetchQuickQrSessions = useCallback(async () => {
-    try {
-      const response = await fetch(`${backendBaseUrl}/api/qr_sessions/list.php?limit=12`);
-      const responseText = await response.text();
-      const result = responseText ? JSON.parse(responseText) : null;
-
-      if (!response.ok || !result?.success || !Array.isArray(result.data)) {
-        throw new Error(result?.message || 'Failed to load quick QR sessions');
-      }
-
-      const sessions = result.data
-        .map((session) => ({
-          ...session,
-          scan_count: Number(session.scan_count) || 0
-        }))
-        .sort((a, b) => {
-          const aTime = new Date(a.event_datetime || a.created_at || 0).getTime();
-          const bTime = new Date(b.event_datetime || b.created_at || 0).getTime();
-          return bTime - aTime;
-        });
-
-      setQuickQrSessions(sessions.slice(0, 4));
-      setIsQuickQrLoading(false);
-    } catch (error) {
-      setIsQuickQrLoading(false);
-    }
-  }, [backendBaseUrl]);
-
-  useEffect(() => {
-    fetchQuickQrSessions();
-    const interval = setInterval(fetchQuickQrSessions, 20000);
-    return () => clearInterval(interval);
   }, [backendBaseUrl]);
 
   useEffect(() => {
@@ -515,35 +440,6 @@ const Manager = () => {
 
     img.src = svgUrl;
   }, []);
-
-  const handleQuickQrClick = useCallback((session) => {
-    if (!session?.session_token) {
-      return;
-    }
-
-    const qrUrl = `${frontendBaseUrl}/checkin?session=${session.session_token}`;
-    setQuickQrModalData({ session, qrUrl });
-  }, [frontendBaseUrl]);
-
-  const handleQuickQrKeyDown = useCallback((event, session) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      handleQuickQrClick(session);
-    }
-  }, [handleQuickQrClick]);
-
-  const closeQuickQrModal = useCallback(() => {
-    setQuickQrModalData(null);
-  }, []);
-
-  const handleQuickQrDownload = useCallback(() => {
-    if (!quickQrModalData?.session?.session_token) {
-      return;
-    }
-    const elementId = `quick-qr-svg-${quickQrModalData.session.session_token}`;
-    const filename = quickQrModalData.session.service_name || 'qr-session';
-    downloadSvgAsPng(elementId, filename.replace(/\s+/g, '-').toLowerCase());
-  }, [downloadSvgAsPng, quickQrModalData]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -840,7 +736,7 @@ const Manager = () => {
   ];
 
   const dashboardSummary = useMemo(() => {
-    const placeholder = isDashboardStatsLoading || isQrStatsLoading ? '...' : null;
+    const placeholder = isDashboardStatsLoading ? '...' : null;
     const formatNumber = (value) => (typeof value === 'number' ? value.toLocaleString() : '0');
     const formatPercent = (value) => `${typeof value === 'number' ? value : 0}%`;
 
@@ -865,42 +761,9 @@ const Manager = () => {
         value: placeholder ?? formatPercent(dashboardStats.weeklyAttendanceRate),
         meta: placeholder ? 'Loading...' : `${formatNumber(dashboardStats.weekAttendance)} check-ins`,
         icon: 'trend'
-      },
-      {
-        key: 'qr',
-        label: 'QR Generated',
-        value: placeholder ?? formatNumber(dashboardStats.monthQrGenerated),
-        meta: placeholder ? 'Loading...' : `${formatNumber(dashboardStats.totalQrGenerated)} total • ${formatNumber(dashboardStats.activeQrSessions)} active`,
-        icon: 'qr'
       }
     ];
-  }, [dashboardStats, isDashboardStatsLoading, isQrStatsLoading]);
-
-  const quickQrCards = useMemo(() => {
-    if (quickQrSessions.length === 0) {
-      return QUICK_QR_PRESETS.map((preset) => ({ ...preset, preset: true }));
-    }
-
-    return quickQrSessions.map((session) => {
-      const eventDate = session.event_datetime ? new Date(session.event_datetime.replace(' ', 'T')) : null;
-      const dateLabel = eventDate
-        ? eventDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-        : undefined;
-      const timeLabel = eventDate
-        ? eventDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
-        : undefined;
-
-      return {
-        id: session.session_token || `session-${session.id}`,
-        title: session.service_name || 'QR Session',
-        metric: `${session.scan_count || 0} check-ins`,
-        date: dateLabel,
-        timeLabel,
-        session
-      };
-    });
-  }, [quickQrSessions]);
-
+  }, [dashboardStats, isDashboardStatsLoading]);
 
   const recentAttendance = useMemo(() => {
     if (!recentAttendanceRaw.length) {
@@ -989,18 +852,7 @@ const Manager = () => {
         );
       case 'qr':
       default:
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="6" height="6"></rect>
-            <rect x="15" y="3" width="6" height="6"></rect>
-            <rect x="15" y="15" width="6" height="6"></rect>
-            <line x1="3" y1="15" x2="3" y2="21"></line>
-            <line x1="3" y1="21" x2="9" y2="21"></line>
-            <line x1="9" y1="21" x2="9" y2="18"></line>
-            <line x1="9" y1="18" x2="6" y2="18"></line>
-            <line x1="12" y1="12" x2="12" y2="12"></line>
-          </svg>
-        );
+        return null;
     }
   }, []);
 
@@ -1264,52 +1116,6 @@ const Manager = () => {
             </div>
           </section>
 
-          {/* Recent QR Sessions */}
-          <section className="mgr-card">
-            <div className="mgr-card-head">
-              <span className="mgr-card-title">Recent QR Sessions</span>
-              <button type="button" className="mgr-view-all" onClick={() => fetchQuickQrSessions()}>Refresh</button>
-            </div>
-            {isQuickQrLoading && quickQrSessions.length === 0 ? (
-              <div className="mgr-empty">Loading sessions…</div>
-            ) : quickQrSessions.length === 0 ? (
-              <div className="mgr-empty">No QR sessions yet</div>
-            ) : (
-              <div className="mgr-qr-list">
-                {quickQrCards.map((card) => {
-                  const isInteractive = Boolean(card.session || card.preset);
-                  const handleClick = () => {
-                    if (!isInteractive) return;
-                    if (card.session) handleQuickQrClick(card.session);
-                    else if (card.preset) {
-                      const matched = QUICK_QR_PRESETS.find((p) => p.id === card.id);
-                      if (matched) handleQuickGeneratePreset(matched);
-                    }
-                  };
-                  const handleKeyDown = (e) => {
-                    if (!isInteractive) return;
-                    if (card.session) handleQuickQrKeyDown(e, card.session);
-                    else if (card.preset) handleQuickGeneratePresetKey(e, card.id);
-                  };
-                  return (
-                    <div key={card.id} className={`mgr-qr-row${isInteractive ? ' mgr-qr-row--clickable' : ''}`}
-                      role={isInteractive ? 'button' : undefined} tabIndex={isInteractive ? 0 : -1}
-                      onClick={handleClick} onKeyDown={handleKeyDown}
-                    >
-                      <div className="mgr-qr-dot" />
-                      <div className="mgr-qr-info">
-                        <span className="mgr-qr-name">{card.title || card.label}</span>
-                        <span className="mgr-qr-meta">
-                          {[card.metric, card.date, card.timeLabel].filter(Boolean).join(' · ') || card.description || ''}
-                        </span>
-                      </div>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mgr-qr-chevron"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
         </div>
 
         {/* Right column */}
@@ -1373,45 +1179,6 @@ const Manager = () => {
 
         </div>
       </div>
-
-      {quickQrModalData && quickQrModalData.session && (
-        <div className="qr-modal-overlay" onClick={closeQuickQrModal}>
-          <div className="qr-modal-content single" onClick={(event) => event.stopPropagation()}>
-            <div className="qr-modal-hero">
-              <div className="qr-modal-hero-copy">
-                <h3>{quickQrModalData.session.service_name || 'QR Session'}</h3>
-                <p>{formatEventDateTime(quickQrModalData.session.event_datetime)}</p>
-              </div>
-              <button className="qr-modal-close" onClick={closeQuickQrModal} aria-label="Close quick QR preview">×</button>
-            </div>
-            <div className="qr-modal-body single">
-              <div className="qr-modal-card single-layout">
-                <div className="qr-visual">
-                  <div className="qr-display">
-                    <QRCodeSVG
-                      id={`quick-qr-svg-${quickQrModalData.session.session_token}`}
-                      value={quickQrModalData.qrUrl}
-                      size={220}
-                      includeMargin
-                    />
-                  </div>
-                </div>
-                <div className="qr-meta">
-                  <span className="qr-meta-label">Status:</span>
-                  <span className="qr-meta-value">{(quickQrModalData.session.status || 'active').toUpperCase()}</span>
-                  <button
-                    type="button"
-                    className="qr-download-modal-btn"
-                    onClick={handleQuickQrDownload}
-                  >
-                    Download QR
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 

@@ -1,0 +1,798 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>ChurchTrack User Manual</title>
+<style>
+/* â”€â”€ BASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:11pt;}
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:11pt;
+  line-height:2;
+  color:#000;
+  background:#fff;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+/* â”€â”€ PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.page{
+  width:297mm;
+  min-height:210mm;
+  margin:0 auto;
+  padding:20mm 25.4mm 20mm 25.4mm;
+  position:relative;
+  page-break-after:always;
+  overflow:hidden;
+}
+.page:last-child{page-break-after:auto;}
+
+/* â”€â”€ HEADER / FOOTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.doc-header{
+  position:absolute;top:8mm;left:25.4mm;right:25.4mm;
+  border-bottom:1pt solid #000;
+  padding-bottom:2pt;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  font-size:9pt;color:#333;
+}
+.doc-footer{
+  position:absolute;bottom:8mm;left:25.4mm;right:25.4mm;
+  border-top:1pt solid #000;
+  padding-top:2pt;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  font-size:9pt;color:#333;
+}
+.page-content{margin-top:10mm;}
+.no-header-footer .doc-header,
+.no-header-footer .doc-footer{display:none;}
+
+/* â”€â”€ COVER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.cover{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  min-height:247mm;
+  gap:0;
+}
+.cover-logo-box{
+  width:120px;height:120px;
+  border:1pt dashed #999;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9pt;color:#666;font-style:italic;
+  margin-bottom:18pt;
+}
+.cover-school{font-size:12pt;font-weight:bold;margin-bottom:2pt;}
+.cover-dept{font-size:11pt;margin-bottom:2pt;}
+.cover-course{font-size:11pt;margin-bottom:32pt;}
+.cover-rule{width:80%;border:none;border-top:2pt solid #000;margin:0 auto 20pt;}
+.cover-title{font-size:24pt;font-weight:bold;letter-spacing:1pt;margin-bottom:6pt;}
+.cover-subtitle{font-size:14pt;font-weight:bold;margin-bottom:4pt;}
+.cover-church{font-size:12pt;margin-bottom:4pt;}
+.cover-type{font-size:13pt;font-weight:bold;letter-spacing:2pt;margin-bottom:32pt;}
+.cover-rule2{width:80%;border:none;border-top:2pt solid #000;margin:0 auto 20pt;}
+.cover-proponents{font-size:11pt;margin-bottom:4pt;}
+.cover-year{font-size:11pt;margin-bottom:4pt;}
+.cover-date{font-size:11pt;}
+
+/* â”€â”€ TYPOGRAPHY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+h1{
+  font-size:16pt;font-weight:bold;
+  text-align:center;
+  margin-top:0;margin-bottom:12pt;
+  text-transform:uppercase;
+  letter-spacing:1pt;
+}
+h2{
+  font-size:13pt;font-weight:bold;
+  margin-top:18pt;margin-bottom:6pt;
+  border-left:4pt solid #1a3a6b;
+  padding-left:8pt;
+  color:#1a3a6b;
+}
+h3{
+  font-size:12pt;font-weight:bold;
+  margin-top:14pt;margin-bottom:4pt;
+  color:#000;
+}
+h4{
+  font-size:11pt;font-weight:bold;font-style:italic;
+  margin-top:10pt;margin-bottom:2pt;
+  color:#000;
+}
+p{margin-bottom:0;text-align:justify;}
+p+p{text-indent:0;}
+ul,ol{margin:4pt 0 4pt 24pt;}
+li{margin-bottom:0;}
+
+/* â”€â”€ TOC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.toc-title{
+  font-size:14pt;font-weight:bold;text-align:center;
+  margin-bottom:20pt;text-transform:uppercase;letter-spacing:1pt;
+}
+.toc-item{
+  display:flex;align-items:baseline;
+  margin-bottom:4pt;font-size:11pt;
+  line-height:1.6;
+}
+.toc-item.indent{padding-left:24pt;}
+.toc-item.indent2{padding-left:48pt;}
+.toc-num{min-width:36pt;flex-shrink:0;}
+.toc-text{flex:1;}
+.toc-dots{
+  flex:1;border-bottom:1pt dotted #666;
+  margin:0 6pt 3pt;min-width:20pt;
+}
+.toc-page{min-width:20pt;text-align:right;flex-shrink:0;}
+
+/* â”€â”€ FIGURE PLACEHOLDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.figure{margin:12pt 0 6pt;text-align:center;}
+.figure-box{
+  width:100%;
+  min-height:120pt;
+  border:1pt dashed #999;
+  background:#f7f7f7;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:6pt;
+  padding:10pt;
+  color:#555;font-size:9.5pt;font-style:italic;
+}
+.figure-box svg{opacity:0.35;}
+.figure-caption{
+  font-size:9.5pt;font-style:italic;
+  text-align:center;margin-top:3pt;
+  color:#222;
+}
+.figure-caption strong{font-style:normal;}
+
+/* â”€â”€ NOTE BOX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.note-box{
+  background:#f0f4ff;
+  border-left:3pt solid #1a3a6b;
+  padding:6pt 10pt;
+  margin:8pt 0;
+  font-size:10.5pt;
+  line-height:1.8;
+}
+
+/* â”€â”€ 2-COLUMN LAYOUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20pt;
+  align-items: start;
+}
+.two-col-left, .two-col-right { min-width: 0; }
+
+/* â”€â”€ SECTION DIVIDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.section-rule{
+  width:100%;border:none;
+  border-top:1pt solid #ccc;
+  margin:14pt 0 10pt;
+}
+
+@media print{
+  @page { size: A4 landscape; margin: 0; }
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff;}
+  .page{
+    margin:0;padding:20mm 25.4mm;
+    width:297mm;min-height:210mm;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ COVER PAGE ══════════ -->
+<div class="page no-header-footer">
+  <div class="cover">
+    <div class="cover-logo-box">
+      <span>[School Logo]</span>
+    </div>
+    <div class="cover-school">[PLACEHOLDER: School / University Name]</div>
+    <div class="cover-dept">[PLACEHOLDER: College / Department Name]</div>
+    <div class="cover-course">[PLACEHOLDER: Course Name and Section]</div>
+    <hr class="cover-rule"/>
+    <div class="cover-title">ChurchTrack</div>
+    <div class="cover-subtitle">Church Membership and Attendance Management System</div>
+    <div class="cover-church">Christ-Like Christian Church</div>
+    <div class="cover-type">USER MANUAL</div>
+    <hr class="cover-rule2"/>
+    <div class="cover-proponents">[PLACEHOLDER: Proponent 1 Name]</div>
+    <div class="cover-proponents">[PLACEHOLDER: Proponent 2 Name]</div>
+    <div class="cover-proponents">[PLACEHOLDER: Proponent 3 Name]</div>
+    <div style="margin-top:20pt;" class="cover-year">[PLACEHOLDER: Academic Year and Semester]</div>
+    <div class="cover-date">[PLACEHOLDER: Date Submitted]</div>
+  </div>
+</div>
+
+<!-- ══════════ PREFACE PAGE ══════════ -->
+<div class="page no-header-footer">
+  <div style="border-bottom:2pt solid #1a3a6b;padding-bottom:10pt;margin-bottom:20pt;">
+    <h1 style="text-align:left;font-size:18pt;letter-spacing:1pt;border:none;margin:0;">Preface</h1>
+  </div>
+
+  <div class="toc-item" style="margin-bottom:12pt;"><span class="toc-text" style="font-weight:bold;font-size:12pt;">Purpose</span><span class="toc-dots"></span></div>
+  <p style="margin-bottom:16pt;">This user manual provides comprehensive guidance on how to use ChurchTrack â€” a web-based church membership and attendance management system developed for Christ-Like Christian Church (CLCC). It is intended to help users understand the system's features, navigate its modules, and perform tasks efficiently across all three user roles: Member, Manager, and Administrator.</p>
+
+  <div class="toc-item" style="margin-bottom:12pt;"><span class="toc-text" style="font-weight:bold;font-size:12pt;">What to Expect</span><span class="toc-dots"></span></div>
+  <p style="margin-bottom:16pt;">This manual covers step-by-step procedures for all major features of ChurchTrack, including member registration, attendance tracking via QR code, event management, report generation, and system configuration. Each section is organized by user role and includes figure placeholders where screenshots should be inserted to supplement the written instructions.</p>
+
+  <div class="toc-item" style="margin-bottom:12pt;"><span class="toc-text" style="font-weight:bold;font-size:12pt;">Audience</span><span class="toc-dots"></span></div>
+  <p style="margin-bottom:16pt;">This manual is intended for the following users of ChurchTrack:</p>
+  <ul style="margin-bottom:16pt;">
+    <li><strong>Members</strong> â€” Registered church members who use the system to view their attendance history, access their QR code, and manage their family connections.</li>
+    <li><strong>Managers</strong> â€” Church staff or designated personnel responsible for recording attendance, managing events, and monitoring member records.</li>
+    <li><strong>Administrators</strong> â€” Church administrators with full system access, including member approval, report generation, and system configuration.</li>
+  </ul>
+
+  <div class="toc-item" style="margin-bottom:12pt;"><span class="toc-text" style="font-weight:bold;font-size:12pt;">Web Main Modules</span><span class="toc-dots"></span></div>
+  <p style="margin-bottom:8pt;">ChurchTrack is organized into the following main modules:</p>
+  <ul>
+    <li><strong>Member Portal</strong> â€” Dashboard, My QR Code, My Attendance, Profile Settings, and Family Tree.</li>
+    <li><strong>Manager Portal</strong> â€” Dashboard, Scan Attendance, Events, Attendance Records, and Members.</li>
+    <li><strong>Administrator Portal</strong> â€” Dashboard, Attendance Management, Members Management, Contact Messages, Reports, and Settings.</li>
+  </ul>
+</div>
+
+<!-- ══════════ TABLE OF CONTENTS ══════════ -->
+<div class="page no-header-footer">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc-item"><span class="toc-num">1.</span><span class="toc-text">Introduction</span><span class="toc-dots"></span><span class="toc-page">1</span></div>
+  <div class="toc-item"><span class="toc-num">2.</span><span class="toc-text">System Requirements</span><span class="toc-dots"></span><span class="toc-page">1</span></div>
+  <div class="toc-item"><span class="toc-num">3.</span><span class="toc-text">Getting Started</span><span class="toc-dots"></span><span class="toc-page">2</span></div>
+  <div class="toc-item indent"><span class="toc-num">3.1</span><span class="toc-text">Accessing the System</span><span class="toc-dots"></span><span class="toc-page">2</span></div>
+  <div class="toc-item indent"><span class="toc-num">3.2</span><span class="toc-text">Homepage</span><span class="toc-dots"></span><span class="toc-page">2</span></div>
+  <div class="toc-item"><span class="toc-num">4.</span><span class="toc-text">Member User Guide</span><span class="toc-dots"></span><span class="toc-page">3</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.1</span><span class="toc-text">Registration</span><span class="toc-dots"></span><span class="toc-page">3</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.2</span><span class="toc-text">Email Verification</span><span class="toc-dots"></span><span class="toc-page">3</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.3</span><span class="toc-text">Login</span><span class="toc-dots"></span><span class="toc-page">4</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.4</span><span class="toc-text">Forgot Password</span><span class="toc-dots"></span><span class="toc-page">4</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.5</span><span class="toc-text">Member Dashboard</span><span class="toc-dots"></span><span class="toc-page">4</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.6</span><span class="toc-text">My QR Code</span><span class="toc-dots"></span><span class="toc-page">5</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.7</span><span class="toc-text">My Attendance</span><span class="toc-dots"></span><span class="toc-page">5</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.8</span><span class="toc-text">Profile Settings</span><span class="toc-dots"></span><span class="toc-page">6</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.9</span><span class="toc-text">Family Tree</span><span class="toc-dots"></span><span class="toc-page">6</span></div>
+  <div class="toc-item indent"><span class="toc-num">4.10</span><span class="toc-text">Sign Out</span><span class="toc-dots"></span><span class="toc-page">6</span></div>
+  <div class="toc-item"><span class="toc-num">5.</span><span class="toc-text">Manager User Guide</span><span class="toc-dots"></span><span class="toc-page">7</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.1</span><span class="toc-text">Login</span><span class="toc-dots"></span><span class="toc-page">7</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.2</span><span class="toc-text">Manager Dashboard</span><span class="toc-dots"></span><span class="toc-page">7</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.3</span><span class="toc-text">Scan Attendance</span><span class="toc-dots"></span><span class="toc-page">7</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.4</span><span class="toc-text">Events</span><span class="toc-dots"></span><span class="toc-page">8</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.5</span><span class="toc-text">Attendance Records</span><span class="toc-dots"></span><span class="toc-page">8</span></div>
+  <div class="toc-item indent"><span class="toc-num">5.6</span><span class="toc-text">Members</span><span class="toc-dots"></span><span class="toc-page">8</span></div>
+  <div class="toc-item"><span class="toc-num">6.</span><span class="toc-text">Administrator User Guide</span><span class="toc-dots"></span><span class="toc-page">9</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.1</span><span class="toc-text">Login</span><span class="toc-dots"></span><span class="toc-page">9</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.2</span><span class="toc-text">Admin Dashboard</span><span class="toc-dots"></span><span class="toc-page">9</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.3</span><span class="toc-text">Attendance Management</span><span class="toc-dots"></span><span class="toc-page">10</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.4</span><span class="toc-text">Members Management</span><span class="toc-dots"></span><span class="toc-page">10</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.5</span><span class="toc-text">Contact Messages</span><span class="toc-dots"></span><span class="toc-page">11</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.6</span><span class="toc-text">Reports</span><span class="toc-dots"></span><span class="toc-page">11</span></div>
+  <div class="toc-item"><span class="toc-num">6.7</span><span class="toc-text">Settings</span><span class="toc-dots"></span><span class="toc-page">11</span></div>
+  <div class="toc-item indent"><span class="toc-num">6.8</span><span class="toc-text">Admin Profile Settings</span><span class="toc-dots"></span><span class="toc-page">12</span></div>
+  <div class="toc-item"><span class="toc-num">7.</span><span class="toc-text">Troubleshooting</span><span class="toc-dots"></span><span class="toc-page">13</span></div>
+</div>
+
+<!-- ══════════ SECTION 1 & 2 ══════════ -->
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Sections 1 &amp; 2</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 1</span></div>
+  <div class="page-content">
+    <h1>ChurchTrack User Manual</h1>
+    <h2>1. Introduction</h2>
+    <p>ChurchTrack is a web-based church membership and attendance management system developed for Christ-Like Christian Church (CLCC). It enables church leadership to track member attendance, manage church events, maintain membership records, and facilitate family connections among members.</p>
+    <p>The system supports three user roles:</p>
+    <ul>
+      <li><strong>Member</strong> â€” Church members who can view their attendance history, access their personal QR code for check-ins, and manage their family connections.</li>
+      <li><strong>Manager</strong> â€” Church staff responsible for scanning member QR codes to record attendance, managing events, and monitoring member records.</li>
+      <li><strong>Administrator</strong> â€” Church administrators with full access to all system features including reports, settings, and member approval.</li>
+    </ul>
+    <hr class="section-rule"/>
+    <h2>2. System Requirements</h2>
+    <p>ChurchTrack is a web-based application accessible through any modern web browser. No software installation is required.</p>
+    <h3>Recommended Browsers</h3>
+    <ul>
+      <li>Google Chrome (version 90 or higher)</li>
+      <li>Mozilla Firefox (version 88 or higher)</li>
+      <li>Microsoft Edge (version 90 or higher)</li>
+      <li>Safari (version 14 or higher)</li>
+    </ul>
+    <h3>Device Requirements</h3>
+    <ul>
+      <li>Desktop, laptop, tablet, or mobile phone with internet access</li>
+      <li>Stable internet connection</li>
+      <li>Camera access required for QR code scanning (Manager portal only)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 3 â€” Getting Started</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 2</span></div>
+  <div class="page-content">
+    <h2>3. Getting Started</h2>
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>3.1 Accessing the System</h3>
+        <p>Open your preferred web browser and navigate to the ChurchTrack website address provided by your church administrator. The system is accessible from any modern browser on desktop or mobile without requiring any software installation.</p>
+        <h3>3.2 Homepage</h3>
+        <p>The homepage is displayed upon accessing the system. It provides an overview of ChurchTrack and the church. From this page, users may navigate to the Login page or the Registration page.</p>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” ChurchTrack Homepage]</span></div>
+          <div class="figure-caption"><strong>Figure 1.</strong> ChurchTrack Homepage.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 4 â€” MEMBER (Part 1) ══════════ -->
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 4 â€” Member User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 3</span></div>
+  <div class="page-content">
+    <h2>4. Member User Guide</h2>
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>4.1 Registration</h3>
+        <p>New members may create an account through the registration page.</p>
+        <ol>
+          <li>From the homepage, click <strong>Sign Up</strong> or <strong>Register</strong>.</li>
+          <li>Fill in all required fields: First Name, Last Name, Username, Email Address, Birthday, Password, and Confirm Password.</li>
+          <li>Accept the Terms and Conditions and Privacy Policy.</li>
+          <li>Click <strong>Register</strong>. A verification email will be sent.</li>
+        </ol>
+        <div class="note-box"><strong>Note:</strong> Members under 18 require parent or guardian approval before the account becomes fully active.</div>
+        <h3>4.2 Email Verification</h3>
+        <ol>
+          <li>Open your email and find the message from ChurchTrack with subject "Verify Your Email."</li>
+          <li>Click the verification link. You will be redirected to a confirmation page.</li>
+          <li>Your account will then be reviewed and approved by the church administrator.</li>
+        </ol>
+        <div class="note-box"><strong>Note:</strong> If no email was received, check your spam or junk mail folder.</div>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Registration Form]</span></div>
+          <div class="figure-caption"><strong>Figure 2.</strong> Member Registration Form.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Email Verification Page]</span></div>
+          <div class="figure-caption"><strong>Figure 3.</strong> Email Verification Confirmation.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 4 â€” Member User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 4</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>4.3 Login</h3>
+        <ol>
+          <li>Navigate to the Login page.</li>
+          <li>Enter your <strong>Username</strong> and <strong>Password</strong>.</li>
+          <li>Click <strong>Sign In</strong>.</li>
+          <li>Upon successful login, you will be directed to the Member Dashboard.</li>
+        </ol>
+        <h3>4.4 Forgot Password</h3>
+        <ol>
+          <li>On the Login page, click <strong>Forgot Password</strong>.</li>
+          <li>Enter your registered email address and click <strong>Send Reset Link</strong>.</li>
+          <li>Check your inbox for the password reset email and click the link.</li>
+          <li>Enter and confirm your new password, then click <strong>Reset Password</strong>.</li>
+        </ol>
+        <h3>4.5 Member Dashboard</h3>
+        <p>The Member Dashboard displays:</p>
+        <ul>
+          <li><strong>Total Attendance</strong> â€” Total services attended.</li>
+          <li><strong>This Month</strong> â€” Services attended this month.</li>
+          <li><strong>Attendance Rate</strong> â€” Overall attendance percentage.</li>
+          <li><strong>Current Streak</strong> â€” Consecutive days with attendance.</li>
+          <li><strong>Monthly Breakdown</strong> â€” Bar chart for last 7 months.</li>
+          <li><strong>Recent Attendance</strong> â€” Latest check-in records.</li>
+        </ul>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Login Page]</span></div>
+          <div class="figure-caption"><strong>Figure 4.</strong> Member Login Page.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Member Dashboard]</span></div>
+          <div class="figure-caption"><strong>Figure 5.</strong> Member Dashboard Overview.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 4 â€” Member User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 5</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>4.6 My QR Code</h3>
+        <ol>
+          <li>Click <strong>My QR Code</strong> from the navigation menu.</li>
+          <li>Your personal QR code is displayed. Present it to the staff at the entrance.</li>
+          <li>Tap <strong>Fullscreen</strong> for a larger display, or <strong>Download</strong> to save as an image.</li>
+          <li>Click the <strong>Children's QR</strong> tab to view QR codes for linked children (age 12 and below).</li>
+        </ol>
+        <h3>4.7 My Attendance</h3>
+        <ol>
+          <li>Click <strong>My Attendance</strong> from the navigation menu.</li>
+          <li>Records display in a table: Service, Date, Time, and Status.</li>
+          <li>Click any row to view the attendance detail â€” status, event info, attendees, and your statistics.</li>
+          <li>Use the <strong>Filter</strong> buttons, <strong>Month</strong> dropdown, or <strong>Search</strong> field to narrow results.</li>
+        </ol>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” My QR Code Page]</span></div>
+          <div class="figure-caption"><strong>Figure 6.</strong> My QR Code Page.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” My Attendance Records Table]</span></div>
+          <div class="figure-caption"><strong>Figure 7.</strong> My Attendance Records Table.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 4 â€” Member User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 6</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>4.8 Profile Settings</h3>
+        <ol>
+          <li>Click your <strong>profile avatar</strong> in the top navigation and select <strong>Profile Settings</strong>.</li>
+          <li>Update: Profile Picture, First Name, Last Name, Email, Birthday, Contact Number, Address.</li>
+          <li>Click <strong>Save</strong>.</li>
+          <li>To change password, go to the <strong>Security</strong> tab, enter current and new passwords, and click <strong>Save</strong>.</li>
+        </ol>
+        <h3>4.9 Family Tree</h3>
+        <ol>
+          <li>Click your <strong>profile avatar</strong> and select <strong>Family Tree</strong>. The panel opens from the right.</li>
+          <li>To invite: search by name or email, select a relationship, and click <strong>Invite</strong>.</li>
+          <li>In <strong>Invitations Received</strong>, click <strong>Accept</strong> or <strong>Decline</strong>.</li>
+          <li>To remove a member, click <strong>Remove</strong> in the Family Circle section.</li>
+        </ol>
+        <h3>4.10 Sign Out</h3>
+        <p>Click your <strong>profile avatar</strong> and select <strong>Sign Out</strong>. You will be redirected to the login page.</p>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Member Profile Settings Page]</span></div>
+          <div class="figure-caption"><strong>Figure 8.</strong> Member Profile Settings.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Family Tree Panel]</span></div>
+          <div class="figure-caption"><strong>Figure 9.</strong> Family Tree Panel.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 5 â€” MANAGER ══════════ -->
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 5 â€” Manager User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 7</span></div>
+  <div class="page-content">
+    <h2>5. Manager User Guide</h2>
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>5.1 Login</h3>
+        <ol>
+          <li>Navigate to the Login page and enter your Manager <strong>Username</strong> and <strong>Password</strong>.</li>
+          <li>Click <strong>Sign In</strong> to be directed to the Manager Dashboard.</li>
+        </ol>
+        <h3>5.2 Manager Dashboard</h3>
+        <p>Displays: Total Members, Today's Attendance, Weekly Average, QR Generated, Weekly Attendance Chart, Recent QR Sessions, Top Active Members, and Recent Attendance records.</p>
+        <h3>5.3 Scan Attendance</h3>
+        <ol>
+          <li>Click <strong>Scan Attendance</strong> from the navigation menu.</li>
+          <li>Select the active event from the dropdown and click <strong>Start Scanning</strong>.</li>
+          <li>Point the camera at the member's QR code on their device.</li>
+          <li>The member's name and check-in status appear instantly.</li>
+        </ol>
+        <ul>
+          <li><strong>Present</strong> â€” Scanned within 15 minutes of start time.</li>
+          <li><strong>Late</strong> â€” Scanned more than 15 minutes after start time.</li>
+          <li><strong>Already Checked In</strong> â€” Member scanned twice.</li>
+        </ul>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Manager Dashboard]</span></div>
+          <div class="figure-caption"><strong>Figure 10.</strong> Manager Dashboard.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Scan Attendance Page]</span></div>
+          <div class="figure-caption"><strong>Figure 11.</strong> Scan Attendance Page.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 5 â€” Manager User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 8</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>5.4 Events</h3>
+        <ol>
+          <li>Click <strong>Events</strong> from the navigation menu.</li>
+          <li>Select a preset or fill in the form: Title, Type, Date, Start Time, End Time, Location, Description.</li>
+          <li>Click <strong>Create Event</strong>.</li>
+        </ol>
+        <p><strong>Status:</strong> Upcoming Â· Active (auto at start time) Â· Completed (auto at end time)</p>
+        <h3>5.5 Attendance Records</h3>
+        <ol>
+          <li>Click <strong>Attendance</strong> from the navigation menu.</li>
+          <li>Filter by All, Active, Upcoming, or Completed.</li>
+          <li>Click an event to view the attendee list with check-in times and statuses.</li>
+        </ol>
+        <h3>5.6 Members</h3>
+        <ol>
+          <li>Click <strong>Members</strong> from the navigation menu.</li>
+          <li>View each member's name, status, and contact information.</li>
+          <li>Click a member's name to view their full profile.</li>
+        </ol>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Events Page with Create Event Form]</span></div>
+          <div class="figure-caption"><strong>Figure 12.</strong> Events â€” Create Event Form.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Attendance Records Page]</span></div>
+          <div class="figure-caption"><strong>Figure 13.</strong> Attendance Records Page.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 6 â€” ADMIN Part 1 ══════════ -->
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 6 â€” Administrator User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 9</span></div>
+  <div class="page-content">
+    <h2>6. Administrator User Guide</h2>
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>6.1 Login</h3>
+        <ol>
+          <li>Navigate to the Login page and enter your Admin <strong>Username</strong> and <strong>Password</strong>.</li>
+          <li>Click <strong>Sign In</strong> to be directed to the Admin Dashboard.</li>
+        </ol>
+        <h3>6.2 Admin Dashboard</h3>
+        <p>Displays: Total Members, Today's Attendance, Weekly Average, This Week total, Weekly Attendance and Member Growth charts, Quick Actions (Add Member, Generate Report, Schedule), Upcoming Birthdays, Service Breakdown, and Recent Records.</p>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Admin Login Page]</span></div>
+          <div class="figure-caption"><strong>Figure 14.</strong> Administrator Login Page.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Admin Dashboard]</span></div>
+          <div class="figure-caption"><strong>Figure 15.</strong> Admin Dashboard.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 6 â€” Administrator User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 10</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>6.3 Attendance Management</h3>
+        <ol>
+          <li>Click <strong>Attendance</strong> from the top navigation.</li>
+          <li>Filter by All, Active, Upcoming, or Completed.</li>
+          <li>Click <strong>Mark Attendance</strong> â†’ <strong>Manual Entry</strong> to add a check-in manually.</li>
+          <li>Click <strong>View Details</strong> to see the attendee list and statistics.</li>
+          <li>Click <strong>Add Event</strong> to create a new event; <strong>End Event</strong> to close an active one.</li>
+        </ol>
+        <h3>6.4 Members Management</h3>
+        <ol>
+          <li>Click <strong>Members</strong> from the top navigation.</li>
+          <li>Tabs: All Members, Pending Requests, Rejected, Guests, Birthdays.</li>
+          <li>In <strong>Pending Requests</strong>, click <strong>Approve</strong> or <strong>Reject</strong> with a reason.</li>
+          <li>Click a member's name to view their profile â€” Personal &amp; Contact, Membership &amp; Referral, Family Tree.</li>
+          <li>Click <strong>Edit Member</strong> to update details, or <strong>Add Member</strong> to create manually.</li>
+        </ol>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Attendance Management Page]</span></div>
+          <div class="figure-caption"><strong>Figure 16.</strong> Attendance Management Page.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Members Management Pending Requests]</span></div>
+          <div class="figure-caption"><strong>Figure 17.</strong> Pending Requests Tab.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <ol>
+      <li>Click the <strong>Pending Requests</strong> tab.</li>
+      <li>Review the applicant's details.</li>
+      <li>Click <strong>Approve</strong> to activate the account or <strong>Reject</strong> to decline with a written reason.</li>
+    </ol>
+    <div class="figure">
+      <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Pending Requests Tab with Approve/Reject buttons]</span></div>
+      <div class="figure-caption"><strong>Figure 17.</strong> Members Management â€” Pending Requests Tab.</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 6 â€” Administrator User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 11</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>6.7 Settings</h3>
+        <p>Access from the profile dropdown menu â†’ <strong>Settings</strong>.</p>
+        <h4>Church Identity</h4>
+        <ul>
+          <li>Upload Church Logo (used in reports/sidebar) and Header Logo (navigation bar).</li>
+          <li>Update: Church Name, Address, Phone, Email, and date format.</li>
+        </ul>
+        <h4>Homepage</h4>
+        <ul>
+          <li>Edit hero title and subtitle on the public homepage.</li>
+          <li>Upload or replace floating gallery images.</li>
+        </ul>
+        <h4>Help Center</h4>
+        <p>Enter support email, contact number, and help center link shown to members.</p>
+        <h4>Legal</h4>
+        <p>Edit Terms and Conditions and Privacy Policy texts shown during registration.</p>
+        <h4>System Maintenance</h4>
+        <p>Click <strong>Run Maintenance</strong> to safely remove stale sessions and outdated records. Does not affect active member data.</p>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Church Identity Settings Tab]</span></div>
+          <div class="figure-caption"><strong>Figure 20.</strong> Church Identity Settings.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” System Maintenance Tab]</span></div>
+          <div class="figure-caption"><strong>Figure 21.</strong> System Maintenance Tab.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 6 â€” Administrator User Guide</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 12</span></div>
+  <div class="page-content">
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>6.8 Admin Profile Settings</h3>
+        <ol>
+          <li>Click your <strong>profile avatar</strong> â†’ <strong>Profile Settings</strong>.</li>
+          <li>Under the <strong>Account</strong> tab, update: Profile Picture, First Name, Last Name, Email Address, and Birthday.</li>
+          <li>Click <strong>Save</strong>.</li>
+          <li>To change password: click the <strong>Security</strong> tab, enter current and new passwords, and click <strong>Save</strong>.</li>
+        </ol>
+        <h4>Active Sessions</h4>
+        <p>The Security tab lists all active login sessions. Click <strong>End Session</strong> next to any entry to terminate it remotely.</p>
+      </div>
+      <div class="two-col-right">
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Admin Profile Settings â€” Account Tab]</span></div>
+          <div class="figure-caption"><strong>Figure 22.</strong> Admin Profile Settings.</div>
+        </div>
+        <div class="figure">
+          <div class="figure-box"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>[PLACEHOLDER: Screenshot â€” Security Tab with Active Sessions]</span></div>
+          <div class="figure-caption"><strong>Figure 23.</strong> Security Tab â€” Active Sessions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 7 â€” TROUBLESHOOTING ══════════ -->
+<div class="page">
+  <div class="doc-header"><span>ChurchTrack User Manual</span><span>Section 7 â€” Troubleshooting</span></div>
+  <div class="doc-footer"><span>[PLACEHOLDER: School Name]</span><span>Page 13</span></div>
+  <div class="page-content">
+    <h2>7. Troubleshooting</h2>
+    <div class="two-col">
+      <div class="two-col-left">
+        <h3>Cannot Log In</h3>
+        <ul>
+          <li>Check username and password. Verify Caps Lock is off.</li>
+          <li>Use <strong>Forgot Password</strong> on the login page to reset.</li>
+          <li>If not yet verified or approved, contact your administrator.</li>
+        </ul>
+        <h3>Did Not Receive Verification Email</h3>
+        <ul>
+          <li>Check your spam or junk mail folder.</li>
+          <li>Ensure the email address entered during registration was correct.</li>
+          <li>If the problem persists, contact your church administrator.</li>
+        </ul>
+        <h3>QR Code Not Showing</h3>
+        <ul>
+          <li>Check internet connection and refresh the page.</li>
+          <li>Log out and log back in if the issue persists.</li>
+        </ul>
+        <h3>QR Code Cannot Be Scanned</h3>
+        <ul>
+          <li>Tap <strong>Fullscreen</strong> to maximize the QR code display.</li>
+          <li>Increase screen brightness. Hold the device steady.</li>
+        </ul>
+      </div>
+      <div class="two-col-right">
+        <h3>Attendance Not Recorded After Scanning</h3>
+        <ul>
+          <li>Confirm the correct event is selected in Scan Attendance.</li>
+          <li>Confirm the event status is <strong>Active</strong>. Completed events do not accept new check-ins.</li>
+          <li>Check internet connection and scan again.</li>
+        </ul>
+        <h3>Camera Not Working</h3>
+        <ul>
+          <li>Ensure the browser has camera permission enabled.</li>
+          <li>On mobile: open browser settings â†’ enable camera access for ChurchTrack.</li>
+          <li>Try using Google Chrome.</li>
+        </ul>
+        <h3>Page Not Loading / Slow Performance</h3>
+        <ul>
+          <li>Check internet connection.</li>
+          <li>Clear browser cache and cookies, then reload.</li>
+          <li>Try a different browser or device.</li>
+        </ul>
+        <hr class="section-rule"/>
+        <p><strong>For unresolved issues, contact support:</strong></p>
+        <div class="note-box">
+          [PLACEHOLDER: Support Email Address]<br/>
+          [PLACEHOLDER: Support Contact Number]<br/>
+          [PLACEHOLDER: Help Center URL]
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CLOSING PAGE ══════════ -->
+<div class="page no-header-footer" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+  <div style="border-top:2pt solid #1a3a6b;border-bottom:2pt solid #1a3a6b;padding:24pt 40pt;margin:auto;">
+    <p style="font-size:13pt;font-weight:bold;letter-spacing:1pt;margin-bottom:8pt;">â€” End of User Manual â€”</p>
+    <p style="font-size:11pt;margin-bottom:4pt;"><strong>ChurchTrack</strong></p>
+    <p style="font-size:11pt;margin-bottom:4pt;">Church Membership and Attendance Management System</p>
+    <p style="font-size:11pt;margin-bottom:4pt;">Christ-Like Christian Church</p>
+    <p style="font-size:10pt;color:#444;margin-top:16pt;">[PLACEHOLDER: Version Number] &nbsp;|&nbsp; [PLACEHOLDER: Date Prepared]</p>
+    <p style="font-size:10pt;color:#444;">[PLACEHOLDER: Institution Name] &nbsp;|&nbsp; [PLACEHOLDER: Academic Year]</p>
+  </div>
+</div>
+
+</body>
+</html>
+
+
+
